@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KURIR — HITUNG JARAK & ONGKOS</title>
+  <title>KURIR EXPRESS — Pemesanan & Hitung Jarak</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- FontAwesome for Icons -->
@@ -23,16 +23,16 @@
 
   <!-- Top Header -->
   <header class="bg-indigo-600 text-white shadow-md sticky top-0 z-40 px-4 py-3 flex justify-between items-center">
-    <h1 class="font-bold text-lg tracking-wide">KURIR EXPRESS</h1>
+    <h1 id="headerTitle" class="font-bold text-lg tracking-wide">KURIR EXPRESS</h1>
     <div id="connectionStatus" class="text-xs bg-indigo-700 px-2 py-1 rounded-full font-medium">
-      <span id="statusText">Menghubungkan ke Server...</span>
+      <span id="statusText">Menghubungkan...</span>
     </div>
   </header>
 
   <!-- Main Content Container -->
-  <main class="flex-1 max-w-md w-full mx-auto p-4 safe-bottom">
+  <main class="flex-1 max-w-md w-full mx-auto p-4 safe-bottom" id="mainContainer">
 
-    <!-- TAB 1: DASHBOARD -->
+    <!-- TAB 1: DASHBOARD (Admin Only) -->
     <section id="tab-dashboard" class="tab-content space-y-4">
       <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
         <h2 class="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-3">Ringkasan Hari Ini</h2>
@@ -69,16 +69,19 @@
           <h3 class="text-slate-800 font-bold text-sm">Pesanan Aktif (<span id="activeCount">0</span>)</h3>
           <span class="text-xs text-slate-400">Menunggu / Proses</span>
         </div>
-        <div id="activeOrdersList" class="space-y-2.5">
-          <!-- Rendered dynamically -->
-        </div>
+        <div id="activeOrdersList" class="space-y-2.5"></div>
       </div>
     </section>
 
     <!-- TAB 2: FORM / PESANAN -->
-    <section id="tab-pesanan" class="tab-content hidden space-y-4">
+    <section id="tab-pesanan" class="tab-content space-y-4">
+      <div id="customerWelcomeBanner" class="bg-indigo-50 border border-indigo-100 p-3.5 rounded-2xl hidden">
+        <h2 class="font-bold text-indigo-900 text-sm mb-1">📦 Form Pemesanan Kurir Mandiri</h2>
+        <p class="text-xs text-indigo-700">Silakan isi alamat jemput dan tujuan Anda, lalu hitung atau sesuaikan jarak KM.</p>
+      </div>
+
       <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-        <h2 class="font-bold text-slate-800 text-base mb-3">Form Pengiriman & Perhitungan</h2>
+        <h2 class="font-bold text-slate-800 text-base mb-3" id="formTitle">Form Pengiriman & Perhitungan</h2>
 
         <form id="orderForm" onsubmit="event.preventDefault();" class="space-y-3">
           <div>
@@ -87,35 +90,35 @@
           </div>
 
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor HP</label>
-            <input type="tel" id="noHp" placeholder="Contoh: 081234567890" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor WhatsApp <span class="text-red-500">*</span></label>
+            <input type="tel" id="noHp" required placeholder="Contoh: 081234567890" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
           </div>
 
           <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1">Alamat Jemput <span class="text-red-500">*</span></label>
-            <textarea id="alamatJemput" rows="2" required placeholder="Contoh: Perum Graha Pancur, Semarang" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+            <textarea id="alamatJemput" rows="2" required placeholder="Contoh: Boja Kendal" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
           </div>
 
           <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1">Alamat Tujuan <span class="text-red-500">*</span></label>
-            <textarea id="alamatTujuan" rows="2" required placeholder="Contoh: Jl. Cucut Semarang Utara" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+            <textarea id="alamatTujuan" rows="2" required placeholder="Contoh: Semarang Utara" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
           </div>
 
           <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1">Catatan (Opsional)</label>
-            <input type="text" id="catatan" placeholder="Contoh: Barang fragile" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <input type="text" id="catatan" placeholder="Contoh: Ambil piring / fragile" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
           </div>
 
           <!-- Tombol Hitung Jarak -->
           <button type="button" onclick="calculateDistance()" class="w-full bg-slate-800 text-white font-semibold py-2.5 rounded-xl text-sm shadow hover:bg-slate-900 transition">
-            HITUNG JARAK
+            HITUNG JARINGAN & KM OTOMATIS
           </button>
         </form>
       </div>
 
-      <!-- Hasil Perhitungan Card -->
+      <!-- Hasil Perhitungan Card (Dengan Edit KM Manual) -->
       <div id="resultCard" class="bg-indigo-900 text-white p-4 rounded-2xl shadow-lg space-y-3 hidden">
-        <h3 class="text-xs uppercase tracking-wider text-indigo-300 font-semibold border-b border-indigo-800 pb-2">Rincian Rute & Ongkos</h3>
+        <h3 class="text-xs uppercase tracking-wider text-indigo-300 font-semibold border-b border-indigo-800 pb-2">Rincian Rute & Sesuaikan KM</h3>
         
         <div class="grid grid-cols-2 gap-2 text-xs">
           <div>
@@ -128,18 +131,19 @@
           </div>
         </div>
 
-        <div class="bg-indigo-950/60 p-3 rounded-xl border border-indigo-800/60 grid grid-cols-3 text-center">
+        <div class="bg-indigo-950/60 p-3 rounded-xl border border-indigo-800/60 grid grid-cols-3 gap-2 text-center items-center">
           <div>
-            <span class="text-[10px] text-indigo-300 block">JARAK</span>
-            <span id="resJarak" class="text-lg font-bold text-white">0 KM</span>
+            <span class="text-[10px] text-indigo-300 block mb-1">JARAK (KM)</span>
+            <!-- Editable KM input so user can adjust if map estimation is off -->
+            <input type="number" id="resJarakInput" step="0.1" min="0.5" oninput="updateCostFromManualKm()" class="w-full bg-white text-slate-950 font-bold text-center text-sm py-1 rounded-lg focus:outline-none">
           </div>
           <div>
-            <span class="text-[10px] text-indigo-300 block">TARIF / KM</span>
-            <span id="resTarif" class="text-sm font-bold text-white">Rp4.000</span>
+            <span class="text-[10px] text-indigo-300 block mb-1">TARIF / KM</span>
+            <span id="resTarif" class="text-xs font-bold text-white block py-1">Rp4.000</span>
           </div>
           <div>
-            <span class="text-[10px] text-indigo-300 block">ESTIMASI</span>
-            <span id="resEstimasi" class="text-sm font-bold text-white">0 mnt</span>
+            <span class="text-[10px] text-indigo-300 block mb-1">ESTIMASI</span>
+            <span id="resEstimasi" class="text-xs font-bold text-white block py-1">0 mnt</span>
           </div>
         </div>
 
@@ -149,12 +153,12 @@
         </div>
 
         <button id="btnSimpan" onclick="saveOrder()" class="w-full bg-emerald-500 text-white font-bold py-3 rounded-xl text-sm shadow-md hover:bg-emerald-600 transition">
-          SIMPAN KE GOOGLE SHEETS
+          PESAN SEKARANG (KIRIM KE KURIR)
         </button>
       </div>
     </section>
 
-    <!-- TAB 3: RIWAYAT -->
+    <!-- TAB 3: RIWAYAT (Admin Only) -->
     <section id="tab-riwayat" class="tab-content hidden space-y-4">
       <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
         <div class="flex justify-between items-center mb-3">
@@ -164,7 +168,6 @@
           </button>
         </div>
 
-        <!-- Mobile Table -->
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs">
             <thead>
@@ -175,18 +178,29 @@
                 <th class="p-2.5 rounded-r-lg">Status</th>
               </tr>
             </thead>
-            <tbody id="historyTableBody" class="divide-y divide-slate-100">
-              <!-- Rendered dynamically -->
-            </tbody>
+            <tbody id="historyTableBody" class="divide-y divide-slate-100"></tbody>
           </table>
         </div>
       </div>
     </section>
 
-    <!-- TAB 4: PENGATURAN -->
+    <!-- TAB 4: PENGATURAN (Admin Only) -->
     <section id="tab-pengaturan" class="tab-content hidden space-y-4">
       <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-4">
-        <h2 class="font-bold text-slate-800 text-base">Pengaturan & Koneksi</h2>
+        <h2 class="font-bold text-slate-800 text-base">Pengaturan & Link Pelanggan</h2>
+
+        <div class="bg-indigo-50 p-3.5 rounded-xl border border-indigo-100 space-y-2">
+          <span class="font-bold text-indigo-900 text-xs block"><i class="fa-solid fa-link mr-1"></i> Link Pemesanan Mandiri Pelanggan:</span>
+          <input type="text" id="customerShareLink" readonly class="w-full px-3 py-2 text-xs bg-white border border-indigo-200 rounded-lg text-indigo-800 font-mono select-all">
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <button onclick="copyCustomerLink()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-3 rounded-xl text-xs transition">
+              <i class="fa-solid fa-copy mr-1"></i> Salin Link
+            </button>
+            <button onclick="shareCustomerLinkWa()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-3 rounded-xl text-xs transition">
+              <i class="fa-brands fa-whatsapp mr-1"></i> Kirim ke WA
+            </button>
+          </div>
+        </div>
 
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor WhatsApp Driver / Kurir</label>
@@ -198,9 +212,9 @@
           <input type="url" id="gasUrlInput" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
 
-        <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-100 text-xs text-indigo-900">
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs text-slate-700">
           <span class="font-bold block mb-1">Tarif Default Saat Ini:</span>
-          <span id="settingsTarifLabel" class="text-lg font-extrabold text-indigo-600">Rp4.000 / KM</span>
+          <span id="settingsTarifLabel" class="text-base font-extrabold text-indigo-600">Rp4.000 / KM</span>
         </div>
 
         <button onclick="saveSettings()" class="w-full bg-indigo-600 text-white font-semibold py-2.5 rounded-xl text-sm shadow hover:bg-indigo-700 transition">
@@ -211,30 +225,26 @@
 
     <!-- Versi & Powered By Footer (Sejajar) -->
     <footer class="text-center text-[11px] text-slate-400 pt-4 pb-2">
-      <span class="font-semibold text-slate-500">v2.8</span> &bull; <span>Powered by Ari GPM</span>
+      <span class="font-semibold text-slate-500">v2.10</span> &bull; <span>Powered by Ari GPM</span>
     </footer>
 
   </main>
 
-  <!-- Detail Modal -->
+  <!-- Detail Modal (Admin) -->
   <div id="detailModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-sm rounded-2xl p-4 shadow-xl space-y-3">
       <div class="flex justify-between items-center border-b pb-2">
         <h3 class="font-bold text-slate-800 text-sm">Detail Pesanan & Live Tracker</h3>
         <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-sm">Tutup</button>
       </div>
-      <div id="modalContent" class="text-xs space-y-2 text-slate-600">
-        <!-- Details populated here -->
-      </div>
-      <!-- Status Update Action Container -->
+      <div id="modalContent" class="text-xs space-y-2 text-slate-600"></div>
       <div id="modalActionContainer"></div>
-      <!-- Live Tracker & WhatsApp Share Container -->
       <div id="modalShareContainer" class="pt-1 space-y-2"></div>
     </div>
   </div>
 
   <!-- Bottom Navigation Bar -->
-  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-40 max-w-md mx-auto flex justify-around py-2 px-1 shadow-lg">
+  <nav id="bottomNav" class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-40 max-w-md mx-auto flex justify-around py-2 px-1 shadow-lg">
     <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center text-indigo-600 space-y-0.5 px-3 py-1 rounded-xl transition">
       <span class="text-[11px] font-semibold">Dashboard</span>
     </button>
@@ -256,29 +266,63 @@
     let currentTarif = 4000;
     let calculatedData = null;
     let ordersData = [];
+    let isCustomerMode = false;
 
     window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      isCustomerMode = urlParams.get('mode') === 'customer';
+
+      const currentBaseUrl = window.location.origin + window.location.pathname;
+      const customerUrl = currentBaseUrl + "?mode=customer";
+      document.getElementById("customerShareLink").value = customerUrl;
+
       const savedUrl = localStorage.getItem("gas_url") || GAS_WEB_APP_URL;
       document.getElementById("gasUrlInput").value = savedUrl;
       const savedDriverWa = localStorage.getItem("driver_wa") || "6281234567890";
       document.getElementById("driverWaInput").value = savedDriverWa;
-      loadData();
+
+      if (isCustomerMode) {
+        document.getElementById("bottomNav").classList.add('hidden');
+        document.getElementById("headerTitle").innerText = "PESAN KURIR MANDIRI";
+        document.getElementById("customerWelcomeBanner").classList.remove('hidden');
+        document.getElementById("formTitle").innerText = "Form Pemesanan Anda";
+        switchTab('pesanan');
+      } else {
+        loadData();
+      }
     });
 
+    function copyCustomerLink() {
+      const copyText = document.getElementById("customerShareLink");
+      copyText.select();
+      navigator.clipboard.writeText(copyText.value);
+      alert("Link pemesanan pelanggan berhasil disalin!");
+    }
+
+    function shareCustomerLinkWa() {
+      const link = document.getElementById("customerShareLink").value;
+      const msg = `Halo! Silakan gunakan link berikut untuk memesan Kurir Express secara mandiri:\n\n${link}\n\nTerima kasih!`;
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
     function switchTab(tabId) {
+      if (isCustomerMode && tabId !== 'pesanan') return;
+
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
       document.getElementById('tab-' + tabId).classList.remove('hidden');
 
-      ['dashboard', 'pesanan', 'riwayat', 'pengaturan'].forEach(id => {
-        const btn = document.getElementById('nav-' + id);
-        if (id === tabId) {
-          btn.classList.remove('text-slate-400');
-          btn.classList.add('text-indigo-600');
-        } else {
-          btn.classList.remove('text-indigo-600');
-          btn.classList.add('text-slate-400');
-        }
-      });
+      if (!isCustomerMode) {
+        ['dashboard', 'pesanan', 'riwayat', 'pengaturan'].forEach(id => {
+          const btn = document.getElementById('nav-' + id);
+          if (id === tabId) {
+            btn.classList.remove('text-slate-400');
+            btn.classList.add('text-indigo-600');
+          } else {
+            btn.classList.remove('text-indigo-600');
+            btn.classList.add('text-slate-400');
+          }
+        });
+      }
       window.scrollTo(0, 0);
     }
 
@@ -289,9 +333,7 @@
     function formatPhoneForWa(phone) {
       if (!phone) return "";
       let cleaned = phone.replace(/\D/g, '');
-      if (cleaned.startsWith('0')) {
-        cleaned = '62' + cleaned.substring(1);
-      }
+      if (cleaned.startsWith('0')) cleaned = '62' + cleaned.substring(1);
       return cleaned;
     }
 
@@ -299,9 +341,10 @@
       const jemput = document.getElementById("alamatJemput").value.trim();
       const tujuan = document.getElementById("alamatTujuan").value.trim();
       const nama = document.getElementById("nama").value.trim();
+      const noHp = document.getElementById("noHp").value.trim();
 
-      if (!nama || !jemput || !tujuan) {
-        alert("Harap isi Nama Pelanggan, Alamat Jemput, dan Alamat Tujuan terlebih dahulu.");
+      if (!nama || !noHp || !jemput || !tujuan) {
+        alert("Harap isi Nama, Nomor WhatsApp, Alamat Jemput, dan Alamat Tujuan terlebih dahulu.");
         return;
       }
 
@@ -310,8 +353,8 @@
       btn.disabled = true;
       btn.innerText = "Menghitung Jarak...";
 
-      let jarakKm = 0;
-      let estimasiMnt = 0;
+      let jarakKm = 15.0; // Default reasonable estimate
+      let estimasiMnt = 45;
 
       try {
         const resJemput = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(jemput + ", Indonesia")}&limit=1`);
@@ -339,36 +382,27 @@
         console.log("Map routing error:", err);
       }
 
-      if (!jarakKm || jarakKm <= 0) {
-        let combinedText = (jemput + tujuan).toLowerCase();
-        let hash = combinedText.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-        jarakKm = Number(((hash % 120 + 35) / 10).toFixed(1));
-        estimasiMnt = Math.round(jarakKm * 3);
-      }
+      if (jarakKm < 1) jarakKm = 2.0;
 
-      if (jarakKm < 0.5) jarakKm = 0.5;
-      if (estimasiMnt < 3) estimasiMnt = 3;
-
-      let totalOngkos = Math.round(jarakKm * currentTarif);
-
+      // Prepare data
       calculatedData = {
         nama: nama,
-        noHp: document.getElementById("noHp").value.trim(),
+        noHp: noHp,
         alamatJemput: jemput,
         alamatTujuan: tujuan,
         catatan: document.getElementById("catatan").value.trim(),
         jarak: jarakKm,
         estimasiMenit: estimasiMnt,
         tarif: currentTarif,
-        totalOngkos: totalOngkos
+        totalOngkos: Math.round(jarakKm * currentTarif)
       };
 
       document.getElementById("resJemput").innerText = jemput;
       document.getElementById("resTujuan").innerText = tujuan;
-      document.getElementById("resJarak").innerText = jarakKm + " KM";
+      document.getElementById("resJarakInput").value = jarakKm;
       document.getElementById("resTarif").innerText = formatRupiah(currentTarif) + "/KM";
       document.getElementById("resEstimasi").innerText = estimasiMnt + " mnt";
-      document.getElementById("resOngkos").innerText = formatRupiah(totalOngkos);
+      document.getElementById("resOngkos").innerText = formatRupiah(calculatedData.totalOngkos);
       
       document.getElementById("resultCard").classList.remove('hidden');
       document.getElementById("resultCard").scrollIntoView({ behavior: 'smooth' });
@@ -377,12 +411,25 @@
       btn.innerText = originalText;
     }
 
+    // Update cost instantly if user edits KM manually
+    function updateCostFromManualKm() {
+      const manualKm = parseFloat(document.getElementById("resJarakInput").value);
+      if (isNaN(manualKm) || manualKm <= 0) return;
+
+      calculatedData.jarak = manualKm;
+      calculatedData.estimasiMenit = Math.round(manualKm * 2.5);
+      calculatedData.totalOngkos = Math.round(manualKm * currentTarif);
+
+      document.getElementById("resEstimasi").innerText = calculatedData.estimasiMenit + " mnt";
+      document.getElementById("resOngkos").innerText = formatRupiah(calculatedData.totalOngkos);
+    }
+
     async function saveOrder() {
       if (!calculatedData) return;
 
       const btn = document.getElementById("btnSimpan");
       btn.disabled = true;
-      btn.innerText = "Menyimpan ke Google Sheets...";
+      btn.innerText = "Mengirim Pesanan...";
 
       const url = document.getElementById("gasUrlInput").value.trim() || GAS_WEB_APP_URL;
 
@@ -395,18 +442,28 @@
         const result = await response.json();
         
         if (result.status === "success") {
-          alert("Berhasil! Pesanan tersimpan di Google Sheets. ID: " + result.orderId);
-          resetForm();
-          loadData();
-          switchTab('riwayat');
+          alert("🎉 Berhasil! Pesanan Anda telah terkirim. ID Pesanan: " + result.orderId);
+          
+          if (isCustomerMode) {
+            const driverWa = localStorage.getItem("driver_wa") || "6281234567890";
+            const confMsg = `Halo Driver, saya memesan kurir baru:\n\n- ID: ${result.orderId}\n- Nama: ${calculatedData.nama}\n- Jemput: ${calculatedData.alamatJemput}\n- Tujuan: ${calculatedData.alamatTujuan}\n- Jarak: ${calculatedData.jarak} KM\n- Total Ongkos: ${formatRupiah(calculatedData.totalOngkos)}`;
+            if (confirm("Ingin kirim konfirmasi pesanan via WhatsApp ke Driver sekarang?")) {
+              window.location.href = `https://wa.me/${driverWa}?text=${encodeURIComponent(confMsg)}`;
+            }
+            resetForm();
+          } else {
+            resetForm();
+            loadData();
+            switchTab('riwayat');
+          }
         } else {
-          throw new Error(result.message || "Gagal dari server Google Sheets");
+          throw new Error(result.message || "Gagal dari server");
         }
       } catch (err) {
         console.error("Save error:", err);
-        alert("Gagal tersambung ke Google Sheets: " + err.message);
+        alert("Gagal mengirim pesanan: " + err.message);
         btn.disabled = false;
-        btn.innerText = "SIMPAN KE GOOGLE SHEETS";
+        btn.innerText = "PESAN SEKARANG (KIRIM KE KURIR)";
       }
     }
 
@@ -416,10 +473,11 @@
       calculatedData = null;
       const btn = document.getElementById("btnSimpan");
       btn.disabled = false;
-      btn.innerText = "SIMPAN KE GOOGLE SHEETS";
+      btn.innerText = "PESAN SEKARANG (KIRIM KE KURIR)";
     }
 
     async function loadData() {
+      if (isCustomerMode) return;
       const url = document.getElementById("gasUrlInput").value.trim() || GAS_WEB_APP_URL;
       const statusText = document.getElementById("statusText");
 
@@ -433,11 +491,11 @@
           currentTarif = Number(data.tarif) || 4000;
           document.getElementById("settingsTarifLabel").innerText = formatRupiah(currentTarif) + " / KM";
           ordersData = data.pesanan || [];
-          statusText.innerText = "Terhubung (Online)";
+          statusText.innerText = "Terhubung";
           renderDashboardAndHistory();
           return;
         } else {
-          throw new Error(data.message || "Respon server tidak valid");
+          throw new Error(data.message || "Respon tidak valid");
         }
       } catch (err) {
         console.error("Connection failed:", err);
@@ -464,11 +522,12 @@
           alert("Gagal mengubah status: " + result.message);
         }
       } catch (err) {
-        alert("Gagal terhubung ke server saat memperbarui status.");
+        alert("Gagal terhubung ke server.");
       }
     }
 
     function renderDashboardAndHistory() {
+      if (isCustomerMode) return;
       let totalOrders = ordersData.length;
       let totalKm = 0;
       let totalRevenue = 0;
@@ -480,12 +539,8 @@
         let status = o["Status"] || "Menunggu";
 
         totalKm += km;
-        if (status === "Selesai") {
-          totalRevenue += cost;
-        }
-        if (status !== "Selesai") {
-          activeOrders.push(o);
-        }
+        if (status === "Selesai") totalRevenue += cost;
+        if (status !== "Selesai") activeOrders.push(o);
       });
 
       document.getElementById("dashOrdersCount").innerText = totalOrders;
@@ -513,7 +568,7 @@
 
       const tableBody = document.getElementById("historyTableBody");
       if (ordersData.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-slate-400">Belum ada riwayat pesanan di database.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-slate-400">Belum ada riwayat pesanan.</td></tr>`;
       } else {
         tableBody.innerHTML = ordersData.map(o => `
           <tr class="hover:bg-slate-50 cursor-pointer border-b border-slate-100" onclick='showDetail(${JSON.stringify(o)})'>
@@ -541,6 +596,7 @@
     }
 
     function showDetail(order) {
+      if (isCustomerMode) return;
       const content = document.getElementById("modalContent");
       content.innerHTML = `
         <p><strong>ID Pesanan:</strong> ${order["ID Pesanan"]}</p>
@@ -554,7 +610,6 @@
         <p><strong>Status Saat Ini:</strong> <span class="px-2 py-0.5 rounded text-xs font-bold ${getStatusBadgeClass(order["Status"])}">${order["Status"]}</span></p>
       `;
 
-      // Status Update Buttons
       const actionContainer = document.getElementById("modalActionContainer");
       actionContainer.innerHTML = `
         <div class="space-y-1.5 pt-2 border-t mt-2">
@@ -567,9 +622,7 @@
         </div>
       `;
 
-      // Live Location Tracker & WhatsApp Auto Link
       const shareContainer = document.getElementById("modalShareContainer");
-      const driverWa = localStorage.getItem("driver_wa") || "6281234567890";
       const customerPhone = formatPhoneForWa(order["Nomor HP"]);
 
       shareContainer.innerHTML = `
@@ -581,9 +634,9 @@
           ${customerPhone ? `
             <a href="https://wa.me/${customerPhone}?text=${encodeURIComponent('Halo ' + order["Nama Pelanggan"] + ', terkait pesanan kurir Anda (' + order["ID Pesanan"] + '): ')}" target="_blank" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-1.5 px-3 rounded-xl text-xs flex items-center justify-center space-x-2 transition">
               <i class="fa-brands fa-whatsapp text-emerald-600"></i>
-              <span>Chat Langsung WhatsApp Customer</span>
+              <span>Chat WhatsApp Customer</span>
             </a>
-          ` : '<p class="text-[10px] text-amber-600 text-center">Nomor HP customer kosong.</p>'}
+          ` : ''}
         </div>
       `;
 
@@ -592,12 +645,11 @@
 
     function sendLiveLocationWa(customerPhone, orderId, status, customerName, destAddress) {
       if (!customerPhone) {
-        alert("Nomor HP customer tidak valid/kosong.");
+        alert("Nomor HP customer kosong.");
         return;
       }
 
       if (!navigator.geolocation) {
-        alert("Geolocation tidak didukung oleh browser Anda.");
         triggerWaSend(customerPhone, orderId, status, customerName, destAddress, null);
         return;
       }
@@ -605,7 +657,7 @@
       const btn = document.querySelector("#modalShareContainer button");
       const originalText = btn.innerHTML;
       btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Mendapatkan Live GPS...`;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Mendapatkan GPS...`;
 
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -617,8 +669,6 @@
           triggerWaSend(customerPhone, orderId, status, customerName, destAddress, mapLink);
         },
         (error) => {
-          console.warn("GPS error:", error);
-          alert("Gagal mendapatkan lokasi GPS live. Mengirim pesan tanpa koordinat GPS.");
           btn.disabled = false;
           btn.innerHTML = originalText;
           triggerWaSend(customerPhone, orderId, status, customerName, destAddress, null);
@@ -629,18 +679,14 @@
 
     function triggerWaSend(customerPhone, orderId, status, customerName, destAddress, mapLink) {
       let statusNotice = "";
-      if (status === "Barang Dijemput") statusNotice = "📦 *Barang telah dijemput (Pickup)* oleh kurir dan siap diantar.";
-      else if (status === "Dalam Pengiriman") statusNotice = "🚚 *Kurir sedang dalam perjalanan* menuju lokasi tujuan Anda.";
-      else if (status === "Selesai") statusNotice = "✅ *Pesanan telah selesai* diantar. Terima kasih telah menggunakan jasa kami!";
-      else statusNotice = "⏳ *Pesanan Anda sedang menunggu* penjemputan.";
+      if (status === "Barang Dijemput") statusNotice = "📦 *Barang telah dijemput (Pickup)* oleh kurir.";
+      else if (status === "Dalam Pengiriman") statusNotice = "🚚 *Kurir sedang dalam perjalanan* menuju lokasi Anda.";
+      else if (status === "Selesai") statusNotice = "✅ *Pesanan telah selesai* diantar. Terima kasih!";
+      else statusNotice = "⏳ *Pesanan Anda sedang menunggu* kurir.";
 
       let msg = `Halo *${customerName}*,\n\n*UPDATE KURIR EXPRESS (${orderId})*\n${statusNotice}\n\n📍 *Tujuan:* ${destAddress}\n📌 *Status:* *${status}*\n`;
-      
-      if (mapLink) {
-        msg += `\n📡 *Live Tracker Lokasi Kurir:* \n${mapLink}\n`;
-      }
-
-      msg += `\nJika ada hal yang ingin ditanyakan, silakan balas pesan ini. Terima kasih!`;
+      if (mapLink) msg += `\n📡 *Live Tracker Lokasi Kurir:* \n${mapLink}\n`;
+      msg += `\nTerima kasih telah menggunakan Kurir Express!`;
 
       window.open(`https://api.whatsapp.com/send?phone=${customerPhone}&text=${encodeURIComponent(msg)}`, '_blank');
     }
@@ -652,7 +698,7 @@
     function saveSettings() {
       const url = document.getElementById("gasUrlInput").value.trim();
       const driverWa = document.getElementById("driverWaInput").value.trim();
-      localStorage.setItem("gas_url", url);
+      localStorage.getItem("gas_url", url);
       localStorage.setItem("driver_wa", driverWa);
       alert("Pengaturan berhasil disimpan!");
       loadData();
