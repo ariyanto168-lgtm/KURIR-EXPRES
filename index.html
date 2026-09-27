@@ -46,7 +46,7 @@
             <p id="dashTotalKm" class="text-2xl font-bold text-emerald-900">0 KM</p>
           </div>
           <div class="bg-amber-50 p-3 rounded-xl border border-amber-100 col-span-2">
-            <span class="text-xs font-medium text-amber-600 block mb-1">Total Pendapatan</span>
+            <span class="text-xs font-medium text-amber-600 block mb-1">Total Pendapatan (Selesai)</span>
             <p id="dashTotalRevenue" class="text-2xl font-bold text-amber-900">Rp0</p>
           </div>
         </div>
@@ -211,7 +211,7 @@
 
     <!-- Versi & Powered By Footer (Sejajar) -->
     <footer class="text-center text-[11px] text-slate-400 pt-4 pb-2">
-      <span class="font-semibold text-slate-500">v2.5</span> &bull; <span>Powered by Ari GPM</span>
+      <span class="font-semibold text-slate-500">v2.6</span> &bull; <span>Powered by Ari GPM</span>
     </footer>
 
   </main>
@@ -220,15 +220,16 @@
   <div id="detailModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-sm rounded-2xl p-4 shadow-xl space-y-3">
       <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-bold text-slate-800 text-sm">Detail Pesanan & Bagikan</h3>
+        <h3 class="font-bold text-slate-800 text-sm">Detail Pesanan & Status Kurir</h3>
         <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-sm">Tutup</button>
       </div>
       <div id="modalContent" class="text-xs space-y-2 text-slate-600">
         <!-- Details populated here -->
       </div>
-      <div id="modalShareContainer" class="pt-2">
-        <!-- WhatsApp Share Button populated dynamically -->
-      </div>
+      <!-- Status Update Action Container -->
+      <div id="modalActionContainer"></div>
+      <!-- WhatsApp Share Container -->
+      <div id="modalShareContainer" class="pt-1"></div>
     </div>
   </div>
 
@@ -394,7 +395,7 @@
         }
       } catch (err) {
         console.error("Save error:", err);
-        alert("Gagal tersambung ke Google Sheets: " + err.message + "\n\nPastikan URL Web App sudah benar dan sudah di-Deploy ulang sebagai 'New version' dengan akses 'Anyone'.");
+        alert("Gagal tersambung ke Google Sheets: " + err.message);
         btn.disabled = false;
         btn.innerText = "SIMPAN KE GOOGLE SHEETS";
       }
@@ -432,9 +433,29 @@
       } catch (err) {
         console.error("Connection failed:", err);
         statusText.innerText = "Gagal Terhubung";
-        alert("Koneksi ke Google Sheets Gagal!\n\nPastikan:\n1. URL Web App Apps Script sudah benar.\n2. Di Apps Script, Anda sudah klik Deploy > New Version dengan akses 'Anyone'.");
         ordersData = [];
         renderDashboardAndHistory();
+      }
+    }
+
+    async function changeOrderStatus(orderId, newStatus) {
+      const url = document.getElementById("gasUrlInput").value.trim() || GAS_WEB_APP_URL;
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "update_status", orderId: orderId, status: newStatus })
+        });
+        const result = await res.json();
+        if (result.status === "success") {
+          alert("Status berhasil diperbarui menjadi: " + newStatus);
+          closeModal();
+          loadData();
+        } else {
+          alert("Gagal mengubah status: " + result.message);
+        }
+      } catch (err) {
+        alert("Gagal terhubung ke server saat memperbarui status.");
       }
     }
 
@@ -505,7 +526,7 @@
       switch(status) {
         case 'Selesai': return 'bg-emerald-100 text-emerald-800';
         case 'Dalam Pengiriman': return 'bg-blue-100 text-blue-800';
-        case 'Diambil': return 'bg-purple-100 text-purple-800';
+        case 'Barang Dijemput': return 'bg-purple-100 text-purple-800';
         default: return 'bg-amber-100 text-amber-800';
       }
     }
@@ -520,20 +541,39 @@
         <p><strong>Alamat Tujuan:</strong> ${order["Alamat Tujuan"]}</p>
         <p><strong>Catatan:</strong> ${order["Catatan"] || '-'}</p>
         <p><strong>Jarak & Estimasi:</strong> ${order["Jarak KM"]} KM (${order["Estimasi Menit"]} menit)</p>
-        <p><strong>Tarif / KM:</strong> ${formatRupiah(order["Tarif per KM"] || 4000)}</p>
         <p><strong>Total Ongkos:</strong> <span class="text-emerald-600 font-bold">${formatRupiah(order["Total Ongkos"])}</span></p>
-        <p><strong>Status:</strong> <span class="font-semibold">${order["Status"]}</span></p>
+        <p><strong>Status Saat Ini:</strong> <span class="px-2 py-0.5 rounded text-xs font-bold ${getStatusBadgeClass(order["Status"])}">${order["Status"]}</span></p>
       `;
 
+      // Status Update Buttons
+      const actionContainer = document.getElementById("modalActionContainer");
+      actionContainer.innerHTML = `
+        <div class="space-y-1.5 pt-2 border-t mt-2">
+          <p class="text-[11px] font-semibold text-slate-600">Update Status & Posisi Kurir:</p>
+          <div class="grid grid-cols-3 gap-1.5">
+            <button onclick="changeOrderStatus('${order["ID Pesanan"]}', 'Barang Dijemput')" class="bg-purple-600 hover:bg-purple-700 text-white py-1.5 px-1 rounded-lg text-[10px] font-bold transition">📦 Dijemput</button>
+            <button onclick="changeOrderStatus('${order["ID Pesanan"]}', 'Dalam Pengiriman')" class="bg-blue-600 hover:bg-blue-700 text-white py-1.5 px-1 rounded-lg text-[10px] font-bold transition">🚚 Perjalanan</button>
+            <button onclick="changeOrderStatus('${order["ID Pesanan"]}', 'Selesai')" class="bg-emerald-600 hover:bg-emerald-700 text-white py-1.5 px-1 rounded-lg text-[10px] font-bold transition">✅ Selesai</button>
+          </div>
+        </div>
+      `;
+
+      // WhatsApp Share with Tracking Notice & Driver Contact
       const shareContainer = document.getElementById("modalShareContainer");
       const driverWa = localStorage.getItem("driver_wa") || "6281234567890";
       
-      const shareText = `Halo *${order["Nama Pelanggan"]}*,\n\nBerikut adalah rincian pesanan pengiriman kurir Anda:\n- *ID Pesanan:* ${order["ID Pesanan"]}\n- *Jemput:* ${order["Alamat Jemput"]}\n- *Tujuan:* ${order["Alamat Tujuan"]}\n- *Jarak:* ${order["Jarak KM"]} KM\n- *Total Ongkos:* ${formatRupiah(order["Total Ongkos"])}\n- *Status:* ${order["Status"]}\n\nUntuk informasi lebih lanjut, silakan hubungi Driver kami melalui tautan di bawah ini:`;
+      let statusNotice = "";
+      if(order["Status"] === "Barang Dijemput") statusNotice = "📦 *Barang telah dijemput* oleh kurir dan dalam proses pengantaran.";
+      else if(order["Status"] === "Dalam Pengiriman") statusNotice = "🚚 *Kurir sedang dalam perjalanan* menuju lokasi tujuan Anda.";
+      else if(order["Status"] === "Selesai") statusNotice = "✅ *Pesanan telah selesai* diantar. Terima kasih!";
+      else statusNotice = "⏳ *Pesanan menunggu* penjemputan oleh kurir.";
+
+      const shareText = `Halo *${order["Nama Pelanggan"]}*,\n\n*UPDATE STATUS & POSISI KURIR*\n${statusNotice}\n\n- *ID Pesanan:* ${order["ID Pesanan"]}\n- *Jemput:* ${order["Alamat Jemput"]}\n- *Tujuan:* ${order["Alamat Tujuan"]}\n- *Jarak:* ${order["Jarak KM"]} KM\n- *Total Ongkos:* ${formatRupiah(order["Total Ongkos"])}\n- *Status:* *${order["Status"]}*\n\n📲 *Kontak Driver:* https://wa.me/${driverWa}`;
       
       shareContainer.innerHTML = `
-        <a href="https://api.whatsapp.com/send?phone=${order['Nomor HP'] || ''}&text=${encodeURIComponent(shareText + '\n\n*Kontak Driver:* https://wa.me/' + driverWa)}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 transition shadow">
+        <a href="https://api.whatsapp.com/send?phone=${order['Nomor HP'] || ''}&text=${encodeURIComponent(shareText)}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 transition shadow mt-2">
           <i class="fa-brands fa-whatsapp text-base"></i>
-          <span>Bagikan ke WhatsApp & Kontak Driver</span>
+          <span>Kirim Notifikasi Posisi ke WhatsApp Customer</span>
         </a>
       `;
 
