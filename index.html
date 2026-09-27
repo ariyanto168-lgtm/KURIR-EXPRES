@@ -111,12 +111,22 @@
           </div>
 
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Alamat Jemput <span class="text-red-500">*</span></label>
+            <div class="flex justify-between items-center mb-1">
+              <label class="block text-xs font-semibold text-slate-600">Alamat Jemput <span class="text-red-500">*</span></label>
+              <button type="button" onclick="autoDetectLocation('alamatJemput', this)" class="text-[10px] text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded shadow-sm hover:bg-indigo-100 transition">
+                <i class="fa-solid fa-location-crosshairs"></i> Deteksi Lokasi
+              </button>
+            </div>
             <textarea id="alamatJemput" rows="2" required placeholder="Contoh: Jl. Merdeka No. 10, Jakarta" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
           </div>
 
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Alamat Tujuan <span class="text-red-500">*</span></label>
+            <div class="flex justify-between items-center mb-1">
+              <label class="block text-xs font-semibold text-slate-600">Alamat Tujuan <span class="text-red-500">*</span></label>
+              <button type="button" onclick="autoDetectLocation('alamatTujuan', this)" class="text-[10px] text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded shadow-sm hover:bg-indigo-100 transition">
+                <i class="fa-solid fa-location-crosshairs"></i> Deteksi Lokasi
+              </button>
+            </div>
             <textarea id="alamatTujuan" rows="2" required placeholder="Contoh: Jl. Sudirman No. 45, Jakarta" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
           </div>
 
@@ -209,10 +219,26 @@
 
     <!-- TAB 4: PENGATURAN -->
     <section id="tab-pengaturan" class="tab-content hidden space-y-4">
+      
+      <!-- Customer Link Share Card -->
+      <div class="bg-gradient-to-r from-indigo-500 to-violet-600 p-4 rounded-2xl shadow-sm text-white">
+        <h2 class="font-bold text-base mb-2 flex items-center space-x-2">
+          <i class="fa-solid fa-share-nodes"></i>
+          <span>Link Order Pelanggan</span>
+        </h2>
+        <p class="text-[11px] text-indigo-100 mb-3">Bagikan link ini agar pelanggan bisa memesan kurir secara mandiri melalui HP mereka.</p>
+        <div class="flex items-center space-x-2">
+          <input type="text" id="appLinkInput" readonly class="w-full px-3 py-2 text-xs bg-white text-indigo-900 border border-transparent rounded-xl focus:outline-none">
+          <button onclick="copyAppLink()" class="bg-indigo-900 text-white px-3 py-2 rounded-xl text-xs hover:bg-indigo-800 transition shadow">
+            <i class="fa-regular fa-copy"></i>
+          </button>
+        </div>
+      </div>
+
       <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-4">
         <h2 class="font-bold text-slate-800 text-base flex items-center space-x-2">
           <i class="fa-solid fa-gear text-indigo-600"></i>
-          <span>Pengaturan & Mode Koneksi</span>
+          <span>Pengaturan Driver & Server</span>
         </h2>
 
         <div>
@@ -249,13 +275,19 @@
   <div id="detailModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-sm rounded-2xl p-4 shadow-xl space-y-3">
       <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-bold text-slate-800 text-sm">Detail Pesanan & Bagikan</h3>
+        <h3 class="font-bold text-slate-800 text-sm">Detail Pesanan & Status</h3>
         <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-sm"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div id="modalContent" class="text-xs space-y-2 text-slate-600">
         <!-- Details populated here -->
       </div>
-      <div id="modalShareContainer" class="pt-2">
+      
+      <!-- Status Update Actions -->
+      <div id="modalStatusContainer" class="pt-2 border-t border-slate-100">
+        <!-- Status button populated dynamically -->
+      </div>
+
+      <div id="modalShareContainer" class="pt-1">
         <!-- WhatsApp Share Button populated dynamically -->
       </div>
     </div>
@@ -290,6 +322,9 @@
     let ordersData = [];
 
     window.addEventListener('DOMContentLoaded', () => {
+      // Set App Link dynamically for Customer Sharing
+      document.getElementById("appLinkInput").value = window.location.href.split('?')[0];
+
       const savedUrl = localStorage.getItem("gas_url") || GAS_WEB_APP_URL;
       document.getElementById("gasUrlInput").value = savedUrl;
       const savedDriverWa = localStorage.getItem("driver_wa") || "6281234567890";
@@ -316,6 +351,47 @@
 
     function formatRupiah(num) {
       return "Rp" + Number(num).toLocaleString("id-ID");
+    }
+
+    // Fitur Share Link App
+    function copyAppLink() {
+      const link = document.getElementById("appLinkInput").value;
+      navigator.clipboard.writeText(link).then(() => {
+        alert("Link aplikasi berhasil disalin! Kirimkan ke pelanggan Anda.");
+      });
+    }
+
+    // Fitur Auto-Detect Location GPS
+    function autoDetectLocation(inputId, btnElement) {
+      if (!navigator.geolocation) {
+        alert("Geolocation tidak didukung di browser ini.");
+        return;
+      }
+      
+      const originalHtml = btnElement.innerHTML;
+      btnElement.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Mencari...`;
+      btnElement.disabled = true;
+
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+          const data = await res.json();
+          if(data && data.display_name) {
+            document.getElementById(inputId).value = data.display_name;
+          }
+        } catch (e) {
+          alert("Gagal mengonversi koordinat ke alamat.");
+        } finally {
+          btnElement.innerHTML = originalHtml;
+          btnElement.disabled = false;
+        }
+      }, (error) => {
+        alert("Akses lokasi ditolak atau sinyal GPS tidak tersedia.");
+        btnElement.innerHTML = originalHtml;
+        btnElement.disabled = false;
+      }, { enableHighAccuracy: true });
     }
 
     function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
@@ -354,7 +430,7 @@
         const dataTujuan = await resTujuan.json();
 
         if (dataJemput.length === 0 || dataTujuan.length === 0) {
-          throw new Error("Alamat tidak ditemukan pada peta. Mohon masukkan detail yang lebih spesifik.");
+          throw new Error("Alamat tidak ditemukan pada peta. Mohon gunakan tombol Deteksi Lokasi atau tulis lebih spesifik.");
         }
 
         const lon1 = parseFloat(dataJemput[0].lon);
@@ -435,7 +511,7 @@
           });
           const result = await response.json();
           if (result.status === "success") {
-            alert("Pesanan berhasil disimpan ke Google Sheets! ID: " + result.orderId);
+            alert("Pesanan berhasil disimpan ke Server! ID: " + result.orderId);
             resetForm();
             loadData();
             switchTab('riwayat');
@@ -477,7 +553,7 @@
       localOrders.unshift(newOrder);
       localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
 
-      alert("Pesanan berhasil disimpan secara lokal (Offline mode). ID: " + orderId);
+      alert("Pesanan berhasil disimpan (Mode Offline). ID: " + orderId);
       resetForm();
       loadData();
       switchTab('riwayat');
@@ -544,7 +620,7 @@
           "Estimasi Menit": 20,
           "Tarif per KM": 4000,
           "Total Ongkos": 26000,
-          "Status": "Selesai"
+          "Status": "Menunggu"
         }
       ];
       localStorage.setItem("kurir_orders", JSON.stringify(dummy));
@@ -581,14 +657,14 @@
         activeContainer.innerHTML = `<p class="text-xs text-slate-400 text-center py-3">Tidak ada pesanan aktif saat ini.</p>`;
       } else {
         activeContainer.innerHTML = activeOrders.map(o => `
-          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-between items-center text-xs">
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-between items-center text-xs cursor-pointer hover:bg-slate-100" onclick='showDetail(${JSON.stringify(o)})'>
             <div>
               <span class="font-bold text-slate-800 block">${o["Nama Pelanggan"]}</span>
               <span class="text-slate-500 truncate block max-w-[180px]">Ke: ${o["Alamat Tujuan"]}</span>
               <span class="text-indigo-600 font-semibold">${o["Jarak KM"]} KM • ${formatRupiah(o["Total Ongkos"])}</span>
             </div>
             <div>
-              <span class="px-2 py-1 bg-amber-100 text-amber-800 font-bold rounded-lg text-[10px]">${o["Status"]}</span>
+              <span class="px-2 py-1 ${getStatusBadgeClass(o["Status"])} font-bold rounded-lg text-[10px]">${o["Status"]}</span>
             </div>
           </div>
         `).join('');
@@ -628,29 +704,78 @@
       content.innerHTML = `
         <p><strong>ID Pesanan:</strong> ${order["ID Pesanan"]}</p>
         <p><strong>Tanggal:</strong> ${order["Tanggal"] || order["Timestamp"]}</p>
-        <p><strong>Nama Pelanggan:</strong> ${order["Nama Pelanggan"]} (${order["Nomor HP"] || '-'}</p>
+        <p><strong>Nama Pelanggan:</strong> ${order["Nama Pelanggan"]} (${order["Nomor HP"] || '-'})</p>
         <p><strong>Alamat Jemput:</strong> ${order["Alamat Jemput"]}</p>
         <p><strong>Alamat Tujuan:</strong> ${order["Alamat Tujuan"]}</p>
         <p><strong>Catatan:</strong> ${order["Catatan"] || '-'}</p>
         <p><strong>Jarak & Estimasi:</strong> ${order["Jarak KM"]} KM (${order["Estimasi Menit"]} menit)</p>
         <p><strong>Tarif / KM:</strong> ${formatRupiah(order["Tarif per KM"] || 4000)}</p>
         <p><strong>Total Ongkos:</strong> <span class="text-emerald-600 font-bold">${formatRupiah(order["Total Ongkos"])}</span></p>
-        <p><strong>Status:</strong> <span class="font-semibold">${order["Status"]}</span></p>
+        <p><strong>Status Saat Ini:</strong> <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${getStatusBadgeClass(order["Status"])}">${order["Status"]}</span></p>
       `;
 
+      // Status Update Feature (Jemput, Perjalanan, Selesai)
+      const statusContainer = document.getElementById("modalStatusContainer");
+      let statusHtml = '';
+      if (order["Status"] === "Menunggu") {
+          statusHtml = `<button onclick="updateOrderStatus('${order["ID Pesanan"]}', 'Diambil')" class="w-full bg-purple-500 text-white py-2.5 rounded-xl text-xs font-semibold hover:bg-purple-600 transition shadow"><i class="fa-solid fa-box-open mr-1"></i> Tandai: Pesanan Diambil (Jemput)</button>`;
+      } else if (order["Status"] === "Diambil") {
+          statusHtml = `<button onclick="updateOrderStatus('${order["ID Pesanan"]}', 'Dalam Pengiriman')" class="w-full bg-blue-500 text-white py-2.5 rounded-xl text-xs font-semibold hover:bg-blue-600 transition shadow"><i class="fa-solid fa-truck-fast mr-1"></i> Tandai: Dalam Pengiriman (Perjalanan)</button>`;
+      } else if (order["Status"] === "Dalam Pengiriman") {
+          statusHtml = `<button onclick="updateOrderStatus('${order["ID Pesanan"]}', 'Selesai')" class="w-full bg-emerald-500 text-white py-2.5 rounded-xl text-xs font-semibold hover:bg-emerald-600 transition shadow"><i class="fa-solid fa-check-double mr-1"></i> Tandai: Pengiriman Selesai</button>`;
+      }
+      statusContainer.innerHTML = statusHtml;
+
+      // WhatsApp Share Feature
       const shareContainer = document.getElementById("modalShareContainer");
       const driverWa = localStorage.getItem("driver_wa") || "6281234567890";
-      
-      const shareText = `Halo *${order["Nama Pelanggan"]}*,\n\nBerikut adalah rincian pesanan pengiriman kurir Anda:\n- *ID Pesanan:* ${order["ID Pesanan"]}\n- *Jemput:* ${order["Alamat Jemput"]}\n- *Tujuan:* ${order["Alamat Tujuan"]}\n- *Jarak:* ${order["Jarak KM"]} KM\n- *Total Ongkos:* ${formatRupiah(order["Total Ongkos"])}\n- *Status:* ${order["Status"]}\n\nUntuk informasi lebih lanjut, silakan hubungi Driver kami melalui tautan di bawah ini:`;
+      const shareText = `Halo *${order["Nama Pelanggan"]}*,\n\nBerikut rincian pesanan kurir Anda:\n- *ID:* ${order["ID Pesanan"]}\n- *Jemput:* ${order["Alamat Jemput"]}\n- *Tujuan:* ${order["Alamat Tujuan"]}\n- *Jarak:* ${order["Jarak KM"]} KM\n- *Total Ongkos:* ${formatRupiah(order["Total Ongkos"])}\n- *Status:* ${order["Status"]}\n\nHubungi Kurir/Driver di bawah ini:`;
       
       shareContainer.innerHTML = `
-        <a href="https://api.whatsapp.com/send?phone=${order['Nomor HP'] || ''}&text=${encodeURIComponent(shareText + '\n\n*Kontak Driver:* https://wa.me/' + driverWa)}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 transition shadow">
+        <a href="https://api.whatsapp.com/send?phone=${order['Nomor HP'] || ''}&text=${encodeURIComponent(shareText + '\n\n*Kontak Kurir:* https://wa.me/' + driverWa)}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 transition shadow mt-2">
           <i class="fa-brands fa-whatsapp text-base"></i>
-          <span>Bagikan ke WhatsApp & Kontak Driver</span>
+          <span>Bagikan ke WhatsApp Pelanggan</span>
         </a>
       `;
 
       document.getElementById("detailModal").classList.remove('hidden');
+    }
+
+    async function updateOrderStatus(orderId, newStatus) {
+      const url = document.getElementById("gasUrlInput").value.trim();
+      const isOnline = document.getElementById("statusText").innerText.includes("Online");
+      
+      // Update local storage first (Offline Mode Support)
+      let localOrders = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
+      let updated = false;
+      for (let i = 0; i < localOrders.length; i++) {
+        if (localOrders[i]["ID Pesanan"] === orderId) {
+          localOrders[i]["Status"] = newStatus;
+          updated = true;
+          break;
+        }
+      }
+      if (updated) {
+        localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
+      }
+
+      // Sync with GAS Backend if online
+      if (url && isOnline) {
+        try {
+          const payload = { action: "update_status", orderId: orderId, status: newStatus };
+          await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify(payload)
+          });
+        } catch (e) {
+          console.error("Gagal sinkronisasi status ke server", e);
+        }
+      }
+
+      alert("Status berhasil diperbarui menjadi: " + newStatus);
+      closeModal();
+      loadData();
     }
 
     function closeModal() {
