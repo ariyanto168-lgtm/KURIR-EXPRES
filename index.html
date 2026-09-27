@@ -211,7 +211,7 @@
 
     <!-- Versi & Powered By Footer (Sejajar) -->
     <footer class="text-center text-[11px] text-slate-400 pt-4 pb-2">
-      <span class="font-semibold text-slate-500">v2.6</span> &bull; <span>Powered by Ari GPM</span>
+      <span class="font-semibold text-slate-500">v2.8</span> &bull; <span>Powered by Ari GPM</span>
     </footer>
 
   </main>
@@ -220,7 +220,7 @@
   <div id="detailModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-sm rounded-2xl p-4 shadow-xl space-y-3">
       <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-bold text-slate-800 text-sm">Detail Pesanan & Status Kurir</h3>
+        <h3 class="font-bold text-slate-800 text-sm">Detail Pesanan & Live Tracker</h3>
         <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-sm">Tutup</button>
       </div>
       <div id="modalContent" class="text-xs space-y-2 text-slate-600">
@@ -228,8 +228,8 @@
       </div>
       <!-- Status Update Action Container -->
       <div id="modalActionContainer"></div>
-      <!-- WhatsApp Share Container -->
-      <div id="modalShareContainer" class="pt-1"></div>
+      <!-- Live Tracker & WhatsApp Share Container -->
+      <div id="modalShareContainer" class="pt-1 space-y-2"></div>
     </div>
   </div>
 
@@ -284,6 +284,15 @@
 
     function formatRupiah(num) {
       return "Rp" + Number(num).toLocaleString("id-ID");
+    }
+
+    function formatPhoneForWa(phone) {
+      if (!phone) return "";
+      let cleaned = phone.replace(/\D/g, '');
+      if (cleaned.startsWith('0')) {
+        cleaned = '62' + cleaned.substring(1);
+      }
+      return cleaned;
     }
 
     async function calculateDistance() {
@@ -549,7 +558,7 @@
       const actionContainer = document.getElementById("modalActionContainer");
       actionContainer.innerHTML = `
         <div class="space-y-1.5 pt-2 border-t mt-2">
-          <p class="text-[11px] font-semibold text-slate-600">Update Status & Posisi Kurir:</p>
+          <p class="text-[11px] font-semibold text-slate-600">Update Status Kurir:</p>
           <div class="grid grid-cols-3 gap-1.5">
             <button onclick="changeOrderStatus('${order["ID Pesanan"]}', 'Barang Dijemput')" class="bg-purple-600 hover:bg-purple-700 text-white py-1.5 px-1 rounded-lg text-[10px] font-bold transition">📦 Dijemput</button>
             <button onclick="changeOrderStatus('${order["ID Pesanan"]}', 'Dalam Pengiriman')" class="bg-blue-600 hover:bg-blue-700 text-white py-1.5 px-1 rounded-lg text-[10px] font-bold transition">🚚 Perjalanan</button>
@@ -558,26 +567,82 @@
         </div>
       `;
 
-      // WhatsApp Share with Tracking Notice & Driver Contact
+      // Live Location Tracker & WhatsApp Auto Link
       const shareContainer = document.getElementById("modalShareContainer");
       const driverWa = localStorage.getItem("driver_wa") || "6281234567890";
-      
-      let statusNotice = "";
-      if(order["Status"] === "Barang Dijemput") statusNotice = "📦 *Barang telah dijemput* oleh kurir dan dalam proses pengantaran.";
-      else if(order["Status"] === "Dalam Pengiriman") statusNotice = "🚚 *Kurir sedang dalam perjalanan* menuju lokasi tujuan Anda.";
-      else if(order["Status"] === "Selesai") statusNotice = "✅ *Pesanan telah selesai* diantar. Terima kasih!";
-      else statusNotice = "⏳ *Pesanan menunggu* penjemputan oleh kurir.";
+      const customerPhone = formatPhoneForWa(order["Nomor HP"]);
 
-      const shareText = `Halo *${order["Nama Pelanggan"]}*,\n\n*UPDATE STATUS & POSISI KURIR*\n${statusNotice}\n\n- *ID Pesanan:* ${order["ID Pesanan"]}\n- *Jemput:* ${order["Alamat Jemput"]}\n- *Tujuan:* ${order["Alamat Tujuan"]}\n- *Jarak:* ${order["Jarak KM"]} KM\n- *Total Ongkos:* ${formatRupiah(order["Total Ongkos"])}\n- *Status:* *${order["Status"]}*\n\n📲 *Kontak Driver:* https://wa.me/${driverWa}`;
-      
       shareContainer.innerHTML = `
-        <a href="https://api.whatsapp.com/send?phone=${order['Nomor HP'] || ''}&text=${encodeURIComponent(shareText)}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 transition shadow mt-2">
-          <i class="fa-brands fa-whatsapp text-base"></i>
-          <span>Kirim Notifikasi Posisi ke WhatsApp Customer</span>
-        </a>
+        <div class="space-y-1.5 pt-1">
+          <button onclick="sendLiveLocationWa('${customerPhone}', '${order["ID Pesanan"]}', '${order["Status"]}', '${order["Nama Pelanggan"]}', '${order["Alamat Tujuan"]}')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-3 rounded-xl text-xs flex items-center justify-center space-x-2 transition shadow">
+            <i class="fa-brands fa-whatsapp text-sm"></i>
+            <span>Kirim Notifikasi & Live GPS ke Customer</span>
+          </button>
+          ${customerPhone ? `
+            <a href="https://wa.me/${customerPhone}?text=${encodeURIComponent('Halo ' + order["Nama Pelanggan"] + ', terkait pesanan kurir Anda (' + order["ID Pesanan"] + '): ')}" target="_blank" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-1.5 px-3 rounded-xl text-xs flex items-center justify-center space-x-2 transition">
+              <i class="fa-brands fa-whatsapp text-emerald-600"></i>
+              <span>Chat Langsung WhatsApp Customer</span>
+            </a>
+          ` : '<p class="text-[10px] text-amber-600 text-center">Nomor HP customer kosong.</p>'}
+        </div>
       `;
 
       document.getElementById("detailModal").classList.remove('hidden');
+    }
+
+    function sendLiveLocationWa(customerPhone, orderId, status, customerName, destAddress) {
+      if (!customerPhone) {
+        alert("Nomor HP customer tidak valid/kosong.");
+        return;
+      }
+
+      if (!navigator.geolocation) {
+        alert("Geolocation tidak didukung oleh browser Anda.");
+        triggerWaSend(customerPhone, orderId, status, customerName, destAddress, null);
+        return;
+      }
+
+      const btn = document.querySelector("#modalShareContainer button");
+      const originalText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Mendapatkan Live GPS...`;
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          const mapLink = `https://maps.google.com/?q=${lat},${lon}`;
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+          triggerWaSend(customerPhone, orderId, status, customerName, destAddress, mapLink);
+        },
+        (error) => {
+          console.warn("GPS error:", error);
+          alert("Gagal mendapatkan lokasi GPS live. Mengirim pesan tanpa koordinat GPS.");
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+          triggerWaSend(customerPhone, orderId, status, customerName, destAddress, null);
+        },
+        { timeout: 10000, enableHighAccuracy: true }
+      );
+    }
+
+    function triggerWaSend(customerPhone, orderId, status, customerName, destAddress, mapLink) {
+      let statusNotice = "";
+      if (status === "Barang Dijemput") statusNotice = "📦 *Barang telah dijemput (Pickup)* oleh kurir dan siap diantar.";
+      else if (status === "Dalam Pengiriman") statusNotice = "🚚 *Kurir sedang dalam perjalanan* menuju lokasi tujuan Anda.";
+      else if (status === "Selesai") statusNotice = "✅ *Pesanan telah selesai* diantar. Terima kasih telah menggunakan jasa kami!";
+      else statusNotice = "⏳ *Pesanan Anda sedang menunggu* penjemputan.";
+
+      let msg = `Halo *${customerName}*,\n\n*UPDATE KURIR EXPRESS (${orderId})*\n${statusNotice}\n\n📍 *Tujuan:* ${destAddress}\n📌 *Status:* *${status}*\n`;
+      
+      if (mapLink) {
+        msg += `\n📡 *Live Tracker Lokasi Kurir:* \n${mapLink}\n`;
+      }
+
+      msg += `\nJika ada hal yang ingin ditanyakan, silakan balas pesan ini. Terima kasih!`;
+
+      window.open(`https://api.whatsapp.com/send?phone=${customerPhone}&text=${encodeURIComponent(msg)}`, '_blank');
     }
 
     function closeModal() {
