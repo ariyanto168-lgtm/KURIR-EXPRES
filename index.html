@@ -8,6 +8,10 @@
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- FontAwesome for Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Leaflet CSS for Interactive Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     body {
       background-color: #f8fafc;
@@ -16,6 +20,12 @@
     }
     .safe-bottom {
       padding-bottom: 85px;
+    }
+    #mapPickerContainer {
+      height: 300px;
+      width: 100%;
+      border-radius: 1rem;
+      z-index: 10;
     }
   </style>
 </head>
@@ -110,25 +120,33 @@
             <input type="tel" id="noHp" required placeholder="Contoh: 081234567890" oninput="onPhoneInput(this.value)" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
           </div>
 
-          <!-- Alamat Jemput dengan Auto-Suggest Realtime -->
+          <!-- Alamat Jemput dengan Fitur Peta Interaktif (Geser Pin) -->
           <div class="relative">
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Alamat Jemput <span class="text-red-500">*</span></label>
-            <textarea id="alamatJemput" rows="2" required placeholder="Ketik lokasi jemput, cth: Jl. Gandekan Semarang" oninput="handleAddressInput('alamatJemput', 'saranJemput')" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
-            <!-- Dropdown Saran -->
-            <div id="saranJemput" class="absolute z-50 left-0 right-0 bg-white border border-slate-200 rounded-lg shadow-xl hidden flex-col divide-y divide-slate-100 max-h-48 overflow-y-auto text-xs mt-1"></div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="block text-xs font-semibold text-slate-600">Alamat Jemput <span class="text-red-500">*</span></label>
+              <button type="button" onclick="openMapPicker('alamatJemput')" class="text-[10px] bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2 py-0.5 rounded-lg font-medium transition flex items-center space-x-1">
+                <i class="fa-solid fa-map-pin"></i> <span>Pilih Titik di Peta</span>
+              </button>
+            </div>
+            <textarea id="alamatJemput" rows="2" required placeholder="Ketik atau pilih dari peta interaktif" oninput="handleAddressInput('alamatJemput', 'saranJemput')" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+            <div id="saranJemput" class="absolute z-30 left-0 right-0 bg-white border border-slate-200 rounded-lg shadow-xl hidden flex-col divide-y divide-slate-100 max-h-48 overflow-y-auto text-xs mt-1"></div>
           </div>
 
-          <!-- Alamat Tujuan dengan Auto-Suggest Realtime -->
+          <!-- Alamat Tujuan dengan Fitur Peta Interaktif (Geser Pin) -->
           <div class="relative">
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Alamat Tujuan <span class="text-red-500">*</span></label>
-            <textarea id="alamatTujuan" rows="2" required placeholder="Ketik lokasi tujuan, cth: Simpang Lima Semarang" oninput="handleAddressInput('alamatTujuan', 'saranTujuan')" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
-            <!-- Dropdown Saran -->
-            <div id="saranTujuan" class="absolute z-50 left-0 right-0 bg-white border border-slate-200 rounded-lg shadow-xl hidden flex-col divide-y divide-slate-100 max-h-48 overflow-y-auto text-xs mt-1"></div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="block text-xs font-semibold text-slate-600">Alamat Tujuan <span class="text-red-500">*</span></label>
+              <button type="button" onclick="openMapPicker('alamatTujuan')" class="text-[10px] bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2 py-0.5 rounded-lg font-medium transition flex items-center space-x-1">
+                <i class="fa-solid fa-map-pin"></i> <span>Pilih Titik di Peta</span>
+              </button>
+            </div>
+            <textarea id="alamatTujuan" rows="2" required placeholder="Ketik atau pilih dari peta interaktif" oninput="handleAddressInput('alamatTujuan', 'saranTujuan')" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+            <div id="saranTujuan" class="absolute z-30 left-0 right-0 bg-white border border-slate-200 rounded-lg shadow-xl hidden flex-col divide-y divide-slate-100 max-h-48 overflow-y-auto text-xs mt-1"></div>
           </div>
 
           <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1">Catatan (Opsional)</label>
-            <input type="text" id="catatan" placeholder="Contoh: Barang fragile / hati-hati" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <input type="text" id="catatan" placeholder="Contoh: Barang fragile / depan toko warna hijau" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
           </div>
 
           <!-- Tombol Hitung Jarak -->
@@ -181,10 +199,8 @@
       </div>
     </section>
 
-    <!-- TAB 3: RIWAYAT & LAPORAN KEUANGAN PELANGGAN -->
+    <!-- TAB 3: RIWAYAT & LAPORAN KEUANGAN -->
     <section id="tab-riwayat" class="tab-content hidden space-y-4">
-      
-      <!-- Laporan Keuangan Card (Khusus Pelanggan) -->
       <div id="customerFinancialSummary" class="hidden bg-gradient-to-br from-emerald-600 to-teal-700 text-white p-4 rounded-2xl shadow-sm space-y-3">
         <div class="flex justify-between items-center border-b border-emerald-500 pb-2">
           <h3 class="font-bold text-xs uppercase tracking-wider flex items-center space-x-2">
@@ -220,7 +236,6 @@
           </button>
         </div>
 
-        <!-- Mobile Table -->
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs">
             <thead>
@@ -241,14 +256,12 @@
 
     <!-- TAB 4: PENGATURAN -->
     <section id="tab-pengaturan" class="tab-content hidden space-y-4">
-      
-      <!-- Customer Link Share Card -->
       <div class="bg-gradient-to-r from-indigo-500 to-violet-600 p-4 rounded-2xl shadow-sm text-white">
         <h2 class="font-bold text-base mb-2 flex items-center space-x-2">
           <i class="fa-solid fa-share-nodes"></i>
           <span>Link Order Pelanggan Berbasis No HP</span>
         </h2>
-        <p class="text-[11px] text-indigo-100 mb-3">Bagikan link ini. Saat pelanggan memesan dengan nomor HP mereka, riwayat dan keuangan mereka otomatis tersinkron.</p>
+        <p class="text-[11px] text-indigo-100 mb-3">Bagikan link ini agar pelanggan dapat memesan kurir dan melihat riwayat keuangan mereka sendiri.</p>
         <div class="flex items-center space-x-2 mb-2">
           <input type="text" id="appLinkInput" readonly class="w-full px-3 py-2 text-xs bg-white text-indigo-900 border border-transparent rounded-xl focus:outline-none">
           <button onclick="copyAppLink()" class="bg-indigo-900 text-white px-3 py-2 rounded-xl text-xs hover:bg-indigo-800 transition shadow">
@@ -278,7 +291,6 @@
           <input type="url" id="gasUrlInput" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
 
-        <!-- Template Text Editor WhatsApp -->
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">Template Pesan WhatsApp</label>
           <textarea id="waTemplateInput" rows="4" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Ketik template pesan WhatsApp..."></textarea>
@@ -292,7 +304,6 @@
           </div>
         </div>
 
-        <!-- Sync Button -->
         <div id="syncContainer" class="hidden flex justify-between items-center pt-3 border-t border-slate-100">
           <div>
             <span class="font-bold text-slate-800 block text-xs">Data Belum Sinkron</span>
@@ -311,10 +322,36 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.26 • Powered by Ari GPM
+      v2.28 • Powered by Ari GPM
     </div>
 
   </main>
+
+  <!-- MAP PICKER MODAL (Geser Pin / Pilih di Peta) -->
+  <div id="mapPickerModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-2xl p-4 shadow-xl space-y-3">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="font-bold text-slate-800 text-sm flex items-center space-x-1.5">
+          <i class="fa-solid fa-location-crosshairs text-indigo-600"></i>
+          <span>Geser Pin ke Lokasi Toko / Gang</span>
+        </h3>
+        <button onclick="closeMapPicker()" class="text-slate-400 hover:text-slate-600 text-sm"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p class="text-[11px] text-slate-500">Geser peta atau ketuk pada titik toko/gang yang dituju, lalu klik tombol Simpan Lokasi.</p>
+      
+      <!-- Leaflet Map Container -->
+      <div id="mapPickerContainer"></div>
+
+      <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+        <span class="text-[10px] text-slate-400 block font-semibold uppercase">Lokasi Terpilih:</span>
+        <p id="selectedMapAddress" class="text-xs font-bold text-slate-800 truncate">Geser pin di peta...</p>
+      </div>
+
+      <button onclick="confirmMapLocation()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-xl text-xs transition shadow">
+        Gunakan Lokasi Ini
+      </button>
+    </div>
+  </div>
 
   <!-- Detail Modal -->
   <div id="detailModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
@@ -326,19 +363,12 @@
       <div id="modalContent" class="text-xs space-y-2 text-slate-600 max-h-[45vh] overflow-y-auto">
         <!-- Details populated here -->
       </div>
-      
-      <!-- Status Update Actions -->
-      <div id="modalStatusContainer" class="pt-2 border-t border-slate-100">
-        <!-- Status button populated dynamically -->
-      </div>
-
-      <div id="modalShareContainer" class="pt-1">
-        <!-- WhatsApp Share Button populated dynamically -->
-      </div>
+      <div id="modalStatusContainer" class="pt-2 border-t border-slate-100"></div>
+      <div id="modalShareContainer" class="pt-1"></div>
     </div>
   </div>
 
-  <!-- Customer Success Report Modal (Khusus Pelanggan Mode Order) -->
+  <!-- Customer Success Report Modal -->
   <div id="customerSuccessModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-sm rounded-2xl p-5 shadow-2xl space-y-4 text-center">
       <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold">
@@ -348,9 +378,7 @@
         <h3 class="font-bold text-slate-800 text-base">Pesanan Berhasil Dibuat!</h3>
         <p class="text-xs text-slate-500 mt-1">Silakan kirimkan laporan rincian pesanan ini ke WhatsApp Driver agar segera diproses.</p>
       </div>
-      <div id="customerShareBtnContainer">
-        <!-- Tombol Kirim ke WA Driver -->
-      </div>
+      <div id="customerShareBtnContainer"></div>
       <button onclick="location.reload()" class="w-full bg-slate-100 text-slate-700 py-2 rounded-xl text-xs font-semibold hover:bg-slate-200 transition">
         Buat Pesanan Baru
       </button>
@@ -390,6 +418,12 @@
     let customerPhone = "";
     let typingTimer;
 
+    // Leaflet Map Picker Variables
+    let pickerMap = null;
+    let pickerMarker = null;
+    let activeTargetInputId = "";
+    let currentSelectedAddress = "";
+
     window.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('mode') === 'order') {
@@ -398,8 +432,6 @@
       }
 
       const baseUrl = window.location.href.split('?')[0];
-      
-      // Jika tersimpan nomor HP pelanggan di localStorage device ini
       if (!customerPhone && isCustomerMode) {
         customerPhone = localStorage.getItem("my_customer_phone") || "";
       }
@@ -441,6 +473,83 @@
 
       loadData();
     });
+
+    // MAP PICKER FUNCTIONS (Leaflet.js)
+    function openMapPicker(inputId) {
+      activeTargetInputId = inputId;
+      document.getElementById("mapPickerModal").classList.remove('hidden');
+      
+      // Inisialisasi peta jika belum ada
+      setTimeout(() => {
+        if (!pickerMap) {
+          // Default center di Semarang (-6.9666, 110.4167) atau lokasi umum Indonesia
+          pickerMap = L.map('mapPickerContainer').setView([-6.9666, 110.4167], 14);
+          
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+          }).addTo(pickerMap);
+
+          pickerMarker = L.marker([-6.9666, 110.4167], { draggable: true }).addTo(pickerMap);
+
+          pickerMarker.on('dragend', function(e) {
+            const pos = pickerMarker.getLatLng();
+            reverseGeocode(pos.lat, pos.lng);
+          });
+
+          pickerMap.on('click', function(e) {
+            pickerMarker.setLatLng(e.latlng);
+            reverseGeocode(e.latlng.lat, e.latlng.lng);
+          });
+        } else {
+          pickerMap.invalidateSize();
+        }
+        
+        // Coba gunakan lokasi GPS pengguna jika diizinkan
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(position => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            pickerMap.setView([lat, lng], 16);
+            pickerMarker.setLatLng([lat, lng]);
+            reverseGeocode(lat, lng);
+          }, () => {
+            reverseGeocode(-6.9666, 110.4167);
+          });
+        } else {
+          reverseGeocode(-6.9666, 110.4167);
+        }
+      }, 200);
+    }
+
+    function closeMapPicker() {
+      document.getElementById("mapPickerModal").classList.add('hidden');
+    }
+
+    async function reverseGeocode(lat, lon) {
+      document.getElementById("selectedMapAddress").innerText = "Mencari nama lokasi...";
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+        const data = await res.json();
+        if (data && data.display_name) {
+          currentSelectedAddress = data.display_name;
+          document.getElementById("selectedMapAddress").innerText = currentSelectedAddress;
+        } else {
+          currentSelectedAddress = `Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)}`;
+          document.getElementById("selectedMapAddress").innerText = currentSelectedAddress;
+        }
+      } catch (err) {
+        currentSelectedAddress = `Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)}`;
+        document.getElementById("selectedMapAddress").innerText = currentSelectedAddress;
+      }
+    }
+
+    function confirmMapLocation() {
+      if (activeTargetInputId && currentSelectedAddress) {
+        document.getElementById(activeTargetInputId).value = currentSelectedAddress;
+      }
+      closeMapPicker();
+    }
 
     function onPhoneInput(val) {
       if (val.length >= 10) {
@@ -573,7 +682,7 @@
         const dataTujuan = await resTujuan.json();
 
         if (dataJemput.length === 0 || dataTujuan.length === 0) {
-          throw new Error("Alamat belum valid. Pilih alamat dari daftar saran yang muncul.");
+          throw new Error("Alamat belum valid. Pilih alamat dari daftar saran atau gunakan 'Pilih Titik di Peta'.");
         }
 
         const lon1 = parseFloat(dataJemput[0].lon);
@@ -887,7 +996,6 @@
     function renderDashboardAndHistory() {
       let displayOrders = ordersData;
 
-      // Jika mode pelanggan, filter berdasarkan customerPhone (noHp)
       if (isCustomerMode && customerPhone) {
         displayOrders = ordersData.filter(o => {
           const orderPhone = (o["Nomor HP"] || "").replace(/\D/g, '');
@@ -906,7 +1014,7 @@
         let status = o["Status"] || "Menunggu";
 
         totalKm += km;
-        totalRevenue += cost; // Total pengeluaran pelanggan / total pendapatan kurir dari pelanggan ini
+        totalRevenue += cost;
 
         if (status !== "Selesai") {
           activeOrders.push(o);
@@ -920,7 +1028,6 @@
         if (document.getElementById("activeCount")) document.getElementById("activeCount").innerText = activeOrders.length;
       }
 
-      // Render Laporan Keuangan Pelanggan jika di Mode Pelanggan
       if (isCustomerMode) {
         const finCard = document.getElementById("customerFinancialSummary");
         if (finCard) {
