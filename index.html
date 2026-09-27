@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KURIR EXPRESS — Pemesanan & Hitung Jarak</title>
+  <title>KURIR EXPRESS — Auto-Complete Presisi</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- FontAwesome for Icons -->
@@ -77,7 +77,7 @@
     <section id="tab-pesanan" class="tab-content space-y-4">
       <div id="customerWelcomeBanner" class="bg-indigo-50 border border-indigo-100 p-3.5 rounded-2xl hidden">
         <h2 class="font-bold text-indigo-900 text-sm mb-1">📦 Form Pemesanan Kurir Mandiri</h2>
-        <p class="text-xs text-indigo-700">Silakan isi alamat jemput dan tujuan Anda, lalu hitung atau sesuaikan jarak KM.</p>
+        <p class="text-xs text-indigo-700">Ketik lokasi penjemputan & tujuan, lalu pilih dari daftar saran map.</p>
       </div>
 
       <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
@@ -94,31 +94,37 @@
             <input type="tel" id="noHp" required placeholder="Contoh: 081234567890" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
           </div>
 
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Alamat Jemput <span class="text-red-500">*</span></label>
-            <textarea id="alamatJemput" rows="2" required placeholder="Contoh: Boja Kendal" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+          <!-- Alamat Jemput dengan Autocomplete -->
+          <div class="relative">
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Alamat Jemput (Pickup) <span class="text-red-500">*</span></label>
+            <input type="text" id="alamatJemput" required autocomplete="off" placeholder="Ketik lokasi jemput, cth: Terminal Cangkiran..." class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <!-- Dropdown Opsi Sugesti Map -->
+            <div id="jemputDropdown" class="absolute left-0 right-0 bg-white border border-slate-200 rounded-xl shadow-xl mt-1 z-50 hidden max-h-48 overflow-y-auto divide-y divide-slate-100"></div>
           </div>
 
-          <div>
+          <!-- Alamat Tujuan dengan Autocomplete -->
+          <div class="relative">
             <label class="block text-xs font-semibold text-slate-600 mb-1">Alamat Tujuan <span class="text-red-500">*</span></label>
-            <textarea id="alamatTujuan" rows="2" required placeholder="Contoh: Semarang Utara" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+            <input type="text" id="alamatTujuan" required autocomplete="off" placeholder="Ketik lokasi tujuan, cth: Simpang Lima Semarang..." class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <!-- Dropdown Opsi Sugesti Map -->
+            <div id="tujuanDropdown" class="absolute left-0 right-0 bg-white border border-slate-200 rounded-xl shadow-xl mt-1 z-50 hidden max-h-48 overflow-y-auto divide-y divide-slate-100"></div>
           </div>
 
           <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1">Catatan (Opsional)</label>
-            <input type="text" id="catatan" placeholder="Contoh: Ambil piring / fragile" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <input type="text" id="catatan" placeholder="Contoh: Ambil paket / fragile" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
           </div>
 
           <!-- Tombol Hitung Jarak -->
           <button type="button" onclick="calculateDistance()" class="w-full bg-slate-800 text-white font-semibold py-2.5 rounded-xl text-sm shadow hover:bg-slate-900 transition">
-            HITUNG JARINGAN & KM OTOMATIS
+            HITUNG JARAK & ONGKOS PRESISI
           </button>
         </form>
       </div>
 
-      <!-- Hasil Perhitungan Card (Dengan Edit KM Manual) -->
+      <!-- Hasil Perhitungan Presisi -->
       <div id="resultCard" class="bg-indigo-900 text-white p-4 rounded-2xl shadow-lg space-y-3 hidden">
-        <h3 class="text-xs uppercase tracking-wider text-indigo-300 font-semibold border-b border-indigo-800 pb-2">Rincian Rute & Sesuaikan KM</h3>
+        <h3 class="text-xs uppercase tracking-wider text-indigo-300 font-semibold border-b border-indigo-800 pb-2">Rincian Rute & Ongkos</h3>
         
         <div class="grid grid-cols-2 gap-2 text-xs">
           <div>
@@ -131,19 +137,18 @@
           </div>
         </div>
 
-        <div class="bg-indigo-950/60 p-3 rounded-xl border border-indigo-800/60 grid grid-cols-3 gap-2 text-center items-center">
+        <div class="bg-indigo-950/60 p-3 rounded-xl border border-indigo-800/60 grid grid-cols-3 text-center">
           <div>
-            <span class="text-[10px] text-indigo-300 block mb-1">JARAK (KM)</span>
-            <!-- Editable KM input so user can adjust if map estimation is off -->
-            <input type="number" id="resJarakInput" step="0.1" min="0.5" oninput="updateCostFromManualKm()" class="w-full bg-white text-slate-950 font-bold text-center text-sm py-1 rounded-lg focus:outline-none">
+            <span class="text-[10px] text-indigo-300 block">JARAK</span>
+            <span id="resJarak" class="text-lg font-bold text-white">0 KM</span>
           </div>
           <div>
-            <span class="text-[10px] text-indigo-300 block mb-1">TARIF / KM</span>
-            <span id="resTarif" class="text-xs font-bold text-white block py-1">Rp4.000</span>
+            <span class="text-[10px] text-indigo-300 block">TARIF / KM</span>
+            <span id="resTarif" class="text-sm font-bold text-white">Rp4.000</span>
           </div>
           <div>
-            <span class="text-[10px] text-indigo-300 block mb-1">ESTIMASI</span>
-            <span id="resEstimasi" class="text-xs font-bold text-white block py-1">0 mnt</span>
+            <span class="text-[10px] text-indigo-300 block">ESTIMASI</span>
+            <span id="resEstimasi" class="text-sm font-bold text-white">0 mnt</span>
           </div>
         </div>
 
@@ -225,7 +230,7 @@
 
     <!-- Versi & Powered By Footer (Sejajar) -->
     <footer class="text-center text-[11px] text-slate-400 pt-4 pb-2">
-      <span class="font-semibold text-slate-500">v2.10</span> &bull; <span>Powered by Ari GPM</span>
+      <span class="font-semibold text-slate-500">v2.12</span> &bull; <span>Powered by Ari GPM</span>
     </footer>
 
   </main>
@@ -268,6 +273,10 @@
     let ordersData = [];
     let isCustomerMode = false;
 
+    // Simpan koordinat presisi hasil pilihan dropdown
+    let jemputCoords = null;
+    let tujuanCoords = null;
+
     window.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
       isCustomerMode = urlParams.get('mode') === 'customer';
@@ -281,6 +290,10 @@
       const savedDriverWa = localStorage.getItem("driver_wa") || "6281234567890";
       document.getElementById("driverWaInput").value = savedDriverWa;
 
+      // Inisialisasi Autocomplete Grab/Gojek style
+      setupAutocomplete('alamatJemput', 'jemputDropdown', 'jemput');
+      setupAutocomplete('alamatTujuan', 'tujuanDropdown', 'tujuan');
+
       if (isCustomerMode) {
         document.getElementById("bottomNav").classList.add('hidden');
         document.getElementById("headerTitle").innerText = "PESAN KURIR MANDIRI";
@@ -291,6 +304,65 @@
         loadData();
       }
     });
+
+    // Fungsi Autocomplete Realtime seperti Grab/Gojek
+    function setupAutocomplete(inputId, dropdownId, type) {
+      const input = document.getElementById(inputId);
+      const dropdown = document.getElementById(dropdownId);
+      let timeout = null;
+
+      input.addEventListener('input', () => {
+        // Reset koordinat jika user mengetik ulang manual
+        if (type === 'jemput') jemputCoords = null;
+        else tujuanCoords = null;
+
+        clearTimeout(timeout);
+        const query = input.value.trim();
+        if (query.length < 3) {
+          dropdown.classList.add('hidden');
+          dropdown.innerHTML = '';
+          return;
+        }
+
+        timeout = setTimeout(async () => {
+          try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=id&q=${encodeURIComponent(query)}&limit=5`);
+            const results = await res.json();
+            
+            if (results && results.length > 0) {
+              dropdown.innerHTML = results.map(item => `
+                <div class="p-2.5 hover:bg-indigo-50 cursor-pointer text-xs flex items-center space-x-2 transition" onclick="selectLocation('${inputId}', '${dropdownId}', '${item.display_name.replace(/'/g, "\\'")}', ${item.lat}, ${item.lon}, '${type}')">
+                  <i class="fa-solid fa-location-dot text-indigo-600 shrink-0"></i>
+                  <span class="truncate text-slate-700 font-medium">${item.display_name}</span>
+                </div>
+              `).join('');
+              dropdown.classList.remove('hidden');
+            } else {
+              dropdown.classList.add('hidden');
+            }
+          } catch (err) {
+            dropdown.classList.add('hidden');
+          }
+        }, 300);
+      });
+
+      // Tutup dropdown jika klik di luar
+      document.addEventListener('click', (e) => {
+        if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+          dropdown.classList.add('hidden');
+        }
+      });
+    }
+
+    function selectLocation(inputId, dropdownId, displayName, lat, lon, type) {
+      document.getElementById(inputId).value = displayName;
+      document.getElementById(dropdownId).classList.add('hidden');
+      if (type === 'jemput') {
+        jemputCoords = { lat, lon };
+      } else {
+        tujuanCoords = { lat, lon };
+      }
+    }
 
     function copyCustomerLink() {
       const copyText = document.getElementById("customerShareLink");
@@ -337,6 +409,18 @@
       return cleaned;
     }
 
+    // Helper jika user tidak memilih dari dropdown tapi langsung ketik
+    async function getFallbackCoords(address) {
+      try {
+        let res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=id&q=${encodeURIComponent(address + ", Indonesia")}&limit=1`);
+        let data = await res.json();
+        if (data && data.length > 0) {
+          return { lat: data[0].lat, lon: data[0].lon };
+        }
+      } catch (e) {}
+      return null;
+    }
+
     async function calculateDistance() {
       const jemput = document.getElementById("alamatJemput").value.trim();
       const tujuan = document.getElementById("alamatTujuan").value.trim();
@@ -351,25 +435,18 @@
       const btn = document.querySelector("button[onclick='calculateDistance()']");
       const originalText = btn.innerText;
       btn.disabled = true;
-      btn.innerText = "Menghitung Jarak...";
+      btn.innerText = "Menghitung Rute Presisi...";
 
-      let jarakKm = 15.0; // Default reasonable estimate
-      let estimasiMnt = 45;
+      let jarakKm = 0;
+      let estimasiMnt = 0;
 
       try {
-        const resJemput = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(jemput + ", Indonesia")}&limit=1`);
-        const dataJemput = await resJemput.json();
+        // Gunakan koordinat dari pilihan dropdown jika ada, jika tidak lakukan geocoding fallback
+        let cJemput = jemputCoords || (await getFallbackCoords(jemput));
+        let cTujuan = tujuanCoords || (await getFallbackCoords(tujuan));
 
-        const resTujuan = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(tujuan + ", Indonesia")}&limit=1`);
-        const dataTujuan = await resTujuan.json();
-
-        if (dataJemput.length > 0 && dataTujuan.length > 0) {
-          const lon1 = dataJemput[0].lon;
-          const lat1 = dataJemput[0].lat;
-          const lon2 = dataTujuan[0].lon;
-          const lat2 = dataTujuan[0].lat;
-
-          const resRoute = await fetch(`https://router.project-osrm.org/route/v1/driving/${lon1},${lat1};${lon2},${lat2}?overview=false`);
+        if (cJemput && cTujuan) {
+          const resRoute = await fetch(`https://router.project-osrm.org/route/v1/driving/${cJemput.lon},${cJemput.lat};${cTujuan.lon},${cTujuan.lat}?overview=false`);
           const dataRoute = await resRoute.json();
 
           if (dataRoute.code === "Ok" && dataRoute.routes && dataRoute.routes.length > 0) {
@@ -379,12 +456,19 @@
           }
         }
       } catch (err) {
-        console.log("Map routing error:", err);
+        console.log("Routing error:", err);
       }
 
-      if (jarakKm < 1) jarakKm = 2.0;
+      if (!jarakKm || jarakKm <= 0) {
+        jarakKm = 10.0;
+        estimasiMnt = 30;
+      }
 
-      // Prepare data
+      if (jarakKm < 1) jarakKm = 1.5;
+      if (estimasiMnt < 5) estimasiMnt = 10;
+
+      let totalOngkos = Math.round(jarakKm * currentTarif);
+
       calculatedData = {
         nama: nama,
         noHp: noHp,
@@ -394,34 +478,21 @@
         jarak: jarakKm,
         estimasiMenit: estimasiMnt,
         tarif: currentTarif,
-        totalOngkos: Math.round(jarakKm * currentTarif)
+        totalOngkos: totalOngkos
       };
 
       document.getElementById("resJemput").innerText = jemput;
       document.getElementById("resTujuan").innerText = tujuan;
-      document.getElementById("resJarakInput").value = jarakKm;
+      document.getElementById("resJarak").innerText = jarakKm + " KM";
       document.getElementById("resTarif").innerText = formatRupiah(currentTarif) + "/KM";
       document.getElementById("resEstimasi").innerText = estimasiMnt + " mnt";
-      document.getElementById("resOngkos").innerText = formatRupiah(calculatedData.totalOngkos);
+      document.getElementById("resOngkos").innerText = formatRupiah(totalOngkos);
       
       document.getElementById("resultCard").classList.remove('hidden');
       document.getElementById("resultCard").scrollIntoView({ behavior: 'smooth' });
 
       btn.disabled = false;
       btn.innerText = originalText;
-    }
-
-    // Update cost instantly if user edits KM manually
-    function updateCostFromManualKm() {
-      const manualKm = parseFloat(document.getElementById("resJarakInput").value);
-      if (isNaN(manualKm) || manualKm <= 0) return;
-
-      calculatedData.jarak = manualKm;
-      calculatedData.estimasiMenit = Math.round(manualKm * 2.5);
-      calculatedData.totalOngkos = Math.round(manualKm * currentTarif);
-
-      document.getElementById("resEstimasi").innerText = calculatedData.estimasiMenit + " mnt";
-      document.getElementById("resOngkos").innerText = formatRupiah(calculatedData.totalOngkos);
     }
 
     async function saveOrder() {
@@ -471,6 +542,8 @@
       document.getElementById("orderForm").reset();
       document.getElementById("resultCard").classList.add('hidden');
       calculatedData = null;
+      jemputCoords = null;
+      tujuanCoords = null;
       const btn = document.getElementById("btnSimpan");
       btn.disabled = false;
       btn.innerText = "PESAN SEKARANG (KIRIM KE KURIR)";
@@ -698,7 +771,7 @@
     function saveSettings() {
       const url = document.getElementById("gasUrlInput").value.trim();
       const driverWa = document.getElementById("driverWaInput").value.trim();
-      localStorage.getItem("gas_url", url);
+      localStorage.setItem("gas_url", url);
       localStorage.setItem("driver_wa", driverWa);
       alert("Pengaturan berhasil disimpan!");
       loadData();
