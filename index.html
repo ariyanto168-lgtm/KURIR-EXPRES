@@ -25,7 +25,7 @@
   <header class="bg-indigo-600 text-white shadow-md sticky top-0 z-40 px-4 py-3 flex justify-between items-center">
     <h1 class="font-bold text-lg tracking-wide">KURIR EXPRESS</h1>
     <div id="connectionStatus" class="text-xs bg-indigo-700 px-2 py-1 rounded-full font-medium">
-      <span id="statusText">Menghubungkan...</span>
+      <span id="statusText">Memeriksa Koneksi...</span>
     </div>
   </header>
 
@@ -368,7 +368,7 @@
 
       const btn = document.getElementById("btnSimpan");
       btn.disabled = true;
-      btn.innerText = "Menyimpan ke Google Sheets...";
+      btn.innerText = "Menyimpan Pesanan...";
 
       const url = document.getElementById("gasUrlInput").value.trim() || GAS_WEB_APP_URL;
 
@@ -384,17 +384,42 @@
           resetForm();
           loadData();
           switchTab('riwayat');
+          return;
         } else {
-          alert("Gagal menyimpan: " + (result.message || "Unknown error"));
-          btn.disabled = false;
-          btn.innerText = "SIMPAN PESANAN";
+          throw new Error(result.message || "Server error");
         }
       } catch (err) {
-        console.error("Fetch error:", err);
-        alert("Gagal terhubung ke server Google Apps Script.");
-        btn.disabled = false;
-        btn.innerText = "SIMPAN PESANAN";
+        console.warn("Online save failed, saving locally (fallback):", err);
+        saveOrderLocally();
       }
+    }
+
+    function saveOrderLocally() {
+      const orderId = "KURIR-" + new Date().toISOString().slice(0,10).replace(/-/g,"") + "-" + Math.floor(1000 + Math.random() * 9000);
+      const newOrder = {
+        "ID Pesanan": orderId,
+        "Timestamp": new Date().toISOString(),
+        "Tanggal": new Date().toLocaleString("id-ID"),
+        "Nama Pelanggan": calculatedData.nama,
+        "Nomor HP": calculatedData.noHp,
+        "Alamat Jemput": calculatedData.alamatJemput,
+        "Alamat Tujuan": calculatedData.alamatTujuan,
+        "Catatan": calculatedData.catatan,
+        "Jarak KM": calculatedData.jarak,
+        "Estimasi Menit": calculatedData.estimasiMenit,
+        "Tarif per KM": calculatedData.tarif,
+        "Total Ongkos": calculatedData.totalOngkos,
+        "Status": "Menunggu"
+      };
+
+      let localOrders = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
+      localOrders.unshift(newOrder);
+      localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
+
+      alert("Pesanan berhasil disimpan secara lokal (Offline mode). ID: " + orderId);
+      resetForm();
+      loadData();
+      switchTab('riwayat');
     }
 
     function resetForm() {
@@ -422,11 +447,11 @@
           return;
         }
       } catch (err) {
-        console.error("Failed fetching from GAS:", err);
+        console.warn("Failed fetching from GAS, loading local orders:", err);
       }
 
-      statusText.innerText = "Gagal Terhubung";
-      ordersData = [];
+      statusText.innerText = "Mode Offline / Lokal";
+      ordersData = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
       renderDashboardAndHistory();
     }
 
