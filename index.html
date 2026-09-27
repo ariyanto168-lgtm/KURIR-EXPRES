@@ -285,7 +285,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.22 • Powered by Ari GPM
+      v2.24 • Powered by Ari GPM
     </div>
 
   </main>
@@ -865,7 +865,7 @@
           activeContainer.innerHTML = `<p class="text-xs text-slate-400 text-center py-3">Tidak ada pesanan aktif saat ini.</p>`;
         } else {
           activeContainer.innerHTML = activeOrders.map(o => `
-            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-between items-center text-xs cursor-pointer hover:bg-slate-100" onclick='showDetail(${JSON.stringify(o).replace(/'/g, "&#39;")})'>
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-between items-center text-xs cursor-pointer hover:bg-slate-100" onclick='showDetailById("${o["ID Pesanan"]}")'>
               <div>
                 <span class="font-bold text-slate-800 block">${o["Nama Pelanggan"]} ${o._synced === false ? '<i class="fa-solid fa-cloud-arrow-up text-amber-500 ml-1" title="Belum Sinkron"></i>' : ''}</span>
                 <span class="text-slate-500 truncate block max-w-[180px]">Ke: ${o["Alamat Tujuan"]}</span>
@@ -885,7 +885,7 @@
           tableBody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-slate-400">Belum ada riwayat pesanan.</td></tr>`;
         } else {
           tableBody.innerHTML = ordersData.map(o => `
-            <tr class="hover:bg-slate-50 cursor-pointer border-b border-slate-100" onclick='showDetail(${JSON.stringify(o).replace(/'/g, "&#39;")})'>
+            <tr class="hover:bg-slate-50 cursor-pointer border-b border-slate-100" onclick='showDetailById("${o["ID Pesanan"]}")'>
               <td class="p-2.5">
                 <span class="font-bold text-slate-800 block">${o["Nama Pelanggan"]} ${o._synced === false ? '<i class="fa-solid fa-cloud-arrow-up text-amber-500 ml-1" title="Belum Sinkron"></i>' : ''}</span>
                 <span class="text-[10px] text-slate-400">${o["ID Pesanan"]}</span>
@@ -907,6 +907,15 @@
         case 'Dalam Pengiriman': return 'bg-blue-100 text-blue-800';
         case 'Diambil': return 'bg-purple-100 text-purple-800';
         default: return 'bg-amber-100 text-amber-800';
+      }
+    }
+
+    function showDetailById(orderId) {
+      const order = ordersData.find(o => o["ID Pesanan"] === orderId);
+      if (order) {
+        showDetail(order);
+      } else {
+        alert("Data pesanan tidak ditemukan.");
       }
     }
 
