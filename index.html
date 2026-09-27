@@ -106,31 +106,23 @@
           </div>
 
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor WhatsApp Pelanggan<span class="text-red-500">*</span></label>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor WhatsApp Pelanggan <span class="text-red-500">*</span></label>
             <input type="tel" id="noHp" required placeholder="Contoh: 081234567890" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
           </div>
 
-          <!-- Alamat Jemput dengan Fitur Autocomplete Map -->
+          <!-- Alamat Jemput dengan Auto-Suggest Realtime -->
           <div class="relative">
-            <div class="flex justify-between items-center mb-1">
-              <label class="block text-xs font-semibold text-slate-600">Alamat Jemput <span class="text-red-500">*</span></label>
-              <button type="button" onclick="cariLokasiMap('alamatJemput', 'saranJemput', this)" class="text-[10px] text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded shadow-sm hover:bg-indigo-100 transition">
-                <i class="fa-solid fa-magnifying-glass"></i> Cari di Peta
-              </button>
-            </div>
-            <textarea id="alamatJemput" rows="2" required placeholder="Ketik lokasi, lalu klik 'Cari di Peta'" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Alamat Jemput <span class="text-red-500">*</span></label>
+            <textarea id="alamatJemput" rows="2" required placeholder="Ketik lokasi jemput, cth: Jl. Gandekan Semarang" oninput="handleAddressInput('alamatJemput', 'saranJemput')" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+            <!-- Dropdown Saran -->
             <div id="saranJemput" class="absolute z-50 left-0 right-0 bg-white border border-slate-200 rounded-lg shadow-xl hidden flex-col divide-y divide-slate-100 max-h-48 overflow-y-auto text-xs mt-1"></div>
           </div>
 
-          <!-- Alamat Tujuan dengan Fitur Autocomplete Map -->
+          <!-- Alamat Tujuan dengan Auto-Suggest Realtime -->
           <div class="relative">
-            <div class="flex justify-between items-center mb-1">
-              <label class="block text-xs font-semibold text-slate-600">Alamat Tujuan <span class="text-red-500">*</span></label>
-              <button type="button" onclick="cariLokasiMap('alamatTujuan', 'saranTujuan', this)" class="text-[10px] text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded shadow-sm hover:bg-indigo-100 transition">
-                <i class="fa-solid fa-magnifying-glass"></i> Cari di Peta
-              </button>
-            </div>
-            <textarea id="alamatTujuan" rows="2" required placeholder="Ketik lokasi, lalu klik 'Cari di Peta'" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Alamat Tujuan <span class="text-red-500">*</span></label>
+            <textarea id="alamatTujuan" rows="2" required placeholder="Ketik lokasi tujuan, cth: Simpang Lima Semarang" oninput="handleAddressInput('alamatTujuan', 'saranTujuan')" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+            <!-- Dropdown Saran -->
             <div id="saranTujuan" class="absolute z-50 left-0 right-0 bg-white border border-slate-200 rounded-lg shadow-xl hidden flex-col divide-y divide-slate-100 max-h-48 overflow-y-auto text-xs mt-1"></div>
           </div>
 
@@ -286,7 +278,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.18 • Powered by Ari GPM
+      v2.20 • Powered by Ari GPM
     </div>
 
   </main>
@@ -310,6 +302,25 @@
       <div id="modalShareContainer" class="pt-1">
         <!-- WhatsApp Share Button populated dynamically -->
       </div>
+    </div>
+  </div>
+
+  <!-- Customer Success Report Modal (Khusus Pelanggan Mode Order) -->
+  <div id="customerSuccessModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-2xl p-5 shadow-2xl space-y-4 text-center">
+      <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold">
+        <i class="fa-solid fa-check"></i>
+      </div>
+      <div>
+        <h3 class="font-bold text-slate-800 text-base">Pesanan Berhasil Dibuat!</h3>
+        <p class="text-xs text-slate-500 mt-1">Silakan kirimkan laporan rincian pesanan ini ke WhatsApp Driver agar segera diproses.</p>
+      </div>
+      <div id="customerShareBtnContainer">
+        <!-- Tombol Kirim ke WA Driver -->
+      </div>
+      <button onclick="location.reload()" class="w-full bg-slate-100 text-slate-700 py-2 rounded-xl text-xs font-semibold hover:bg-slate-200 transition">
+        Buat Pesanan Baru
+      </button>
     </div>
   </div>
 
@@ -341,20 +352,18 @@
     let calculatedData = null;
     let ordersData = [];
     let isCustomerMode = false;
+    let typingTimer;
 
     window.addEventListener('DOMContentLoaded', () => {
-      // Cek apakah halaman dibuka via link khusus pelanggan (?mode=order)
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('mode') === 'order') {
         isCustomerMode = true;
       }
 
-      // Set App Link khusus untuk Pelanggan di Pengaturan
       const baseUrl = window.location.href.split('?')[0];
       document.getElementById("appLinkInput").value = baseUrl + "?mode=order";
 
       if (isCustomerMode) {
-        // Sembunyikan navigasi kurir dan arahkan langsung ke form pesanan
         document.getElementById("bottomNav").style.display = "none";
         switchTab('pesanan');
       }
@@ -368,11 +377,11 @@
       document.getElementById("localTarifInput").value = savedTarif;
       
       document.addEventListener('click', function(e) {
-        if (!e.target.closest('#saranJemput') && !e.target.closest('button[onclick*="alamatJemput"]')) {
+        if (!e.target.closest('#saranJemput') && !e.target.closest('#alamatJemput')) {
           document.getElementById('saranJemput').classList.add('hidden');
           document.getElementById('saranJemput').classList.remove('flex');
         }
-        if (!e.target.closest('#saranTujuan') && !e.target.closest('button[onclick*="alamatTujuan"]')) {
+        if (!e.target.closest('#saranTujuan') && !e.target.closest('#alamatTujuan')) {
           document.getElementById('saranTujuan').classList.add('hidden');
           document.getElementById('saranTujuan').classList.remove('flex');
         }
@@ -382,7 +391,7 @@
     });
 
     function switchTab(tabId) {
-      if (isCustomerMode && tabId !== 'pesanan') return; // Pelanggan hanya bisa di tab pesanan
+      if (isCustomerMode && tabId !== 'pesanan') return;
 
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
       document.getElementById('tab-' + tabId).classList.remove('hidden');
@@ -422,42 +431,40 @@
       });
     }
 
-    async function cariLokasiMap(inputId, saranId, btnElement) {
+    // REAL-TIME AUTOCOMPLETE ALAMAT (Ala Maxim/Gojek/Grab)
+    function handleAddressInput(inputId, saranId) {
+      clearTimeout(typingTimer);
       const query = document.getElementById(inputId).value.trim();
       const saranDiv = document.getElementById(saranId);
 
-      if (!query) {
-        alert("Harap ketik nama jalan / wilayah / kota di kolom terlebih dahulu sebelum mencari.");
+      if (query.length < 3) {
+        saranDiv.classList.add('hidden');
+        saranDiv.classList.remove('flex');
         return;
       }
 
-      const originalHtml = btnElement.innerHTML;
-      btnElement.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Mencari...`;
-      btnElement.disabled = true;
+      typingTimer = setTimeout(async () => {
+        saranDiv.innerHTML = `<div class="p-2.5 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin"></i> Mencari lokasi...</div>`;
+        saranDiv.classList.remove('hidden');
+        saranDiv.classList.add('flex');
 
-      saranDiv.innerHTML = `<div class="p-3 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin"></i> Mencari saran...</div>`;
-      saranDiv.classList.remove('hidden');
-      saranDiv.classList.add('flex');
-
-      try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=id&q=${encodeURIComponent(query)}&limit=5`);
-        const data = await res.json();
-        
-        if (data.length === 0) {
-          saranDiv.innerHTML = `<div class="p-3 text-center text-amber-600 font-medium">Alamat tidak ditemukan. Coba ketik lebih spesifik.</div>`;
-        } else {
-          saranDiv.innerHTML = data.map(item => `
-            <div class="p-2.5 hover:bg-indigo-50 cursor-pointer text-slate-700" onclick="pilihLokasi('${inputId}', '${saranId}', '${item.display_name.replace(/'/g, "\\'")}')">
-              <i class="fa-solid fa-location-dot text-indigo-400 mr-1"></i> ${item.display_name}
-            </div>
-          `).join('');
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=id&q=${encodeURIComponent(query)}&limit=5`);
+          const data = await res.json();
+          
+          if (data.length === 0) {
+            saranDiv.innerHTML = `<div class="p-2.5 text-center text-amber-600">Lokasi tidak ditemukan</div>`;
+          } else {
+            saranDiv.innerHTML = data.map(item => `
+              <div class="p-2.5 hover:bg-indigo-50 cursor-pointer text-slate-700 truncate" onclick="pilihLokasi('${inputId}', '${saranId}', '${item.display_name.replace(/'/g, "\\'")}')">
+                <i class="fa-solid fa-location-dot text-indigo-500 mr-1.5"></i> ${item.display_name}
+              </div>
+            `).join('');
+          }
+        } catch (err) {
+          saranDiv.classList.add('hidden');
         }
-      } catch (err) {
-        saranDiv.innerHTML = `<div class="p-3 text-center text-red-500">Gagal terhubung ke server peta.</div>`;
-      } finally {
-        btnElement.innerHTML = originalHtml;
-        btnElement.disabled = false;
-      }
+      }, 400);
     }
 
     function pilihLokasi(inputId, saranId, namaLokasi) {
@@ -503,7 +510,7 @@
         const dataTujuan = await resTujuan.json();
 
         if (dataJemput.length === 0 || dataTujuan.length === 0) {
-          throw new Error("Alamat belum valid. Harap gunakan tombol 'Cari di Peta' terlebih dahulu agar akurat.");
+          throw new Error("Alamat belum valid. Pilih alamat dari daftar saran yang muncul.");
         }
 
         const lon1 = parseFloat(dataJemput[0].lon);
@@ -584,14 +591,7 @@
           });
           const result = await response.json();
           if (result.status === "success") {
-            alert("Pesanan berhasil dikirim ke Kurir! ID: " + result.orderId);
-            resetForm();
-            if (isCustomerMode) {
-              alert("Pesanan Anda telah tercatat. Terima kasih!");
-            } else {
-              loadData();
-              switchTab('riwayat');
-            }
+            handlePostSaveSuccess(result.orderId);
           } else {
             alert("Gagal menyimpan: " + (result.message || "Unknown error"));
             btn.disabled = false;
@@ -629,9 +629,28 @@
       localOrders.unshift(newOrder);
       localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
 
-      alert("Pesanan berhasil dibuat! ID: " + orderId);
+      handlePostSaveSuccess(orderId);
+    }
+
+    function handlePostSaveSuccess(orderId) {
       resetForm();
-      if (!isCustomerMode) {
+      if (isCustomerMode) {
+        // Tampilkan modal kirim laporan WA ke driver
+        const driverWa = formatPhoneNumber(localStorage.getItem("driver_wa") || "6281234567890");
+        const jemputLink = `https://maps.google.com/?q=${encodeURIComponent(calculatedData.alamatJemput)}`;
+        const tujuanLink = `https://maps.google.com/?q=${encodeURIComponent(calculatedData.alamatTujuan)}`;
+        
+        const reportText = `Halo Driver, saya memesan Kurir Express:\n\n- *ID:* ${orderId}\n- *Nama:* ${calculatedData.nama}\n- *No HP:* ${calculatedData.noHp}\n\n📦 *Jemput:* ${calculatedData.alamatJemput}\n📍 Map: ${jemputLink}\n\n🏁 *Tujuan:* ${calculatedData.alamatTujuan}\n📍 Map: ${tujuanLink}\n\n- *Jarak:* ${calculatedData.jarak} KM\n- *Total Ongkos:* ${formatRupiah(calculatedData.totalOngkos)}\n- *Catatan:* ${calculatedData.catatan || '-'}`;
+
+        document.getElementById("customerShareBtnContainer").innerHTML = `
+          <a href="https://wa.me/${driverWa}?text=${encodeURIComponent(reportText)}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 transition shadow">
+            <i class="fa-brands fa-whatsapp text-base"></i>
+            <span>Kirim Laporan Pesanan ke WhatsApp Driver</span>
+          </a>
+        `;
+        document.getElementById("customerSuccessModal").classList.remove('hidden');
+      } else {
+        alert("Pesanan berhasil disimpan! ID: " + orderId);
         loadData();
         switchTab('riwayat');
       }
