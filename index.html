@@ -86,16 +86,19 @@
         </button>
       </div>
 
-      <!-- Pesanan Aktif Interaktif Card -->
+      <!-- Pesanan Aktif Collapsible Card -->
       <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-        <div class="flex justify-between items-center mb-3">
+        <div class="flex justify-between items-center cursor-pointer select-none" onclick="toggleActiveOrdersCard()">
           <h3 class="text-slate-800 font-bold text-sm flex items-center space-x-2">
             <i class="fa-solid fa-spinner text-indigo-600"></i>
             <span>Pesanan Aktif (<span id="activeCount">0</span>)</span>
           </h3>
-          <span class="text-xs text-slate-400">Ketuk kartu untuk alur proses</span>
+          <div class="flex items-center space-x-2 text-xs text-slate-400">
+            <span id="activeOrdersToggleText">Ketuk untuk lihat</span>
+            <i id="activeOrdersChevron" class="fa-solid fa-chevron-down transition-transform duration-200"></i>
+          </div>
         </div>
-        <div id="activeOrdersList" class="space-y-3">
+        <div id="activeOrdersListContainer" class="mt-3 hidden space-y-3 pt-2 border-t border-slate-100">
           <!-- Rendered dynamically -->
         </div>
       </div>
@@ -322,7 +325,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.40 • Powered by Ari GPM
+      v2.42 • Powered by Ari GPM
     </div>
 
   </main>
@@ -446,13 +449,13 @@
     let customerPhone = "";
     let typingTimer;
     let mapSearchTimer;
+    let activeOrdersExpanded = false;
 
     let pickerMap = null;
     let pickerMarker = null;
     let activeTargetInputId = "";
     let currentSelectedAddress = "";
 
-    // CUSTOM ELEGANT NOTIFICATION FUNCTION
     function showToast(title, message, type = 'success') {
       const modal = document.getElementById("customToastModal");
       const titleEl = document.getElementById("toastTitle");
@@ -479,6 +482,23 @@
 
     function closeCustomToast() {
       document.getElementById("customToastModal").classList.add('hidden');
+    }
+
+    function toggleActiveOrdersCard() {
+      activeOrdersExpanded = !activeOrdersExpanded;
+      const container = document.getElementById("activeOrdersListContainer");
+      const chevron = document.getElementById("activeOrdersChevron");
+      const toggleText = document.getElementById("activeOrdersToggleText");
+      
+      if (activeOrdersExpanded) {
+        container.classList.remove('hidden');
+        chevron.classList.add('rotate-180');
+        toggleText.innerText = 'Tutup';
+      } else {
+        container.classList.add('hidden');
+        chevron.classList.remove('rotate-180');
+        toggleText.innerText = 'Ketuk untuk lihat';
+      }
     }
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -1151,10 +1171,10 @@
         }
       }
 
-      const activeContainer = document.getElementById("activeOrdersList");
+      const activeContainer = document.getElementById("activeOrdersListContainer");
       if (activeContainer && !isCustomerMode) {
         if (activeOrders.length === 0) {
-          activeContainer.innerHTML = `<p class="text-xs text-slate-400 text-center py-3">Tidak ada pesanan aktif saat ini.</p>`;
+          activeContainer.innerHTML = `<p class="text-xs text-slate-400 text-center py-2">Tidak ada pesanan aktif saat ini.</p>`;
         } else {
           activeContainer.innerHTML = activeOrders.map(o => {
             let st = o["Status"] || "Menunggu";
