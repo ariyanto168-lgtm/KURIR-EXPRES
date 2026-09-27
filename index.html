@@ -22,7 +22,7 @@
       padding-bottom: 85px;
     }
     #mapPickerContainer {
-      height: 300px;
+      height: 250px;
       width: 100%;
       border-radius: 1rem;
       z-index: 10;
@@ -120,7 +120,7 @@
             <input type="tel" id="noHp" required placeholder="Contoh: 081234567890" oninput="onPhoneInput(this.value)" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
           </div>
 
-          <!-- Alamat Jemput dengan Fitur Peta Interaktif (Geser Pin) -->
+          <!-- Alamat Jemput dengan Fitur Peta Interaktif (Geser Pin & Search) -->
           <div class="relative">
             <div class="flex justify-between items-center mb-1">
               <label class="block text-xs font-semibold text-slate-600">Alamat Jemput <span class="text-red-500">*</span></label>
@@ -132,7 +132,7 @@
             <div id="saranJemput" class="absolute z-30 left-0 right-0 bg-white border border-slate-200 rounded-lg shadow-xl hidden flex-col divide-y divide-slate-100 max-h-48 overflow-y-auto text-xs mt-1"></div>
           </div>
 
-          <!-- Alamat Tujuan dengan Fitur Peta Interaktif (Geser Pin) -->
+          <!-- Alamat Tujuan dengan Fitur Peta Interaktif (Geser Pin & Search) -->
           <div class="relative">
             <div class="flex justify-between items-center mb-1">
               <label class="block text-xs font-semibold text-slate-600">Alamat Tujuan <span class="text-red-500">*</span></label>
@@ -322,29 +322,38 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.28 • Powered by Ari GPM
+      v2.32 • Powered by Ari GPM
     </div>
 
   </main>
 
-  <!-- MAP PICKER MODAL (Geser Pin / Pilih di Peta) -->
+  <!-- MAP PICKER MODAL DENGAN PENCARIAN MANUAL -->
   <div id="mapPickerModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-sm rounded-2xl p-4 shadow-xl space-y-3">
       <div class="flex justify-between items-center border-b pb-2">
         <h3 class="font-bold text-slate-800 text-sm flex items-center space-x-1.5">
           <i class="fa-solid fa-location-crosshairs text-indigo-600"></i>
-          <span>Geser Pin ke Lokasi Toko / Gang</span>
+          <span>Pilih Lokasi & Geser Pin</span>
         </h3>
         <button onclick="closeMapPicker()" class="text-slate-400 hover:text-slate-600 text-sm"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <p class="text-[11px] text-slate-500">Geser peta atau ketuk pada titik toko/gang yang dituju, lalu klik tombol Simpan Lokasi.</p>
       
+      <!-- Input Search Manual di dalam Modal Peta -->
+      <div class="relative">
+        <div class="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 space-x-2">
+          <i class="fa-solid fa-magnifying-glass text-slate-400 text-xs"></i>
+          <input type="text" id="mapSearchInput" placeholder="Ketik nama jalan / toko / tempat..." oninput="handleMapSearchInput(this.value)" class="w-full text-xs bg-transparent focus:outline-none text-slate-800">
+        </div>
+        <!-- Dropdown Saran Pencarian Peta -->
+        <div id="mapSearchSuggestions" class="absolute z-50 left-0 right-0 bg-white border border-slate-200 rounded-lg shadow-xl hidden flex-col divide-y divide-slate-100 max-h-36 overflow-y-auto text-xs mt-1"></div>
+      </div>
+
       <!-- Leaflet Map Container -->
       <div id="mapPickerContainer"></div>
 
       <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
         <span class="text-[10px] text-slate-400 block font-semibold uppercase">Lokasi Terpilih:</span>
-        <p id="selectedMapAddress" class="text-xs font-bold text-slate-800 truncate">Geser pin di peta...</p>
+        <p id="selectedMapAddress" class="text-xs font-bold text-slate-800 truncate">Geser pin atau cari lokasi...</p>
       </div>
 
       <button onclick="confirmMapLocation()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-xl text-xs transition shadow">
@@ -417,8 +426,8 @@
     let isCustomerMode = false;
     let customerPhone = "";
     let typingTimer;
+    let mapSearchTimer;
 
-    // Leaflet Map Picker Variables
     let pickerMap = null;
     let pickerMarker = null;
     let activeTargetInputId = "";
@@ -469,20 +478,24 @@
           document.getElementById('saranTujuan').classList.add('hidden');
           document.getElementById('saranTujuan').classList.remove('flex');
         }
+        if (!e.target.closest('#mapSearchInput') && !e.target.closest('#mapSearchSuggestions')) {
+          document.getElementById('mapSearchSuggestions').classList.add('hidden');
+          document.getElementById('mapSearchSuggestions').classList.remove('flex');
+        }
       });
 
       loadData();
     });
 
-    // MAP PICKER FUNCTIONS (Leaflet.js)
+    // MAP PICKER & SEARCH FUNCTIONS
     function openMapPicker(inputId) {
       activeTargetInputId = inputId;
+      document.getElementById("mapSearchInput").value = "";
+      document.getElementById("mapSearchSuggestions").classList.add('hidden');
       document.getElementById("mapPickerModal").classList.remove('hidden');
       
-      // Inisialisasi peta jika belum ada
       setTimeout(() => {
         if (!pickerMap) {
-          // Default center di Semarang (-6.9666, 110.4167) atau lokasi umum Indonesia
           pickerMap = L.map('mapPickerContainer').setView([-6.9666, 110.4167], 14);
           
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -505,7 +518,6 @@
           pickerMap.invalidateSize();
         }
         
-        // Coba gunakan lokasi GPS pengguna jika diizinkan
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(position => {
             const lat = position.coords.latitude;
@@ -524,6 +536,53 @@
 
     function closeMapPicker() {
       document.getElementById("mapPickerModal").classList.add('hidden');
+    }
+
+    function handleMapSearchInput(query) {
+      clearTimeout(mapSearchTimer);
+      const suggDiv = document.getElementById("mapSearchSuggestions");
+
+      if (query.length < 3) {
+        suggDiv.classList.add('hidden');
+        suggDiv.classList.remove('flex');
+        return;
+      }
+
+      mapSearchTimer = setTimeout(async () => {
+        suggDiv.innerHTML = `<div class="p-2.5 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin"></i> Mencari lokasi...</div>`;
+        suggDiv.classList.remove('hidden');
+        suggDiv.classList.add('flex');
+
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=id&q=${encodeURIComponent(query)}&limit=5`);
+          const data = await res.json();
+          
+          if (data.length === 0) {
+            suggDiv.innerHTML = `<div class="p-2.5 text-center text-amber-600">Lokasi tidak ditemukan</div>`;
+          } else {
+            suggDiv.innerHTML = data.map(item => `
+              <div class="p-2.5 hover:bg-indigo-50 cursor-pointer text-slate-700 truncate" onclick="selectMapSearchResult(${item.lat}, ${item.lon}, '${item.display_name.replace(/'/g, "\\'")}')">
+                <i class="fa-solid fa-location-dot text-indigo-500 mr-1.5"></i> ${item.display_name}
+              </div>
+            `).join('');
+          }
+        } catch (err) {
+          suggDiv.classList.add('hidden');
+        }
+      }, 400);
+    }
+
+    function selectMapSearchResult(lat, lon, displayName) {
+      document.getElementById("mapSearchSuggestions").classList.add('hidden');
+      document.getElementById("mapSearchSuggestions").classList.remove('flex');
+      document.getElementById("mapSearchInput").value = "";
+
+      if (pickerMap && pickerMarker) {
+        pickerMap.setView([lat, lon], 17);
+        pickerMarker.setLatLng([lat, lon]);
+        currentSelectedAddress = displayName;
+        document.getElementById("selectedMapAddress").innerText = currentSelectedAddress;
+      }
     }
 
     async function reverseGeocode(lat, lon) {
