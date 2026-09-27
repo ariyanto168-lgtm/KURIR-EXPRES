@@ -322,10 +322,26 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.36 • Powered by Ari GPM
+      v2.40 • Powered by Ari GPM
     </div>
 
   </main>
+
+  <!-- CUSTOM ELEGANT TOAST / NOTIFICATION MODAL -->
+  <div id="customToastModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-xs rounded-2xl p-5 shadow-2xl text-center space-y-3 transform transition-all scale-100">
+      <div id="toastIconContainer" class="w-12 h-12 rounded-full flex items-center justify-center mx-auto text-xl font-bold bg-indigo-100 text-indigo-600">
+        <i id="toastIcon" class="fa-solid fa-bell"></i>
+      </div>
+      <div>
+        <h3 id="toastTitle" class="font-bold text-slate-800 text-sm">Informasi</h3>
+        <p id="toastMessage" class="text-xs text-slate-500 mt-1">Pesan notifikasi...</p>
+      </div>
+      <button onclick="closeCustomToast()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-xl text-xs transition shadow">
+        OK, Mengerti
+      </button>
+    </div>
+  </div>
 
   <!-- MAP PICKER MODAL -->
   <div id="mapPickerModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
@@ -363,7 +379,7 @@
   <div id="detailModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-sm rounded-2xl p-4 shadow-xl space-y-3">
       <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-bold text-slate-800 text-sm">Status & Detail Pengiriman</h3>
+        <h3 class="font-bold text-slate-800 text-sm">Status & Alur Proses Pengiriman</h3>
         <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-sm"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
@@ -435,6 +451,35 @@
     let pickerMarker = null;
     let activeTargetInputId = "";
     let currentSelectedAddress = "";
+
+    // CUSTOM ELEGANT NOTIFICATION FUNCTION
+    function showToast(title, message, type = 'success') {
+      const modal = document.getElementById("customToastModal");
+      const titleEl = document.getElementById("toastTitle");
+      const msgEl = document.getElementById("toastMessage");
+      const iconContainer = document.getElementById("toastIconContainer");
+      const iconEl = document.getElementById("toastIcon");
+
+      titleEl.innerText = title;
+      msgEl.innerText = message;
+
+      if (type === 'success') {
+        iconContainer.className = "w-12 h-12 rounded-full flex items-center justify-center mx-auto text-xl font-bold bg-emerald-100 text-emerald-600";
+        iconEl.className = "fa-solid fa-circle-check";
+      } else if (type === 'warning') {
+        iconContainer.className = "w-12 h-12 rounded-full flex items-center justify-center mx-auto text-xl font-bold bg-amber-100 text-amber-600";
+        iconEl.className = "fa-solid fa-triangle-exclamation";
+      } else {
+        iconContainer.className = "w-12 h-12 rounded-full flex items-center justify-center mx-auto text-xl font-bold bg-indigo-100 text-indigo-600";
+        iconEl.className = "fa-solid fa-bell";
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeCustomToast() {
+      document.getElementById("customToastModal").classList.add('hidden');
+    }
 
     window.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
@@ -658,7 +703,7 @@
     function copyAppLink() {
       const link = document.getElementById("appLinkInput").value;
       navigator.clipboard.writeText(link).then(() => {
-        alert("Link order pelanggan berbasis No HP berhasil disalin! Bagikan via WhatsApp.");
+        showToast("Berhasil Disalin!", "Link order pelanggan berbasis No HP berhasil disalin. Silakan bagikan via WhatsApp.", "success");
       });
     }
 
@@ -723,7 +768,7 @@
       const noHp = document.getElementById("noHp").value.trim();
 
       if (!nama || !noHp || !jemput || !tujuan) {
-        alert("Harap isi Nama, Nomor WhatsApp, Alamat Jemput, dan Alamat Tujuan terlebih dahulu.");
+        showToast("Form Belum Lengkap", "Harap isi Nama, Nomor WhatsApp, Alamat Jemput, dan Alamat Tujuan terlebih dahulu.", "warning");
         return;
       }
 
@@ -799,7 +844,7 @@
 
       } catch (err) {
         console.error("Routing error:", err);
-        alert("Gagal menghitung rute: " + err.message);
+        showToast("Gagal Rute", err.message, "warning");
       } finally {
         btn.disabled = false;
         btn.innerHTML = originalHtml;
@@ -826,7 +871,7 @@
           if (result.status === "success") {
             handlePostSaveSuccess(result.orderId);
           } else {
-            alert("Gagal menyimpan: " + (result.message || "Unknown error"));
+            showToast("Gagal Menyimpan", result.message || "Unknown error", "warning");
             btn.disabled = false;
             btn.innerHTML = `<i class="fa-solid fa-check-circle"></i><span>SIMPAN PESANAN</span>`;
           }
@@ -900,7 +945,7 @@
         `;
         document.getElementById("customerSuccessModal").classList.remove('hidden');
       } else {
-        alert("Pesanan berhasil disimpan! ID: " + orderId);
+        showToast("Sukses", "Pesanan berhasil disimpan! ID: " + orderId, "success");
         loadData();
         switchTab('riwayat');
       }
@@ -984,8 +1029,14 @@
       let unsynced = localOrders.filter(o => o._synced === false);
       const url = document.getElementById("gasUrlInput").value.trim();
 
-      if (!url) return alert("URL Apps Script belum diisi di Pengaturan!");
-      if (unsynced.length === 0) return alert("Semua data sudah tersinkronisasi.");
+      if (!url) {
+        showToast("Perhatian", "URL Apps Script belum diisi di Pengaturan!", "warning");
+        return;
+      }
+      if (unsynced.length === 0) {
+        showToast("Informasi", "Semua data sudah tersinkronisasi.", "success");
+        return;
+      }
 
       const btn = document.getElementById("btnSyncOffline");
       const originalHtml = btn.innerHTML;
@@ -1027,7 +1078,7 @@
       btn.innerHTML = originalHtml;
       btn.disabled = false;
       
-      alert(`Sinkronisasi Selesai.\n${successCount} dari ${unsynced.length} pesanan berhasil dikirim ke server.`);
+      showToast("Sinkronisasi Selesai", `${successCount} dari ${unsynced.length} pesanan berhasil dikirim ke server.`, "success");
       loadData();
     }
 
@@ -1175,7 +1226,7 @@
       if (order) {
         showDetail(order);
       } else {
-        alert("Data pesanan tidak ditemukan.");
+        showToast("Peringatan", "Data pesanan tidak ditemukan.", "warning");
       }
     }
 
@@ -1232,7 +1283,7 @@
             statusHtml = `<div class="text-center text-xs font-bold text-emerald-600 py-1"><i class="fa-solid fa-circle-check"></i> Pesanan Selesai</div>`;
         }
       } else {
-        statusHtml = `<div class="text-center text-[11px] text-slate-500 py-1">Status diperbarui langsung oleh Driver Kurir.</div>`;
+        statusHtml = `<div class="text-center text-[11px] text-slate-500 py-1"><i class="fa-solid fa-circle-info mr-1"></i> Status diperbarui secara real-time oleh Driver.</div>`;
       }
       statusContainer.innerHTML = statusHtml;
 
@@ -1295,7 +1346,7 @@
         }
       }
 
-      alert("Status berhasil diperbarui menjadi: " + newStatus);
+      showToast("Status Diperbarui", "Status pesanan berhasil diperbarui menjadi: " + newStatus, "success");
       closeModal();
       loadData();
     }
@@ -1321,7 +1372,7 @@
           localStorage.setItem("wa_template", waTemplate);
       }
       
-      alert("Pengaturan berhasil disimpan!");
+      showToast("Berhasil", "Pengaturan aplikasi berhasil disimpan!", "success");
       loadData();
     }
   </script>
