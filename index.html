@@ -325,7 +325,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.42 • Powered by Ari GPM
+      v2.45 • Powered by Ari GPM
     </div>
 
   </main>
@@ -393,6 +393,9 @@
 
       <div id="modalContent" class="text-xs space-y-1.5 text-slate-600 max-h-[35vh] overflow-y-auto">
         <!-- Details populated here -->
+      </div>
+      <div id="modalMapNavContainer" class="grid grid-cols-2 gap-2 pt-1">
+        <!-- Rendered dynamically -->
       </div>
       <div id="modalStatusContainer" class="pt-2 border-t border-slate-100"></div>
       <div id="modalShareContainer" class="pt-1"></div>
@@ -1187,6 +1190,9 @@
               nextActionBtn = `<button onclick="event.stopPropagation(); updateOrderStatus('${o["ID Pesanan"]}', 'Selesai')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg transition shadow"><i class="fa-solid fa-check mr-1"></i> Selesai</button>`;
             }
 
+            const mapJemputUrl = `https://maps.google.com/?q=${encodeURIComponent(o["Alamat Jemput"])}`;
+            const mapTujuanUrl = `https://maps.google.com/?q=${encodeURIComponent(o["Alamat Tujuan"])}`;
+
             return `
               <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 shadow-sm space-y-2 cursor-pointer hover:border-indigo-300 transition" onclick='showDetailById("${o["ID Pesanan"]}")'>
                 <div class="flex justify-between items-start">
@@ -1196,9 +1202,19 @@
                   </div>
                   <span class="px-2 py-0.5 ${getStatusBadgeClass(st)} font-bold rounded-md text-[10px]">${st}</span>
                 </div>
-                <div class="text-xs text-slate-600 space-y-0.5 border-t border-slate-200/60 pt-1.5">
-                  <p class="truncate"><i class="fa-solid fa-circle-dot text-indigo-600 mr-1 text-[9px]"></i> Jemput: ${o["Alamat Jemput"]}</p>
-                  <p class="truncate"><i class="fa-solid fa-location-dot text-red-500 mr-1 text-[9px]"></i> Tujuan: ${o["Alamat Tujuan"]}</p>
+                <div class="text-xs text-slate-600 space-y-1.5 border-t border-slate-200/60 pt-1.5">
+                  <div class="flex justify-between items-center">
+                    <p class="truncate flex-1 pr-1"><i class="fa-solid fa-circle-dot text-indigo-600 mr-1 text-[9px]"></i> Jemput: ${o["Alamat Jemput"]}</p>
+                    <a href="${mapJemputUrl}" target="_blank" onclick="event.stopPropagation();" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-[10px] px-2 py-0.5 rounded font-semibold shrink-0 flex items-center space-x-1">
+                      <i class="fa-solid fa-map-location-dot"></i> <span>Peta Jemput</span>
+                    </a>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <p class="truncate flex-1 pr-1"><i class="fa-solid fa-location-dot text-red-500 mr-1 text-[9px]"></i> Tujuan: ${o["Alamat Tujuan"]}</p>
+                    <a href="${mapTujuanUrl}" target="_blank" onclick="event.stopPropagation();" class="bg-red-50 hover:bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded font-semibold shrink-0 flex items-center space-x-1">
+                      <i class="fa-solid fa-map-location-dot"></i> <span>Peta Tujuan</span>
+                    </a>
+                  </div>
                 </div>
                 <div class="flex justify-between items-center pt-1 border-t border-slate-200/60">
                   <span class="text-xs font-bold text-indigo-600">${o["Jarak KM"]} KM • ${formatRupiah(o["Total Ongkos"])}</span>
@@ -1288,6 +1304,20 @@
         <p><strong>Jarak & Estimasi:</strong> ${order["Jarak KM"]} KM (${order["Estimasi Menit"]} menit)</p>
         <p><strong>Tarif / KM:</strong> ${formatRupiah(order["Tarif per KM"] || 4000)}</p>
         <p><strong>Total Ongkos:</strong> <span class="text-emerald-600 font-bold">${formatRupiah(order["Total Ongkos"])}</span></p>
+      `;
+
+      const mapJemputUrl = `https://maps.google.com/?q=${encodeURIComponent(order["Alamat Jemput"])}`;
+      const mapTujuanUrl = `https://maps.google.com/?q=${encodeURIComponent(order["Alamat Tujuan"])}`;
+
+      document.getElementById("modalMapNavContainer").innerHTML = `
+        <a href="${mapJemputUrl}" target="_blank" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold py-2 px-3 rounded-xl text-xs flex items-center justify-center space-x-1.5 transition border border-indigo-200">
+          <i class="fa-solid fa-map-pin"></i>
+          <span>Buka Peta Jemput</span>
+        </a>
+        <a href="${mapTujuanUrl}" target="_blank" class="bg-red-50 hover:bg-red-100 text-red-700 font-semibold py-2 px-3 rounded-xl text-xs flex items-center justify-center space-x-1.5 transition border border-red-200">
+          <i class="fa-solid fa-map-location-dot"></i>
+          <span>Buka Peta Tujuan</span>
+        </a>
       `;
 
       const statusContainer = document.getElementById("modalStatusContainer");
