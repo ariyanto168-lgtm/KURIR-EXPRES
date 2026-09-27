@@ -222,7 +222,7 @@
           <i class="fa-solid fa-share-nodes"></i>
           <span>Link Order Pelanggan</span>
         </h2>
-        <p class="text-[11px] text-indigo-100 mb-3">Bagikan link khusus ini agar pelanggan bisa memesan kurir secara mandiri[span_1](start_span)[span_1](end_span).</p>
+        <p class="text-[11px] text-indigo-100 mb-3">Bagikan link khusus ini agar pelanggan bisa memesan kurir secara mandiri[span_0](start_span)[span_0](end_span).</p>
         <div class="flex items-center space-x-2">
           <input type="text" id="appLinkInput" readonly class="w-full px-3 py-2 text-xs bg-white text-indigo-900 border border-transparent rounded-xl focus:outline-none">
           <button onclick="copyAppLink()" class="bg-indigo-900 text-white px-3 py-2 rounded-xl text-xs hover:bg-indigo-800 transition shadow">
@@ -252,6 +252,13 @@
           <input type="url" id="gasUrlInput" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
 
+        <!-- Template Text Editor WhatsApp -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Template Pesan WhatsApp</label>
+          <textarea id="waTemplateInput" rows="4" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Ketik template pesan WhatsApp..."></textarea>
+          <p class="text-[10px] text-slate-400 mt-1">Gunakan kata kunci: <code>{nama}</code>, <code>{id}</code>, <code>{jemput}</code>, <code>{tujuan}</code>, <code>{jarak}</code>, <code>{ongkos}</code>, <code>{status}</code>, <code>{linkOrder}</code></p>
+        </div>
+
         <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-100 text-xs text-indigo-900 flex justify-between items-center">
           <div>
             <span class="font-bold block mb-1">Tarif Default / Aktif:</span>
@@ -278,7 +285,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.20 • Powered by Ari GPM
+      v2.22 • Powered by Ari GPM
     </div>
 
   </main>
@@ -348,6 +355,8 @@
   <script>
     const GAS_WEB_APP_URL = "";
 
+    const DEFAULT_WA_TEMPLATE = `Halo *{nama}*,\n\nBerikut rincian pesanan kurir Anda:\n- *ID:* {id}\n\n📦 *Titik Jemput:*\n{jemput}\n📍 Map: {mapJemput}\n\n🏁 *Titik Tujuan:*\n{tujuan}\n📍 Map: {mapTujuan}\n\n- *Jarak:* {jarak} KM\n- *Total Ongkos:* {ongkos}\n- *Status:* {status}\n\nLink Order Pelanggan: {linkOrder}`;
+
     let currentTarif = 4000;
     let calculatedData = null;
     let ordersData = [];
@@ -375,6 +384,9 @@
       
       const savedTarif = localStorage.getItem("local_tarif") || "";
       document.getElementById("localTarifInput").value = savedTarif;
+
+      const savedTemplate = localStorage.getItem("wa_template") || DEFAULT_WA_TEMPLATE;
+      document.getElementById("waTemplateInput").value = savedTemplate;
       
       document.addEventListener('click', function(e) {
         if (!e.target.closest('#saranJemput') && !e.target.closest('#alamatJemput')) {
@@ -431,7 +443,6 @@
       });
     }
 
-    // REAL-TIME AUTOCOMPLETE ALAMAT (Ala Maxim/Gojek/Grab)
     function handleAddressInput(inputId, saranId) {
       clearTimeout(typingTimer);
       const query = document.getElementById(inputId).value.trim();
@@ -632,15 +643,32 @@
       handlePostSaveSuccess(orderId);
     }
 
+    function generateWaText(orderId, nama, noHp, jemput, tujuan, jarak, ongkos, status) {
+      const template = localStorage.getItem("wa_template") || DEFAULT_WA_TEMPLATE;
+      const baseUrl = window.location.href.split('?')[0];
+      const linkOrder = baseUrl + "?mode=order";
+      const jemputLink = `https://maps.google.com/?q=${encodeURIComponent(jemput)}`;
+      const tujuanLink = `https://maps.google.com/?q=${encodeURIComponent(tujuan)}`;
+
+      return template
+        .replace(/{nama}/g, nama)
+        .replace(/{id}/g, orderId)
+        .replace(/{noHp}/g, noHp)
+        .replace(/{jemput}/g, jemput)
+        .replace(/{tujuan}/g, tujuan)
+        .replace(/{mapJemput}/g, jemputLink)
+        .replace(/{mapTujuan}/g, tujuanLink)
+        .replace(/{jarak}/g, jarak)
+        .replace(/{ongkos}/g, formatRupiah(ongkos))
+        .replace(/{status}/g, status)
+        .replace(/{linkOrder}/g, linkOrder);
+    }
+
     function handlePostSaveSuccess(orderId) {
       resetForm();
       if (isCustomerMode) {
-        // Tampilkan modal kirim laporan WA ke driver
         const driverWa = formatPhoneNumber(localStorage.getItem("driver_wa") || "6281234567890");
-        const jemputLink = `https://maps.google.com/?q=${encodeURIComponent(calculatedData.alamatJemput)}`;
-        const tujuanLink = `https://maps.google.com/?q=${encodeURIComponent(calculatedData.alamatTujuan)}`;
-        
-        const reportText = `Halo Driver, saya memesan Kurir Express:\n\n- *ID:* ${orderId}\n- *Nama:* ${calculatedData.nama}\n- *No HP:* ${calculatedData.noHp}\n\n📦 *Jemput:* ${calculatedData.alamatJemput}\n📍 Map: ${jemputLink}\n\n🏁 *Tujuan:* ${calculatedData.alamatTujuan}\n📍 Map: ${tujuanLink}\n\n- *Jarak:* ${calculatedData.jarak} KM\n- *Total Ongkos:* ${formatRupiah(calculatedData.totalOngkos)}\n- *Catatan:* ${calculatedData.catatan || '-'}`;
+        const reportText = generateWaText(orderId, calculatedData.nama, calculatedData.noHp, calculatedData.alamatJemput, calculatedData.alamatTujuan, calculatedData.jarak, calculatedData.totalOngkos, "Menunggu");
 
         document.getElementById("customerShareBtnContainer").innerHTML = `
           <a href="https://wa.me/${driverWa}?text=${encodeURIComponent(reportText)}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 transition shadow">
@@ -837,7 +865,7 @@
           activeContainer.innerHTML = `<p class="text-xs text-slate-400 text-center py-3">Tidak ada pesanan aktif saat ini.</p>`;
         } else {
           activeContainer.innerHTML = activeOrders.map(o => `
-            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-between items-center text-xs cursor-pointer hover:bg-slate-100" onclick='showDetail(${JSON.stringify(o)})'>
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-between items-center text-xs cursor-pointer hover:bg-slate-100" onclick='showDetail(${JSON.stringify(o).replace(/'/g, "&#39;")})'>
               <div>
                 <span class="font-bold text-slate-800 block">${o["Nama Pelanggan"]} ${o._synced === false ? '<i class="fa-solid fa-cloud-arrow-up text-amber-500 ml-1" title="Belum Sinkron"></i>' : ''}</span>
                 <span class="text-slate-500 truncate block max-w-[180px]">Ke: ${o["Alamat Tujuan"]}</span>
@@ -857,7 +885,7 @@
           tableBody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-slate-400">Belum ada riwayat pesanan.</td></tr>`;
         } else {
           tableBody.innerHTML = ordersData.map(o => `
-            <tr class="hover:bg-slate-50 cursor-pointer border-b border-slate-100" onclick='showDetail(${JSON.stringify(o)})'>
+            <tr class="hover:bg-slate-50 cursor-pointer border-b border-slate-100" onclick='showDetail(${JSON.stringify(o).replace(/'/g, "&#39;")})'>
               <td class="p-2.5">
                 <span class="font-bold text-slate-800 block">${o["Nama Pelanggan"]} ${o._synced === false ? '<i class="fa-solid fa-cloud-arrow-up text-amber-500 ml-1" title="Belum Sinkron"></i>' : ''}</span>
                 <span class="text-[10px] text-slate-400">${o["ID Pesanan"]}</span>
@@ -910,15 +938,10 @@
 
       const shareContainer = document.getElementById("modalShareContainer");
       const customerWa = formatPhoneNumber(order['Nomor HP']);
-      const driverWa = formatPhoneNumber(localStorage.getItem("driver_wa") || "6281234567890");
-      
-      const jemputLink = `https://maps.google.com/?q=${encodeURIComponent(order["Alamat Jemput"])}`;
-      const tujuanLink = `https://maps.google.com/?q=${encodeURIComponent(order["Alamat Tujuan"])}`;
-
-      const shareText = `Halo *${order["Nama Pelanggan"]}*,\n\nBerikut rincian pesanan kurir Anda:\n- *ID:* ${order["ID Pesanan"]}\n\n📦 *Titik Jemput:*\n${order["Alamat Jemput"]}\n📍 Map: ${jemputLink}\n\n🏁 *Titik Tujuan:*\n${order["Alamat Tujuan"]}\n📍 Map: ${tujuanLink}\n\n- *Jarak:* ${order["Jarak KM"]} KM\n- *Total Ongkos:* ${formatRupiah(order["Total Ongkos"])}\n- *Status:* ${order["Status"]}`;
+      const shareText = generateWaText(order["ID Pesanan"], order["Nama Pelanggan"], order["Nomor HP"], order["Alamat Jemput"], order["Alamat Tujuan"], order["Jarak KM"], order["Total Ongkos"], order["Status"]);
       
       shareContainer.innerHTML = `
-        <a href="https://wa.me/${customerWa}?text=${encodeURIComponent(shareText + '\n\n*Kontak Kurir:* https://wa.me/' + driverWa)}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 transition shadow mt-2">
+        <a href="https://wa.me/${customerWa}?text=${encodeURIComponent(shareText)}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 transition shadow mt-2">
           <i class="fa-brands fa-whatsapp text-base"></i>
           <span>Bagikan ke WhatsApp Pelanggan</span>
         </a>
@@ -981,6 +1004,7 @@
       const url = document.getElementById("gasUrlInput").value.trim();
       const driverWa = document.getElementById("driverWaInput").value.trim();
       const localTarif = document.getElementById("localTarifInput").value.trim();
+      const waTemplate = document.getElementById("waTemplateInput").value.trim();
 
       localStorage.setItem("gas_url", url);
       localStorage.setItem("driver_wa", driverWa);
@@ -988,6 +1012,9 @@
           localStorage.setItem("local_tarif", localTarif);
       } else {
           localStorage.removeItem("local_tarif");
+      }
+      if (waTemplate) {
+          localStorage.setItem("wa_template", waTemplate);
       }
       
       alert("Pengaturan berhasil disimpan!");
