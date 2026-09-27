@@ -185,7 +185,7 @@
     <section id="tab-riwayat" class="tab-content hidden space-y-4">
       <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
         <div class="flex justify-between items-center mb-3">
-          <h2 class="font-bold text-slate-800 text-sm flex items-center space-x-2">
+          <h2 id="historyTitle" class="font-bold text-slate-800 text-sm flex items-center space-x-2">
             <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i>
             <span>Riwayat Pesanan</span>
           </h2>
@@ -220,15 +220,18 @@
       <div class="bg-gradient-to-r from-indigo-500 to-violet-600 p-4 rounded-2xl shadow-sm text-white">
         <h2 class="font-bold text-base mb-2 flex items-center space-x-2">
           <i class="fa-solid fa-share-nodes"></i>
-          <span>Link Order Pelanggan</span>
+          <span>Link Order Pelanggan Unik</span>
         </h2>
-        <p class="text-[11px] text-indigo-100 mb-3">Bagikan link khusus ini agar pelanggan bisa memesan kurir secara mandiri[span_0](start_span)[span_0](end_span).</p>
-        <div class="flex items-center space-x-2">
+        <p class="text-[11px] text-indigo-100 mb-3">Setiap pelanggan akan memiliki link dengan ID unik agar riwayat pesanan mereka tidak tercampur.</p>
+        <div class="flex items-center space-x-2 mb-2">
           <input type="text" id="appLinkInput" readonly class="w-full px-3 py-2 text-xs bg-white text-indigo-900 border border-transparent rounded-xl focus:outline-none">
           <button onclick="copyAppLink()" class="bg-indigo-900 text-white px-3 py-2 rounded-xl text-xs hover:bg-indigo-800 transition shadow">
             <i class="fa-regular fa-copy"></i>
           </button>
         </div>
+        <button onclick="generateNewCustomerLink()" class="w-full bg-white/20 hover:bg-white/30 text-white text-[11px] font-semibold py-1.5 rounded-xl transition">
+          <i class="fa-solid fa-plus mr-1"></i> Buat Link Pelanggan Baru (ID Unik)
+        </button>
       </div>
 
       <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-4">
@@ -285,7 +288,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.24 • Powered by Ari GPM
+      v2.25 • Powered by Ari GPM
     </div>
 
   </main>
@@ -331,7 +334,7 @@
     </div>
   </div>
 
-  <!-- Bottom Navigation Bar (Hidden for Customers) -->
+  <!-- Bottom Navigation Bar -->
   <nav id="bottomNav" class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-40 max-w-md mx-auto flex justify-around py-2 px-1 shadow-lg">
     <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center text-indigo-600 space-y-0.5 px-3 py-1 rounded-xl transition">
       <i class="fa-solid fa-chart-pie text-lg"></i>
@@ -361,19 +364,30 @@
     let calculatedData = null;
     let ordersData = [];
     let isCustomerMode = false;
+    let customerId = "";
     let typingTimer;
 
     window.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('mode') === 'order') {
         isCustomerMode = true;
+        customerId = urlParams.get('cust') || "";
       }
 
       const baseUrl = window.location.href.split('?')[0];
-      document.getElementById("appLinkInput").value = baseUrl + "?mode=order";
+      if (!customerId && isCustomerMode) {
+        customerId = "CUST-" + Math.floor(1000 + Math.random() * 9000);
+      }
+
+      // Set input link order dengan cust ID unik
+      const defaultCustLink = baseUrl + "?mode=order&cust=CUST-" + Math.floor(1000 + Math.random() * 9000);
+      document.getElementById("appLinkInput").value = defaultCustLink;
 
       if (isCustomerMode) {
-        document.getElementById("bottomNav").style.display = "none";
+        // Pelanggan hanya bisa akses tab Pesanan dan Riwayat (Riwayat pesanan mereka sendiri)
+        document.getElementById("nav-dashboard").parentElement.style.display = "none";
+        document.getElementById("nav-pengaturan").parentElement.style.display = "none";
+        document.getElementById("historyTitle").innerHTML = `<i class="fa-solid fa-clock-rotate-left text-indigo-600"></i><span>Riwayat Pesanan Saya (${customerId})</span>`;
         switchTab('pesanan');
       }
 
@@ -402,15 +416,23 @@
       loadData();
     });
 
+    function generateNewCustomerLink() {
+      const baseUrl = window.location.href.split('?')[0];
+      const randomCustId = "CUST-" + Math.floor(1000 + Math.random() * 9000);
+      const newLink = baseUrl + "?mode=order&cust=" + randomCustId;
+      document.getElementById("appLinkInput").value = newLink;
+      alert("Link pelanggan baru dengan ID " + randomCustId + " berhasil dibuat!");
+    }
+
     function switchTab(tabId) {
-      if (isCustomerMode && tabId !== 'pesanan') return;
+      if (isCustomerMode && tabId !== 'pesanan' && tabId !== 'riwayat') return;
 
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
       document.getElementById('tab-' + tabId).classList.remove('hidden');
 
       ['dashboard', 'pesanan', 'riwayat', 'pengaturan'].forEach(id => {
         const btn = document.getElementById('nav-' + id);
-        if (btn) {
+        if (btn && btn.parentElement.style.display !== "none") {
           if (id === tabId) {
             btn.classList.remove('text-slate-400');
             btn.classList.add('text-indigo-600');
@@ -439,7 +461,7 @@
     function copyAppLink() {
       const link = document.getElementById("appLinkInput").value;
       navigator.clipboard.writeText(link).then(() => {
-        alert("Link order pelanggan berhasil disalin! Bagikan via WhatsApp.");
+        alert("Link order pelanggan unik berhasil disalin! Bagikan via WhatsApp.");
       });
     }
 
@@ -562,7 +584,8 @@
           jarak: jarakKm,
           estimasiMenit: estimasiMnt,
           tarif: currentTarif,
-          totalOngkos: totalOngkos
+          totalOngkos: totalOngkos,
+          customerId: customerId // Simpan ID unik pelanggan
         };
 
         document.getElementById("resJemput").innerText = jemput;
@@ -633,6 +656,7 @@
         "Tarif per KM": calculatedData.tarif,
         "Total Ongkos": calculatedData.totalOngkos,
         "Status": "Menunggu",
+        "customerId": calculatedData.customerId || "",
         "_synced": false
       };
 
@@ -646,7 +670,7 @@
     function generateWaText(orderId, nama, noHp, jemput, tujuan, jarak, ongkos, status) {
       const template = localStorage.getItem("wa_template") || DEFAULT_WA_TEMPLATE;
       const baseUrl = window.location.href.split('?')[0];
-      const linkOrder = baseUrl + "?mode=order";
+      const linkOrder = customerId ? `${baseUrl}?mode=order&cust=${customerId}` : (baseUrl + "?mode=order");
       const jemputLink = `https://maps.google.com/?q=${encodeURIComponent(jemput)}`;
       const tujuanLink = `https://maps.google.com/?q=${encodeURIComponent(tujuan)}`;
 
@@ -825,6 +849,7 @@
           "Tarif per KM": 4000,
           "Total Ongkos": 26000,
           "Status": "Menunggu",
+          "customerId": "CUST-1111",
           "_synced": true
         }
       ];
@@ -833,12 +858,19 @@
     }
 
     function renderDashboardAndHistory() {
-      let totalOrders = ordersData.length;
+      let displayOrders = ordersData;
+
+      // Jika mode pelanggan, filter hanya pesanan milik customerId tersebut
+      if (isCustomerMode && customerId) {
+        displayOrders = ordersData.filter(o => o.customerId === customerId);
+      }
+
+      let totalOrders = displayOrders.length;
       let totalKm = 0;
       let totalRevenue = 0;
       let activeOrders = [];
 
-      ordersData.forEach(o => {
+      displayOrders.forEach(o => {
         let km = Number(o["Jarak KM"] || 0);
         let cost = Number(o["Total Ongkos"] || 0);
         let status = o["Status"] || "Menunggu";
@@ -856,11 +888,11 @@
         document.getElementById("dashOrdersCount").innerText = totalOrders;
         document.getElementById("dashTotalKm").innerText = totalKm.toFixed(1) + " KM";
         document.getElementById("dashTotalRevenue").innerText = formatRupiah(totalRevenue);
-        document.getElementById("activeCount").innerText = activeOrders.length;
+        if (document.getElementById("activeCount")) document.getElementById("activeCount").innerText = activeOrders.length;
       }
 
       const activeContainer = document.getElementById("activeOrdersList");
-      if (activeContainer) {
+      if (activeContainer && !isCustomerMode) {
         if (activeOrders.length === 0) {
           activeContainer.innerHTML = `<p class="text-xs text-slate-400 text-center py-3">Tidak ada pesanan aktif saat ini.</p>`;
         } else {
@@ -881,10 +913,10 @@
 
       const tableBody = document.getElementById("historyTableBody");
       if (tableBody) {
-        if (ordersData.length === 0) {
+        if (displayOrders.length === 0) {
           tableBody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-slate-400">Belum ada riwayat pesanan.</td></tr>`;
         } else {
-          tableBody.innerHTML = ordersData.map(o => `
+          tableBody.innerHTML = displayOrders.map(o => `
             <tr class="hover:bg-slate-50 cursor-pointer border-b border-slate-100" onclick='showDetailById("${o["ID Pesanan"]}")'>
               <td class="p-2.5">
                 <span class="font-bold text-slate-800 block">${o["Nama Pelanggan"]} ${o._synced === false ? '<i class="fa-solid fa-cloud-arrow-up text-amber-500 ml-1" title="Belum Sinkron"></i>' : ''}</span>
@@ -936,12 +968,14 @@
 
       const statusContainer = document.getElementById("modalStatusContainer");
       let statusHtml = '';
-      if (order["Status"] === "Menunggu") {
-          statusHtml = `<button onclick="updateOrderStatus('${order["ID Pesanan"]}', 'Diambil')" class="w-full bg-purple-500 text-white py-2.5 rounded-xl text-xs font-semibold hover:bg-purple-600 transition shadow"><i class="fa-solid fa-box-open mr-1"></i> Tandai: Pesanan Diambil (Jemput)</button>`;
-      } else if (order["Status"] === "Diambil") {
-          statusHtml = `<button onclick="updateOrderStatus('${order["ID Pesanan"]}', 'Dalam Pengiriman')" class="w-full bg-blue-500 text-white py-2.5 rounded-xl text-xs font-semibold hover:bg-blue-600 transition shadow"><i class="fa-solid fa-truck-fast mr-1"></i> Tandai: Dalam Pengiriman (Perjalanan)</button>`;
-      } else if (order["Status"] === "Dalam Pengiriman") {
-          statusHtml = `<button onclick="updateOrderStatus('${order["ID Pesanan"]}', 'Selesai')" class="w-full bg-emerald-500 text-white py-2.5 rounded-xl text-xs font-semibold hover:bg-emerald-600 transition shadow"><i class="fa-solid fa-check-double mr-1"></i> Tandai: Pengiriman Selesai</button>`;
+      if (!isCustomerMode) {
+        if (order["Status"] === "Menunggu") {
+            statusHtml = `<button onclick="updateOrderStatus('${order["ID Pesanan"]}', 'Diambil')" class="w-full bg-purple-500 text-white py-2.5 rounded-xl text-xs font-semibold hover:bg-purple-600 transition shadow"><i class="fa-solid fa-box-open mr-1"></i> Tandai: Pesanan Diambil (Jemput)</button>`;
+        } else if (order["Status"] === "Diambil") {
+            statusHtml = `<button onclick="updateOrderStatus('${order["ID Pesanan"]}', 'Dalam Pengiriman')" class="w-full bg-blue-500 text-white py-2.5 rounded-xl text-xs font-semibold hover:bg-blue-600 transition shadow"><i class="fa-solid fa-truck-fast mr-1"></i> Tandai: Dalam Pengiriman (Perjalanan)</button>`;
+        } else if (order["Status"] === "Dalam Pengiriman") {
+            statusHtml = `<button onclick="updateOrderStatus('${order["ID Pesanan"]}', 'Selesai')" class="w-full bg-emerald-500 text-white py-2.5 rounded-xl text-xs font-semibold hover:bg-emerald-600 transition shadow"><i class="fa-solid fa-check-double mr-1"></i> Tandai: Pengiriman Selesai</button>`;
+        }
       }
       statusContainer.innerHTML = statusHtml;
 
@@ -949,12 +983,16 @@
       const customerWa = formatPhoneNumber(order['Nomor HP']);
       const shareText = generateWaText(order["ID Pesanan"], order["Nama Pelanggan"], order["Nomor HP"], order["Alamat Jemput"], order["Alamat Tujuan"], order["Jarak KM"], order["Total Ongkos"], order["Status"]);
       
-      shareContainer.innerHTML = `
-        <a href="https://wa.me/${customerWa}?text=${encodeURIComponent(shareText)}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 transition shadow mt-2">
-          <i class="fa-brands fa-whatsapp text-base"></i>
-          <span>Bagikan ke WhatsApp Pelanggan</span>
-        </a>
-      `;
+      if (!isCustomerMode) {
+        shareContainer.innerHTML = `
+          <a href="https://wa.me/${customerWa}?text=${encodeURIComponent(shareText)}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 transition shadow mt-2">
+            <i class="fa-brands fa-whatsapp text-base"></i>
+            <span>Bagikan ke WhatsApp Pelanggan</span>
+          </a>
+        `;
+      } else {
+        shareContainer.innerHTML = "";
+      }
 
       document.getElementById("detailModal").classList.remove('hidden');
     }
