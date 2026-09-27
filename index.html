@@ -86,16 +86,16 @@
         </button>
       </div>
 
-      <!-- Pesanan Aktif -->
+      <!-- Pesanan Aktif Interaktif Card -->
       <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
         <div class="flex justify-between items-center mb-3">
           <h3 class="text-slate-800 font-bold text-sm flex items-center space-x-2">
             <i class="fa-solid fa-spinner text-indigo-600"></i>
             <span>Pesanan Aktif (<span id="activeCount">0</span>)</span>
           </h3>
-          <span class="text-xs text-slate-400">Menunggu / Proses</span>
+          <span class="text-xs text-slate-400">Ketuk kartu untuk alur proses</span>
         </div>
-        <div id="activeOrdersList" class="space-y-2.5">
+        <div id="activeOrdersList" class="space-y-3">
           <!-- Rendered dynamically -->
         </div>
       </div>
@@ -120,7 +120,7 @@
             <input type="tel" id="noHp" required placeholder="Contoh: 081234567890" oninput="onPhoneInput(this.value)" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
           </div>
 
-          <!-- Alamat Jemput dengan Fitur Peta Interaktif (Geser Pin & Search) -->
+          <!-- Alamat Jemput -->
           <div class="relative">
             <div class="flex justify-between items-center mb-1">
               <label class="block text-xs font-semibold text-slate-600">Alamat Jemput <span class="text-red-500">*</span></label>
@@ -132,7 +132,7 @@
             <div id="saranJemput" class="absolute z-30 left-0 right-0 bg-white border border-slate-200 rounded-lg shadow-xl hidden flex-col divide-y divide-slate-100 max-h-48 overflow-y-auto text-xs mt-1"></div>
           </div>
 
-          <!-- Alamat Tujuan dengan Fitur Peta Interaktif (Geser Pin & Search) -->
+          <!-- Alamat Tujuan -->
           <div class="relative">
             <div class="flex justify-between items-center mb-1">
               <label class="block text-xs font-semibold text-slate-600">Alamat Tujuan <span class="text-red-500">*</span></label>
@@ -322,12 +322,12 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.32 • Powered by Ari GPM
+      v2.36 • Powered by Ari GPM
     </div>
 
   </main>
 
-  <!-- MAP PICKER MODAL DENGAN PENCARIAN MANUAL -->
+  <!-- MAP PICKER MODAL -->
   <div id="mapPickerModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-sm rounded-2xl p-4 shadow-xl space-y-3">
       <div class="flex justify-between items-center border-b pb-2">
@@ -338,17 +338,14 @@
         <button onclick="closeMapPicker()" class="text-slate-400 hover:text-slate-600 text-sm"><i class="fa-solid fa-xmark"></i></button>
       </div>
       
-      <!-- Input Search Manual di dalam Modal Peta -->
       <div class="relative">
         <div class="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 space-x-2">
           <i class="fa-solid fa-magnifying-glass text-slate-400 text-xs"></i>
           <input type="text" id="mapSearchInput" placeholder="Ketik nama jalan / toko / tempat..." oninput="handleMapSearchInput(this.value)" class="w-full text-xs bg-transparent focus:outline-none text-slate-800">
         </div>
-        <!-- Dropdown Saran Pencarian Peta -->
         <div id="mapSearchSuggestions" class="absolute z-50 left-0 right-0 bg-white border border-slate-200 rounded-lg shadow-xl hidden flex-col divide-y divide-slate-100 max-h-36 overflow-y-auto text-xs mt-1"></div>
       </div>
 
-      <!-- Leaflet Map Container -->
       <div id="mapPickerContainer"></div>
 
       <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
@@ -366,10 +363,16 @@
   <div id="detailModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-sm rounded-2xl p-4 shadow-xl space-y-3">
       <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-bold text-slate-800 text-sm">Detail Pesanan & Status</h3>
+        <h3 class="font-bold text-slate-800 text-sm">Status & Detail Pengiriman</h3>
         <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-sm"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <div id="modalContent" class="text-xs space-y-2 text-slate-600 max-h-[45vh] overflow-y-auto">
+
+      <!-- VISUAL TIMELINE PROGRESS STATUS -->
+      <div id="orderTimeline" class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-2">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <div id="modalContent" class="text-xs space-y-1.5 text-slate-600 max-h-[35vh] overflow-y-auto">
         <!-- Details populated here -->
       </div>
       <div id="modalStatusContainer" class="pt-2 border-t border-slate-100"></div>
@@ -487,7 +490,6 @@
       loadData();
     });
 
-    // MAP PICKER & SEARCH FUNCTIONS
     function openMapPicker(inputId) {
       activeTargetInputId = inputId;
       document.getElementById("mapSearchInput").value = "";
@@ -1103,18 +1105,37 @@
         if (activeOrders.length === 0) {
           activeContainer.innerHTML = `<p class="text-xs text-slate-400 text-center py-3">Tidak ada pesanan aktif saat ini.</p>`;
         } else {
-          activeContainer.innerHTML = activeOrders.map(o => `
-            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-between items-center text-xs cursor-pointer hover:bg-slate-100" onclick='showDetailById("${o["ID Pesanan"]}")'>
-              <div>
-                <span class="font-bold text-slate-800 block">${o["Nama Pelanggan"]} ${o._synced === false ? '<i class="fa-solid fa-cloud-arrow-up text-amber-500 ml-1" title="Belum Sinkron"></i>' : ''}</span>
-                <span class="text-slate-500 truncate block max-w-[180px]">Ke: ${o["Alamat Tujuan"]}</span>
-                <span class="text-indigo-600 font-semibold">${o["Jarak KM"]} KM • ${formatRupiah(o["Total Ongkos"])}</span>
+          activeContainer.innerHTML = activeOrders.map(o => {
+            let st = o["Status"] || "Menunggu";
+            let nextActionBtn = '';
+            if (st === "Menunggu") {
+              nextActionBtn = `<button onclick="event.stopPropagation(); updateOrderStatus('${o["ID Pesanan"]}', 'Diambil')" class="bg-purple-600 hover:bg-purple-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg transition shadow"><i class="fa-solid fa-box-open mr-1"></i> Pickup</button>`;
+            } else if (st === "Diambil") {
+              nextActionBtn = `<button onclick="event.stopPropagation(); updateOrderStatus('${o["ID Pesanan"]}', 'Dalam Pengiriman')" class="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg transition shadow"><i class="fa-solid fa-truck-fast mr-1"></i> Kirim</button>`;
+            } else if (st === "Dalam Pengiriman") {
+              nextActionBtn = `<button onclick="event.stopPropagation(); updateOrderStatus('${o["ID Pesanan"]}', 'Selesai')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg transition shadow"><i class="fa-solid fa-check mr-1"></i> Selesai</button>`;
+            }
+
+            return `
+              <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 shadow-sm space-y-2 cursor-pointer hover:border-indigo-300 transition" onclick='showDetailById("${o["ID Pesanan"]}")'>
+                <div class="flex justify-between items-start">
+                  <div>
+                    <span class="font-bold text-slate-800 text-xs block">${o["Nama Pelanggan"]} ${o._synced === false ? '<i class="fa-solid fa-cloud-arrow-up text-amber-500 ml-1" title="Belum Sinkron"></i>' : ''}</span>
+                    <span class="text-[10px] text-slate-400">${o["ID Pesanan"]}</span>
+                  </div>
+                  <span class="px-2 py-0.5 ${getStatusBadgeClass(st)} font-bold rounded-md text-[10px]">${st}</span>
+                </div>
+                <div class="text-xs text-slate-600 space-y-0.5 border-t border-slate-200/60 pt-1.5">
+                  <p class="truncate"><i class="fa-solid fa-circle-dot text-indigo-600 mr-1 text-[9px]"></i> Jemput: ${o["Alamat Jemput"]}</p>
+                  <p class="truncate"><i class="fa-solid fa-location-dot text-red-500 mr-1 text-[9px]"></i> Tujuan: ${o["Alamat Tujuan"]}</p>
+                </div>
+                <div class="flex justify-between items-center pt-1 border-t border-slate-200/60">
+                  <span class="text-xs font-bold text-indigo-600">${o["Jarak KM"]} KM • ${formatRupiah(o["Total Ongkos"])}</span>
+                  ${nextActionBtn}
+                </div>
               </div>
-              <div>
-                <span class="px-2 py-1 ${getStatusBadgeClass(o["Status"])} font-bold rounded-lg text-[10px]">${o["Status"]}</span>
-              </div>
-            </div>
-          `).join('');
+            `;
+          }).join('');
         }
       }
 
@@ -1159,6 +1180,32 @@
     }
 
     function showDetail(order) {
+      const currentStatus = order["Status"] || "Menunggu";
+      
+      const steps = ["Menunggu", "Diambil", "Dalam Pengiriman", "Selesai"];
+      let currentStepIdx = steps.indexOf(currentStatus);
+      if (currentStepIdx === -1) currentStepIdx = 0;
+
+      const timelineHtml = `
+        <div class="flex justify-between items-center px-1 py-2">
+          ${steps.map((st, idx) => {
+            let isPassed = idx <= currentStepIdx;
+            let isCurrent = idx === currentStepIdx;
+            let colorClass = isPassed ? (isCurrent ? 'bg-indigo-600 text-white ring-4 ring-indigo-100 font-bold' : 'bg-emerald-500 text-white') : 'bg-slate-200 text-slate-400';
+            let icon = idx === 0 ? 'fa-clock' : (idx === 1 ? 'fa-box-open' : (idx === 2 ? 'fa-truck-fast' : 'fa-check'));
+            return `
+              <div class="flex flex-col items-center flex-1 relative">
+                <div class="w-7 h-7 rounded-full flex items-center justify-center text-[10px] transition-all ${colorClass}">
+                  <i class="fa-solid ${icon}"></i>
+                </div>
+                <span class="text-[9px] mt-1 font-medium text-center ${isCurrent ? 'text-indigo-700 font-bold' : 'text-slate-500'}">${st}</span>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+      document.getElementById("orderTimeline").innerHTML = timelineHtml;
+
       const content = document.getElementById("modalContent");
       content.innerHTML = `
         <p><strong>ID Pesanan:</strong> ${order["ID Pesanan"]} ${order._synced === false ? '<span class="text-amber-500 text-[10px] ml-1">(Offline)</span>' : ''}</p>
@@ -1170,19 +1217,22 @@
         <p><strong>Jarak & Estimasi:</strong> ${order["Jarak KM"]} KM (${order["Estimasi Menit"]} menit)</p>
         <p><strong>Tarif / KM:</strong> ${formatRupiah(order["Tarif per KM"] || 4000)}</p>
         <p><strong>Total Ongkos:</strong> <span class="text-emerald-600 font-bold">${formatRupiah(order["Total Ongkos"])}</span></p>
-        <p><strong>Status Saat Ini:</strong> <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${getStatusBadgeClass(order["Status"])}">${order["Status"]}</span></p>
       `;
 
       const statusContainer = document.getElementById("modalStatusContainer");
       let statusHtml = '';
       if (!isCustomerMode) {
-        if (order["Status"] === "Menunggu") {
-            statusHtml = `<button onclick="updateOrderStatus('${order["ID Pesanan"]}', 'Diambil')" class="w-full bg-purple-500 text-white py-2.5 rounded-xl text-xs font-semibold hover:bg-purple-600 transition shadow"><i class="fa-solid fa-box-open mr-1"></i> Tandai: Pesanan Diambil (Jemput)</button>`;
-        } else if (order["Status"] === "Diambil") {
-            statusHtml = `<button onclick="updateOrderStatus('${order["ID Pesanan"]}', 'Dalam Pengiriman')" class="w-full bg-blue-500 text-white py-2.5 rounded-xl text-xs font-semibold hover:bg-blue-600 transition shadow"><i class="fa-solid fa-truck-fast mr-1"></i> Tandai: Dalam Pengiriman (Perjalanan)</button>`;
-        } else if (order["Status"] === "Dalam Pengiriman") {
-            statusHtml = `<button onclick="updateOrderStatus('${order["ID Pesanan"]}', 'Selesai')" class="w-full bg-emerald-500 text-white py-2.5 rounded-xl text-xs font-semibold hover:bg-emerald-600 transition shadow"><i class="fa-solid fa-check-double mr-1"></i> Tandai: Pengiriman Selesai</button>`;
+        if (currentStatus === "Menunggu") {
+            statusHtml = `<button onclick="updateOrderStatus('${order["ID Pesanan"]}', 'Diambil')" class="w-full bg-purple-500 text-white py-2.5 rounded-xl text-xs font-semibold hover:bg-purple-600 transition shadow"><i class="fa-solid fa-box-open mr-1"></i> Tandai: Pesanan Diambil (Pickup)</button>`;
+        } else if (currentStatus === "Diambil") {
+            statusHtml = `<button onclick="updateOrderStatus('${order["ID Pesanan"]}', 'Dalam Pengiriman')" class="w-full bg-blue-500 text-white py-2.5 rounded-xl text-xs font-semibold hover:bg-blue-600 transition shadow"><i class="fa-solid fa-truck-fast mr-1"></i> Tandai: Dalam Pengiriman</button>`;
+        } else if (currentStatus === "Dalam Pengiriman") {
+            statusHtml = `<button onclick="updateOrderStatus('${order["ID Pesanan"]}', 'Selesai')" class="w-full bg-emerald-500 text-white py-2.5 rounded-xl text-xs font-semibold hover:bg-emerald-600 transition shadow"><i class="fa-solid fa-check-double mr-1"></i> Tandai: Selesai</button>`;
+        } else {
+            statusHtml = `<div class="text-center text-xs font-bold text-emerald-600 py-1"><i class="fa-solid fa-circle-check"></i> Pesanan Selesai</div>`;
         }
+      } else {
+        statusHtml = `<div class="text-center text-[11px] text-slate-500 py-1">Status diperbarui langsung oleh Driver Kurir.</div>`;
       }
       statusContainer.innerHTML = statusHtml;
 
