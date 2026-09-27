@@ -325,7 +325,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.45 • Powered by Ari GPM
+      v2.50 • Powered by Ari GPM
     </div>
 
   </main>
@@ -443,7 +443,7 @@
   <script>
     const GAS_WEB_APP_URL = "";
 
-    const DEFAULT_WA_TEMPLATE = `Halo *{nama}*,\n\nBerikut rincian pesanan kurir Anda:\n- *ID:* {id}\n\n📦 *Titik Jemput:*\n{jemput}\n📍 Map: {mapJemput}\n\n🏁 *Titik Tujuan:*\n{tujuan}\n📍 Map: {mapTujuan}\n\n- *Jarak:* {jarak} KM\n- *Total Ongkos:* {ongkos}\n- *Status:* {status}\n\nLink Order & Riwayat Anda: {linkOrder}`;
+    const DEFAULT_WA_TEMPLATE = `Halo *{nama}*,\n\nBerikut update status pesanan kurir Anda:\n- *ID Pesanan:* {id}\n- *Status Saat Ini:* *{status}*\n\n📦 *Titik Jemput:*\n{jemput}\n📍 Map Jemput: {mapJemput}\n\n🏁 *Titik Tujuan:*\n{tujuan}\n📍 Map Tujuan: {mapTujuan}\n\n- *Jarak:* {jarak} KM\n- *Total Ongkos:* {ongkos}\n\n🔗 Cek Riwayat & Detail Pesanan Anda:\n{linkOrder}`;
 
     let currentTarif = 4000;
     let calculatedData = null;
@@ -936,7 +936,8 @@
     function generateWaText(orderId, nama, noHp, jemput, tujuan, jarak, ongkos, status) {
       const template = localStorage.getItem("wa_template") || DEFAULT_WA_TEMPLATE;
       const baseUrl = window.location.href.split('?')[0];
-      const linkOrder = noHp ? `${baseUrl}?mode=order&phone=${noHp}` : (baseUrl + "?mode=order");
+      // Link customer lengkap dengan nomor HP dan ID Pesanan agar langsung merujuk ke detail pesanan tersebut
+      const linkOrder = noHp ? `${baseUrl}?mode=order&phone=${noHp}&order=${orderId}` : (baseUrl + `?mode=order&order=${orderId}`);
       const jemputLink = `https://maps.google.com/?q=${encodeURIComponent(jemput)}`;
       const tujuanLink = `https://maps.google.com/?q=${encodeURIComponent(tujuan)}`;
 
@@ -1312,11 +1313,11 @@
       document.getElementById("modalMapNavContainer").innerHTML = `
         <a href="${mapJemputUrl}" target="_blank" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold py-2 px-3 rounded-xl text-xs flex items-center justify-center space-x-1.5 transition border border-indigo-200">
           <i class="fa-solid fa-map-pin"></i>
-          <span>Buka Peta Jemput</span>
+          <span>Peta Jemput</span>
         </a>
         <a href="${mapTujuanUrl}" target="_blank" class="bg-red-50 hover:bg-red-100 text-red-700 font-semibold py-2 px-3 rounded-xl text-xs flex items-center justify-center space-x-1.5 transition border border-red-200">
           <i class="fa-solid fa-map-location-dot"></i>
-          <span>Buka Peta Tujuan</span>
+          <span>Peta Tujuan</span>
         </a>
       `;
 
@@ -1345,7 +1346,7 @@
         shareContainer.innerHTML = `
           <a href="https://wa.me/${customerWa}?text=${encodeURIComponent(shareText)}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 transition shadow mt-2">
             <i class="fa-brands fa-whatsapp text-base"></i>
-            <span>Bagikan ke WhatsApp Pelanggan</span>
+            <span>Bagikan Update ke WhatsApp Pelanggan</span>
           </a>
         `;
       } else {
@@ -1360,16 +1361,17 @@
       const isOnline = document.getElementById("statusText").innerText.includes("Online");
       
       let localOrders = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
-      let updated = false;
+      let updatedOrder = null;
+      
       for (let i = 0; i < localOrders.length; i++) {
         if (localOrders[i]["ID Pesanan"] === orderId) {
           localOrders[i]["Status"] = newStatus;
           if (url && isOnline) localOrders[i]["_synced"] = false; 
-          updated = true;
+          updatedOrder = localOrders[i];
           break;
         }
       }
-      if (updated) {
+      if (updatedOrder) {
         localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
       }
 
@@ -1399,6 +1401,16 @@
       showToast("Status Diperbarui", "Status pesanan berhasil diperbarui menjadi: " + newStatus, "success");
       closeModal();
       loadData();
+
+      // Prompt otomatis membuka wa.me setelah status diperbarui (Penjemputan, Perjalanan, Selesai)
+      if (updatedOrder) {
+        const customerWa = formatPhoneNumber(updatedOrder["Nomor HP"]);
+        const shareText = generateWaText(updatedOrder["ID Pesanan"], updatedOrder["Nama Pelanggan"], updatedOrder["Nomor HP"], updatedOrder["Alamat Jemput"], updatedOrder["Alamat Tujuan"], updatedOrder["Jarak KM"], updatedOrder["Total Ongkos"], newStatus);
+        
+        if (confirm(`Status diubah ke "${newStatus}". Ingin langsung kirim laporan update via WhatsApp ke pelanggan (${updatedOrder["Nama Pelanggan"]})?`)) {
+          window.open(`https://wa.me/${customerWa}?text=${encodeURIComponent(shareText)}`, '_blank');
+        }
+      }
     }
 
     function closeModal() {
