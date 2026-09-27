@@ -106,28 +106,34 @@
           </div>
 
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor WhatsApp <span class="text-red-500">*</span></label>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor WhatsApp Pelanggan<span class="text-red-500">*</span></label>
             <input type="tel" id="noHp" required placeholder="Contoh: 081234567890" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
           </div>
 
-          <div>
+          <!-- Alamat Jemput dengan Fitur Autocomplete Map (Berdasar Ketikan) -->
+          <div class="relative">
             <div class="flex justify-between items-center mb-1">
               <label class="block text-xs font-semibold text-slate-600">Alamat Jemput <span class="text-red-500">*</span></label>
-              <button type="button" onclick="autoDetectLocation('alamatJemput', this)" class="text-[10px] text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded shadow-sm hover:bg-indigo-100 transition">
-                <i class="fa-solid fa-location-crosshairs"></i> Deteksi Lokasi
+              <button type="button" onclick="cariLokasiMap('alamatJemput', 'saranJemput', this)" class="text-[10px] text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded shadow-sm hover:bg-indigo-100 transition">
+                <i class="fa-solid fa-magnifying-glass"></i> Cari di Peta
               </button>
             </div>
-            <textarea id="alamatJemput" rows="2" required placeholder="Contoh: Jl. Merdeka No. 10, Jakarta" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+            <textarea id="alamatJemput" rows="2" required placeholder="Ketik lokasi, lalu klik 'Cari di Peta'" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+            <!-- Wadah Hasil Pencarian -->
+            <div id="saranJemput" class="absolute z-50 left-0 right-0 bg-white border border-slate-200 rounded-lg shadow-xl hidden flex-col divide-y divide-slate-100 max-h-48 overflow-y-auto text-xs mt-1"></div>
           </div>
 
-          <div>
+          <!-- Alamat Tujuan dengan Fitur Autocomplete Map (Berdasar Ketikan) -->
+          <div class="relative">
             <div class="flex justify-between items-center mb-1">
               <label class="block text-xs font-semibold text-slate-600">Alamat Tujuan <span class="text-red-500">*</span></label>
-              <button type="button" onclick="autoDetectLocation('alamatTujuan', this)" class="text-[10px] text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded shadow-sm hover:bg-indigo-100 transition">
-                <i class="fa-solid fa-location-crosshairs"></i> Deteksi Lokasi
+              <button type="button" onclick="cariLokasiMap('alamatTujuan', 'saranTujuan', this)" class="text-[10px] text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded shadow-sm hover:bg-indigo-100 transition">
+                <i class="fa-solid fa-magnifying-glass"></i> Cari di Peta
               </button>
             </div>
-            <textarea id="alamatTujuan" rows="2" required placeholder="Contoh: Jl. Sudirman No. 45, Jakarta" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+            <textarea id="alamatTujuan" rows="2" required placeholder="Ketik lokasi, lalu klik 'Cari di Peta'" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+            <!-- Wadah Hasil Pencarian -->
+            <div id="saranTujuan" class="absolute z-50 left-0 right-0 bg-white border border-slate-200 rounded-lg shadow-xl hidden flex-col divide-y divide-slate-100 max-h-48 overflow-y-auto text-xs mt-1"></div>
           </div>
 
           <div>
@@ -136,9 +142,9 @@
           </div>
 
           <!-- Tombol Hitung Jarak -->
-          <button type="button" onclick="calculateDistance()" class="w-full bg-slate-800 text-white font-semibold py-2.5 rounded-xl text-sm shadow hover:bg-slate-900 transition flex items-center justify-center space-x-2">
+          <button type="button" onclick="calculateDistance()" class="w-full bg-slate-800 text-white font-semibold py-2.5 rounded-xl text-sm shadow hover:bg-slate-900 transition flex items-center justify-center space-x-2 mt-2">
             <i class="fa-solid fa-calculator"></i>
-            <span>HITUNG JARAK</span>
+            <span>HITUNG JARAK PRESISI</span>
           </button>
         </form>
       </div>
@@ -238,8 +244,14 @@
       <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-4">
         <h2 class="font-bold text-slate-800 text-base flex items-center space-x-2">
           <i class="fa-solid fa-gear text-indigo-600"></i>
-          <span>Pengaturan Driver & Server</span>
+          <span>Pengaturan App & Tarif</span>
         </h2>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Tarif Manual (Rp / KM)</label>
+          <input type="number" id="localTarifInput" placeholder="Contoh: 4000" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <p class="text-[10px] text-slate-400 mt-1">Isi untuk menimpa/mengatur tarif aplikasi ini secara manual.</p>
+        </div>
 
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor WhatsApp Driver / Kurir</label>
@@ -253,12 +265,25 @@
           <p class="text-[10px] text-slate-400 mt-1">Kosongkan untuk mode Offline-First. Isi untuk terhubung ke database server.</p>
         </div>
 
-        <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-100 text-xs text-indigo-900">
-          <span class="font-bold block mb-1">Tarif Default Saat Ini:</span>
-          <span id="settingsTarifLabel" class="text-lg font-extrabold text-indigo-600">Rp4.000 / KM</span>
+        <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-100 text-xs text-indigo-900 flex justify-between items-center">
+          <div>
+            <span class="font-bold block mb-1">Tarif Default / Aktif:</span>
+            <span id="settingsTarifLabel" class="text-lg font-extrabold text-indigo-600">Rp4.000 / KM</span>
+          </div>
         </div>
 
-        <button onclick="saveSettings()" class="w-full bg-indigo-600 text-white font-semibold py-2.5 rounded-xl text-sm shadow hover:bg-indigo-700 transition">
+        <!-- Sync Button (Muncul Jika Ada Data Offline) -->
+        <div id="syncContainer" class="hidden flex justify-between items-center pt-3 border-t border-slate-100">
+          <div>
+            <span class="font-bold text-slate-800 block text-xs">Data Belum Sinkron</span>
+            <span id="unsyncedCount" class="text-[10px] text-amber-600 font-semibold">0 pesanan lokal</span>
+          </div>
+          <button id="btnSyncOffline" onclick="syncOfflineData()" class="bg-amber-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-amber-600 shadow-sm transition">
+            <i class="fa-solid fa-cloud-arrow-up mr-1"></i> Sinkronkan
+          </button>
+        </div>
+
+        <button onclick="saveSettings()" class="w-full bg-indigo-600 text-white font-semibold py-2.5 rounded-xl text-sm shadow hover:bg-indigo-700 transition mt-2">
           Simpan Konfigurasi
         </button>
       </div>
@@ -266,7 +291,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.12 • Powered by Ari GPM
+      v2.16 • Powered by Ari GPM
     </div>
 
   </main>
@@ -278,7 +303,7 @@
         <h3 class="font-bold text-slate-800 text-sm">Detail Pesanan & Status</h3>
         <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-sm"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <div id="modalContent" class="text-xs space-y-2 text-slate-600">
+      <div id="modalContent" class="text-xs space-y-2 text-slate-600 max-h-[45vh] overflow-y-auto">
         <!-- Details populated here -->
       </div>
       
@@ -329,6 +354,22 @@
       document.getElementById("gasUrlInput").value = savedUrl;
       const savedDriverWa = localStorage.getItem("driver_wa") || "6281234567890";
       document.getElementById("driverWaInput").value = savedDriverWa;
+      
+      const savedTarif = localStorage.getItem("local_tarif") || "";
+      document.getElementById("localTarifInput").value = savedTarif;
+      
+      // Sembunyikan dropdown saran jika klik di luar elemen
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('#saranJemput') && !e.target.closest('button[onclick*="alamatJemput"]')) {
+          document.getElementById('saranJemput').classList.add('hidden');
+          document.getElementById('saranJemput').classList.remove('flex');
+        }
+        if (!e.target.closest('#saranTujuan') && !e.target.closest('button[onclick*="alamatTujuan"]')) {
+          document.getElementById('saranTujuan').classList.add('hidden');
+          document.getElementById('saranTujuan').classList.remove('flex');
+        }
+      });
+
       loadData();
     });
 
@@ -353,7 +394,16 @@
       return "Rp" + Number(num).toLocaleString("id-ID");
     }
 
-    // Fitur Share Link App
+    // Format nomor HP ke standar internasional 62 untuk API WhatsApp wa.me
+    function formatPhoneNumber(num) {
+      if (!num) return "";
+      let formatted = num.replace(/\D/g, ''); // Hapus semua karakter non-angka
+      if (formatted.startsWith('0')) {
+        formatted = '62' + formatted.substring(1);
+      }
+      return formatted;
+    }
+
     function copyAppLink() {
       const link = document.getElementById("appLinkInput").value;
       navigator.clipboard.writeText(link).then(() => {
@@ -361,37 +411,50 @@
       });
     }
 
-    // Fitur Auto-Detect Location GPS
-    function autoDetectLocation(inputId, btnElement) {
-      if (!navigator.geolocation) {
-        alert("Geolocation tidak didukung di browser ini.");
+    // Autocomplete pencarian alamat berdasar apa yang diketik (Nominatim API)
+    async function cariLokasiMap(inputId, saranId, btnElement) {
+      const query = document.getElementById(inputId).value.trim();
+      const saranDiv = document.getElementById(saranId);
+
+      if (!query) {
+        alert("Harap ketik nama jalan / wilayah / kota di kolom terlebih dahulu sebelum mencari.");
         return;
       }
-      
+
       const originalHtml = btnElement.innerHTML;
       btnElement.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Mencari...`;
       btnElement.disabled = true;
 
-      navigator.geolocation.getCurrentPosition(async (position) => {
-        const lat = position.coords.latitude;
-        const lon = position.coords.longitude;
-        try {
-          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
-          const data = await res.json();
-          if(data && data.display_name) {
-            document.getElementById(inputId).value = data.display_name;
-          }
-        } catch (e) {
-          alert("Gagal mengonversi koordinat ke alamat.");
-        } finally {
-          btnElement.innerHTML = originalHtml;
-          btnElement.disabled = false;
+      saranDiv.innerHTML = `<div class="p-3 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin"></i> Mencari saran...</div>`;
+      saranDiv.classList.remove('hidden');
+      saranDiv.classList.add('flex');
+
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=id&q=${encodeURIComponent(query)}&limit=5`);
+        const data = await res.json();
+        
+        if (data.length === 0) {
+          saranDiv.innerHTML = `<div class="p-3 text-center text-amber-600 font-medium">Alamat tidak ditemukan. Coba ketik lebih spesifik.</div>`;
+        } else {
+          saranDiv.innerHTML = data.map(item => `
+            <div class="p-2.5 hover:bg-indigo-50 cursor-pointer text-slate-700" onclick="pilihLokasi('${inputId}', '${saranId}', '${item.display_name.replace(/'/g, "\\'")}')">
+              <i class="fa-solid fa-location-dot text-indigo-400 mr-1"></i> ${item.display_name}
+            </div>
+          `).join('');
         }
-      }, (error) => {
-        alert("Akses lokasi ditolak atau sinyal GPS tidak tersedia.");
+      } catch (err) {
+        saranDiv.innerHTML = `<div class="p-3 text-center text-red-500">Gagal terhubung ke server peta.</div>`;
+      } finally {
         btnElement.innerHTML = originalHtml;
         btnElement.disabled = false;
-      }, { enableHighAccuracy: true });
+      }
+    }
+
+    function pilihLokasi(inputId, saranId, namaLokasi) {
+      document.getElementById(inputId).value = namaLokasi;
+      const saranDiv = document.getElementById(saranId);
+      saranDiv.classList.add('hidden');
+      saranDiv.classList.remove('flex');
     }
 
     function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
@@ -420,7 +483,7 @@
       const btn = document.querySelector("button[onclick='calculateDistance()']");
       const originalHtml = btn.innerHTML;
       btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Menghitung...`;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Memproses Jarak...`;
 
       try {
         const resJemput = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=id&q=${encodeURIComponent(jemput)}&limit=1`);
@@ -430,7 +493,7 @@
         const dataTujuan = await resTujuan.json();
 
         if (dataJemput.length === 0 || dataTujuan.length === 0) {
-          throw new Error("Alamat tidak ditemukan pada peta. Mohon gunakan tombol Deteksi Lokasi atau tulis lebih spesifik.");
+          throw new Error("Alamat belum valid. Harap gunakan tombol 'Cari di Peta' terlebih dahulu agar akurat.");
         }
 
         const lon1 = parseFloat(dataJemput[0].lon);
@@ -521,16 +584,15 @@
             btn.innerHTML = `<i class="fa-solid fa-check-circle"></i><span>SIMPAN PESANAN</span>`;
           }
         } catch (err) {
-          console.error("Fetch error, falling back to local:", err);
+          console.error("Koneksi gagal, menyimpan secara lokal", err);
           saveOrderLocally();
         }
       } else {
-        setTimeout(() => {
-          saveOrderLocally();
-        }, 500);
+        setTimeout(() => saveOrderLocally(), 500);
       }
     }
 
+    // Simpan pesanan ke Local dengan penanda `_synced: false`
     function saveOrderLocally() {
       const orderId = "KURIR-" + new Date().toISOString().slice(0,10).replace(/-/g,"") + "-" + Math.floor(1000 + Math.random() * 9000);
       const newOrder = {
@@ -546,14 +608,15 @@
         "Estimasi Menit": calculatedData.estimasiMenit,
         "Tarif per KM": calculatedData.tarif,
         "Total Ongkos": calculatedData.totalOngkos,
-        "Status": "Menunggu"
+        "Status": "Menunggu",
+        "_synced": false // Penanda data belum terkirim ke server
       };
 
       let localOrders = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
       localOrders.unshift(newOrder);
       localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
 
-      alert("Pesanan berhasil disimpan (Mode Offline). ID: " + orderId);
+      alert("Pesanan disimpan di HP (Mode Offline). ID: " + orderId + "\n\nHarap sinkronisasi saat kembali Online.");
       resetForm();
       loadData();
       switchTab('riwayat');
@@ -572,37 +635,120 @@
       const url = document.getElementById("gasUrlInput").value.trim();
       const statusText = document.getElementById("statusText");
       const statusDot = document.getElementById("statusDot");
+      const localTarif = localStorage.getItem("local_tarif");
+
+      let localOrders = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
 
       if (url) {
         statusDot.className = "w-2 h-2 rounded-full bg-blue-400 inline-block animate-pulse";
         statusText.innerText = "Menghubungkan...";
         try {
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 5000);
+          const timeoutId = setTimeout(() => controller.abort(), 6000); // 6 detik batas tunggu server
           
           const res = await fetch(url + "?action=get_all", { signal: controller.signal });
           clearTimeout(timeoutId);
           
           const data = await res.json();
           if (data.status === "success") {
-            currentTarif = Number(data.tarif) || 4000;
+            // Prioritaskan Tarif Manual Lokal jika disetel, jika tidak gunakan dari Server
+            currentTarif = localTarif ? Number(localTarif) : (Number(data.tarif) || 4000);
             document.getElementById("settingsTarifLabel").innerText = formatRupiah(currentTarif) + " / KM";
-            ordersData = data.pesanan || [];
+            
+            // Gabungkan pesanan offline dengan pesanan dari server agar tetap muncul
+            const serverOrders = data.pesanan || [];
+            const unsyncedOrders = localOrders.filter(o => o._synced === false);
+            ordersData = [...unsyncedOrders, ...serverOrders];
             
             statusDot.className = "w-2 h-2 rounded-full bg-emerald-400 inline-block";
             statusText.innerText = "Terhubung (Online)";
+            checkUnsyncedData(unsyncedOrders);
             renderDashboardAndHistory();
             return;
           }
         } catch (err) {
-          console.warn("Koneksi gagal, beralih ke Mode Offline.", err);
+          console.warn("Koneksi ke server lambat, kembali ke Mode Offline.", err);
         }
       }
 
+      // Jika URL kosong atau offline
       statusDot.className = "w-2 h-2 rounded-full bg-amber-400 inline-block";
       statusText.innerText = "Mode Offline";
-      ordersData = JSON.parse(localStorage.getItem("kurir_orders") || getDefaultDummyOrders());
+      
+      currentTarif = localTarif ? Number(localTarif) : 4000;
+      document.getElementById("settingsTarifLabel").innerText = formatRupiah(currentTarif) + " / KM";
+
+      if (localOrders.length === 0) {
+        localOrders = getDefaultDummyOrders(); // Masukkan dummy jika sepenuhnya kosong
+      }
+      ordersData = localOrders;
+      checkUnsyncedData(localOrders.filter(o => o._synced === false));
       renderDashboardAndHistory();
+    }
+
+    // Tampilkan notifikasi sinkronisasi jika ada data offline
+    function checkUnsyncedData(unsyncedOrders) {
+      const syncContainer = document.getElementById("syncContainer");
+      if (unsyncedOrders.length > 0) {
+        syncContainer.classList.remove('hidden');
+        document.getElementById("unsyncedCount").innerText = `${unsyncedOrders.length} pesanan lokal belum dikirim`;
+      } else {
+        syncContainer.classList.add('hidden');
+      }
+    }
+
+    // Fungsi kirim data pesanan Offline ke Server
+    async function syncOfflineData() {
+      let localOrders = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
+      let unsynced = localOrders.filter(o => o._synced === false);
+      const url = document.getElementById("gasUrlInput").value.trim();
+
+      if (!url) return alert("URL Apps Script belum diisi di Pengaturan!");
+      if (unsynced.length === 0) return alert("Semua data sudah tersinkronisasi.");
+
+      const btn = document.getElementById("btnSyncOffline");
+      const originalHtml = btn.innerHTML;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menyinkronkan...`;
+      btn.disabled = true;
+
+      let successCount = 0;
+      for (let order of unsynced) {
+        try {
+          const payload = {
+            nama: order["Nama Pelanggan"],
+            noHp: order["Nomor HP"],
+            alamatJemput: order["Alamat Jemput"],
+            alamatTujuan: order["Alamat Tujuan"],
+            catatan: order["Catatan"],
+            jarak: order["Jarak KM"],
+            estimasiMenit: order["Estimasi Menit"],
+            tarif: order["Tarif per KM"],
+            totalOngkos: order["Total Ongkos"],
+            status: order["Status"]
+          };
+
+          const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify(payload)
+          });
+          const result = await response.json();
+          if (result.status === "success") {
+            order._synced = true;
+            successCount++;
+          }
+        } catch (e) {
+          console.error("Gagal sync order: ", order["ID Pesanan"]);
+        }
+      }
+
+      // Perbarui local storage dengan status sync yang baru
+      localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
+      btn.innerHTML = originalHtml;
+      btn.disabled = false;
+      
+      alert(`Sinkronisasi Selesai.\n${successCount} dari ${unsynced.length} pesanan berhasil dikirim ke server.`);
+      loadData();
     }
 
     function getDefaultDummyOrders() {
@@ -620,11 +766,12 @@
           "Estimasi Menit": 20,
           "Tarif per KM": 4000,
           "Total Ongkos": 26000,
-          "Status": "Menunggu"
+          "Status": "Menunggu",
+          "_synced": true
         }
       ];
       localStorage.setItem("kurir_orders", JSON.stringify(dummy));
-      return JSON.stringify(dummy);
+      return dummy;
     }
 
     function renderDashboardAndHistory() {
@@ -659,7 +806,7 @@
         activeContainer.innerHTML = activeOrders.map(o => `
           <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-between items-center text-xs cursor-pointer hover:bg-slate-100" onclick='showDetail(${JSON.stringify(o)})'>
             <div>
-              <span class="font-bold text-slate-800 block">${o["Nama Pelanggan"]}</span>
+              <span class="font-bold text-slate-800 block">${o["Nama Pelanggan"]} ${o._synced === false ? '<i class="fa-solid fa-cloud-arrow-up text-amber-500 ml-1" title="Belum Sinkron"></i>' : ''}</span>
               <span class="text-slate-500 truncate block max-w-[180px]">Ke: ${o["Alamat Tujuan"]}</span>
               <span class="text-indigo-600 font-semibold">${o["Jarak KM"]} KM • ${formatRupiah(o["Total Ongkos"])}</span>
             </div>
@@ -677,7 +824,7 @@
         tableBody.innerHTML = ordersData.map(o => `
           <tr class="hover:bg-slate-50 cursor-pointer border-b border-slate-100" onclick='showDetail(${JSON.stringify(o)})'>
             <td class="p-2.5">
-              <span class="font-bold text-slate-800 block">${o["Nama Pelanggan"]}</span>
+              <span class="font-bold text-slate-800 block">${o["Nama Pelanggan"]} ${o._synced === false ? '<i class="fa-solid fa-cloud-arrow-up text-amber-500 ml-1" title="Belum Sinkron"></i>' : ''}</span>
               <span class="text-[10px] text-slate-400">${o["ID Pesanan"]}</span>
             </td>
             <td class="p-2.5 font-medium">${o["Jarak KM"]} KM</td>
@@ -702,7 +849,7 @@
     function showDetail(order) {
       const content = document.getElementById("modalContent");
       content.innerHTML = `
-        <p><strong>ID Pesanan:</strong> ${order["ID Pesanan"]}</p>
+        <p><strong>ID Pesanan:</strong> ${order["ID Pesanan"]} ${order._synced === false ? '<span class="text-amber-500 text-[10px] ml-1">(Offline)</span>' : ''}</p>
         <p><strong>Tanggal:</strong> ${order["Tanggal"] || order["Timestamp"]}</p>
         <p><strong>Nama Pelanggan:</strong> ${order["Nama Pelanggan"]} (${order["Nomor HP"] || '-'})</p>
         <p><strong>Alamat Jemput:</strong> ${order["Alamat Jemput"]}</p>
@@ -714,7 +861,7 @@
         <p><strong>Status Saat Ini:</strong> <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${getStatusBadgeClass(order["Status"])}">${order["Status"]}</span></p>
       `;
 
-      // Status Update Feature (Jemput, Perjalanan, Selesai)
+      // Status Update Actions
       const statusContainer = document.getElementById("modalStatusContainer");
       let statusHtml = '';
       if (order["Status"] === "Menunggu") {
@@ -726,13 +873,19 @@
       }
       statusContainer.innerHTML = statusHtml;
 
-      // WhatsApp Share Feature
+      // WhatsApp Share Feature (Ke nomor pelanggan & Link Lokasi Map)
       const shareContainer = document.getElementById("modalShareContainer");
-      const driverWa = localStorage.getItem("driver_wa") || "6281234567890";
-      const shareText = `Halo *${order["Nama Pelanggan"]}*,\n\nBerikut rincian pesanan kurir Anda:\n- *ID:* ${order["ID Pesanan"]}\n- *Jemput:* ${order["Alamat Jemput"]}\n- *Tujuan:* ${order["Alamat Tujuan"]}\n- *Jarak:* ${order["Jarak KM"]} KM\n- *Total Ongkos:* ${formatRupiah(order["Total Ongkos"])}\n- *Status:* ${order["Status"]}\n\nHubungi Kurir/Driver di bawah ini:`;
+      const customerWa = formatPhoneNumber(order['Nomor HP']);
+      const driverWa = formatPhoneNumber(localStorage.getItem("driver_wa") || "6281234567890");
       
+      const jemputLink = `https://maps.google.com/?q=${encodeURIComponent(order["Alamat Jemput"])}`;
+      const tujuanLink = `https://maps.google.com/?q=${encodeURIComponent(order["Alamat Tujuan"])}`;
+
+      const shareText = `Halo *${order["Nama Pelanggan"]}*,\n\nBerikut rincian pesanan kurir Anda:\n- *ID:* ${order["ID Pesanan"]}\n\n📦 *Titik Jemput:*\n${order["Alamat Jemput"]}\n📍 Map: ${jemputLink}\n\n🏁 *Titik Tujuan:*\n${order["Alamat Tujuan"]}\n📍 Map: ${tujuanLink}\n\n- *Jarak:* ${order["Jarak KM"]} KM\n- *Total Ongkos:* ${formatRupiah(order["Total Ongkos"])}\n- *Status:* ${order["Status"]}`;
+      
+      // Mengirimkan pesan langsung ke wa.me/(nomor pelanggan)
       shareContainer.innerHTML = `
-        <a href="https://api.whatsapp.com/send?phone=${order['Nomor HP'] || ''}&text=${encodeURIComponent(shareText + '\n\n*Kontak Kurir:* https://wa.me/' + driverWa)}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 transition shadow mt-2">
+        <a href="https://wa.me/${customerWa}?text=${encodeURIComponent(shareText + '\n\n*Kontak Kurir:* https://wa.me/' + driverWa)}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 transition shadow mt-2">
           <i class="fa-brands fa-whatsapp text-base"></i>
           <span>Bagikan ke WhatsApp Pelanggan</span>
         </a>
@@ -745,12 +898,13 @@
       const url = document.getElementById("gasUrlInput").value.trim();
       const isOnline = document.getElementById("statusText").innerText.includes("Online");
       
-      // Update local storage first (Offline Mode Support)
       let localOrders = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
       let updated = false;
       for (let i = 0; i < localOrders.length; i++) {
         if (localOrders[i]["ID Pesanan"] === orderId) {
           localOrders[i]["Status"] = newStatus;
+          // Tandai harus di-sync ulang jika sedang terhubung server
+          if (url && isOnline) localOrders[i]["_synced"] = false; 
           updated = true;
           break;
         }
@@ -759,7 +913,6 @@
         localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
       }
 
-      // Sync with GAS Backend if online
       if (url && isOnline) {
         try {
           const payload = { action: "update_status", orderId: orderId, status: newStatus };
@@ -768,6 +921,17 @@
             headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify(payload)
           });
+          
+          // Setelah berhasil sync
+          localOrders = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
+          for (let i = 0; i < localOrders.length; i++) {
+            if (localOrders[i]["ID Pesanan"] === orderId) {
+              localOrders[i]["_synced"] = true;
+              break;
+            }
+          }
+          localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
+
         } catch (e) {
           console.error("Gagal sinkronisasi status ke server", e);
         }
@@ -785,8 +949,16 @@
     function saveSettings() {
       const url = document.getElementById("gasUrlInput").value.trim();
       const driverWa = document.getElementById("driverWaInput").value.trim();
+      const localTarif = document.getElementById("localTarifInput").value.trim();
+
       localStorage.setItem("gas_url", url);
       localStorage.setItem("driver_wa", driverWa);
+      if (localTarif) {
+          localStorage.setItem("local_tarif", localTarif);
+      } else {
+          localStorage.removeItem("local_tarif");
+      }
+      
       alert("Pengaturan berhasil disimpan!");
       loadData();
     }
