@@ -1,552 +1,167 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KURIR — HITUNG JARAK & ONGKOS</title>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-  <!-- FontAwesome for WhatsApp Icon Only -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    body {
-      background-color: #f8fafc;
-      color: #1e293b;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+/**
+ * KURIR EXPRES - Backend Google Apps Script (Code.gs)
+ * Ultra-robust REST API for GitHub Pages frontend
+ */
+
+function doGet(e) {
+  var lock = LockService.getScriptLock();
+  try {
+    lock.tryLock(10000);
+    var ss = SpreadsheetApp.openById("1iX1WgcN-VtEJWAJn-zkE7NX_bA7PSxjECGGiVcnrA");
+    setupSheetsIfNeeded_(ss);
+    
+    var action = e && e.parameter && e.parameter.action ? e.parameter.action : "get_all";
+    
+    if (action === "get_all" || action === "pesanan") {
+      var data = getDataFromSheet_(ss, "PESANAN");
+      var tariff = getTariff_(ss);
+      return createJsonResponse({ status: "success", tarif: tariff, pesanan: data });
+    } else if (action === "get_settings") {
+      var tariff = getTariff_(ss);
+      return createJsonResponse({ status: "success", tarif: tariff });
     }
-    .safe-bottom {
-      padding-bottom: 75px;
+    
+    return createJsonResponse({ status: "success", message: "KURIR REST API Active" });
+  } catch (err) {
+    return createJsonResponse({ status: "error", message: err.toString() });
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function doPost(e) {
+  var lock = LockService.getScriptLock();
+  try {
+    if (!lock.tryLock(15000)) {
+      return createJsonResponse({ status: "error", message: "Server busy, please try again later." });
     }
-  </style>
-</head>
-<body class="bg-slate-50 min-h-screen flex flex-col antialiased">
-
-  <!-- Top Header -->
-  <header class="bg-indigo-600 text-white shadow-md sticky top-0 z-40 px-4 py-3 flex justify-between items-center">
-    <h1 class="font-bold text-lg tracking-wide">KURIR EXPRESS</h1>
-    <div id="connectionStatus" class="text-xs bg-indigo-700 px-2 py-1 rounded-full font-medium">
-      <span id="statusText">Terhubung (Online)</span>
-    </div>
-  </header>
-
-  <!-- Main Content Container -->
-  <main class="flex-1 max-w-md w-full mx-auto p-4 safe-bottom">
-
-    <!-- TAB 1: DASHBOARD -->
-    <section id="tab-dashboard" class="tab-content space-y-4">
-      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-        <h2 class="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-3">Ringkasan Hari Ini</h2>
-        <div class="grid grid-cols-2 gap-3">
-          <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-100">
-            <span class="text-xs font-medium text-indigo-600 block mb-1">Pesanan Hari Ini</span>
-            <p id="dashOrdersCount" class="text-2xl font-bold text-indigo-900">0</p>
-          </div>
-          <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-100">
-            <span class="text-xs font-medium text-emerald-600 block mb-1">Total KM</span>
-            <p id="dashTotalKm" class="text-2xl font-bold text-emerald-900">0 KM</p>
-          </div>
-          <div class="bg-amber-50 p-3 rounded-xl border border-amber-100 col-span-2">
-            <span class="text-xs font-medium text-amber-600 block mb-1">Total Pendapatan</span>
-            <p id="dashTotalRevenue" class="text-2xl font-bold text-amber-900">Rp0</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Quick Action Card -->
-      <div class="bg-gradient-to-r from-indigo-500 to-violet-600 rounded-2xl p-4 text-white shadow-sm flex items-center justify-between">
-        <div>
-          <h3 class="font-bold text-base mb-1">Buat Pesanan Baru</h3>
-          <p class="text-xs text-indigo-100">Hitung jarak & ongkos instan</p>
-        </div>
-        <button onclick="switchTab('pesanan')" class="bg-white text-indigo-600 font-semibold text-xs px-4 py-2.5 rounded-xl shadow hover:bg-indigo-50 transition active:scale-95">
-          Buat Kurir
-        </button>
-      </div>
-
-      <!-- Pesanan Aktif -->
-      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-        <div class="flex justify-between items-center mb-3">
-          <h3 class="text-slate-800 font-bold text-sm">Pesanan Aktif (<span id="activeCount">0</span>)</h3>
-          <span class="text-xs text-slate-400">Menunggu / Proses</span>
-        </div>
-        <div id="activeOrdersList" class="space-y-2.5">
-          <!-- Rendered dynamically -->
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 2: FORM / PESANAN -->
-    <section id="tab-pesanan" class="tab-content hidden space-y-4">
-      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-        <h2 class="font-bold text-slate-800 text-base mb-3">Form Pengiriman & Perhitungan</h2>
-
-        <form id="orderForm" onsubmit="event.preventDefault();" class="space-y-3">
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Pelanggan <span class="text-red-500">*</span></label>
-            <input type="text" id="nama" required placeholder="Contoh: Budi Santoso" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor HP</label>
-            <input type="tel" id="noHp" placeholder="Contoh: 081234567890" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Alamat Jemput <span class="text-red-500">*</span></label>
-            <textarea id="alamatJemput" rows="2" required placeholder="Contoh: Perum Graha Pancur, Semarang" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Alamat Tujuan <span class="text-red-500">*</span></label>
-            <textarea id="alamatTujuan" rows="2" required placeholder="Contoh: Jl. Cucut Semarang Utara" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Catatan (Opsional)</label>
-            <input type="text" id="catatan" placeholder="Contoh: Barang fragile" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          </div>
-
-          <!-- Tombol Hitung Jarak -->
-          <button type="button" onclick="calculateDistance()" class="w-full bg-slate-800 text-white font-semibold py-2.5 rounded-xl text-sm shadow hover:bg-slate-900 transition">
-            HITUNG JARAK
-          </button>
-        </form>
-      </div>
-
-      <!-- Hasil Perhitungan Card -->
-      <div id="resultCard" class="bg-indigo-900 text-white p-4 rounded-2xl shadow-lg space-y-3 hidden">
-        <h3 class="text-xs uppercase tracking-wider text-indigo-300 font-semibold border-b border-indigo-800 pb-2">Rincian Rute & Ongkos</h3>
-        
-        <div class="grid grid-cols-2 gap-2 text-xs">
-          <div>
-            <span class="text-indigo-300 block">Titik Jemput:</span>
-            <span id="resJemput" class="font-medium truncate block"></span>
-          </div>
-          <div>
-            <span class="text-indigo-300 block">Titik Tujuan:</span>
-            <span id="resTujuan" class="font-medium truncate block"></span>
-          </div>
-        </div>
-
-        <div class="bg-indigo-950/60 p-3 rounded-xl border border-indigo-800/60 grid grid-cols-3 text-center">
-          <div>
-            <span class="text-[10px] text-indigo-300 block">JARAK</span>
-            <span id="resJarak" class="text-lg font-bold text-white">0 KM</span>
-          </div>
-          <div>
-            <span class="text-[10px] text-indigo-300 block">TARIF / KM</span>
-            <span id="resTarif" class="text-sm font-bold text-white">Rp4.000</span>
-          </div>
-          <div>
-            <span class="text-[10px] text-indigo-300 block">ESTIMASI</span>
-            <span id="resEstimasi" class="text-sm font-bold text-white">0 mnt</span>
-          </div>
-        </div>
-
-        <div class="text-center bg-indigo-800/80 p-3 rounded-xl">
-          <span class="text-xs text-indigo-300 uppercase block mb-0.5">Total Ongkos</span>
-          <span id="resOngkos" class="text-2xl font-extrabold text-emerald-400">Rp0</span>
-        </div>
-
-        <button id="btnSimpan" onclick="saveOrder()" class="w-full bg-emerald-500 text-white font-bold py-3 rounded-xl text-sm shadow-md hover:bg-emerald-600 transition">
-          SIMPAN PESANAN
-        </button>
-      </div>
-    </section>
-
-    <!-- TAB 3: RIWAYAT -->
-    <section id="tab-riwayat" class="tab-content hidden space-y-4">
-      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-        <div class="flex justify-between items-center mb-3">
-          <h2 class="font-bold text-slate-800 text-sm">Riwayat Pesanan</h2>
-          <button onclick="loadData()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-lg transition">
-            Refresh
-          </button>
-        </div>
-
-        <!-- Mobile Table -->
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs">
-            <thead>
-              <tr class="bg-slate-100 text-slate-600 uppercase font-semibold">
-                <th class="p-2.5 rounded-l-lg">ID / Nama</th>
-                <th class="p-2.5">Jarak</th>
-                <th class="p-2.5">Ongkos</th>
-                <th class="p-2.5 rounded-r-lg">Status</th>
-              </tr>
-            </thead>
-            <tbody id="historyTableBody" class="divide-y divide-slate-100">
-              <!-- Rendered dynamically -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 4: PENGATURAN -->
-    <section id="tab-pengaturan" class="tab-content hidden space-y-4">
-      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-4">
-        <h2 class="font-bold text-slate-800 text-base">Pengaturan & Kontak Driver</h2>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor WhatsApp Driver / Kurir</label>
-          <input type="tel" id="driverWaInput" placeholder="Contoh: 6281234567890" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <p class="text-[10px] text-slate-400 mt-1">Gunakan format internasional tanpa tanda +, misal: 6281234567890.</p>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Google Apps Script Web App URL</label>
-          <input type="url" id="gasUrlInput" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
-        </div>
-
-        <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-100 text-xs text-indigo-900">
-          <span class="font-bold block mb-1">Tarif Default Saat Ini:</span>
-          <span id="settingsTarifLabel" class="text-lg font-extrabold text-indigo-600">Rp4.000 / KM</span>
-        </div>
-
-        <button onclick="saveSettings()" class="w-full bg-indigo-600 text-white font-semibold py-2.5 rounded-xl text-sm shadow hover:bg-indigo-700 transition">
-          Simpan Konfigurasi
-        </button>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- Detail Modal -->
-  <div id="detailModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-sm rounded-2xl p-4 shadow-xl space-y-3">
-      <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-bold text-slate-800 text-sm">Detail Pesanan & Bagikan</h3>
-        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-sm">Tutup</button>
-      </div>
-      <div id="modalContent" class="text-xs space-y-2 text-slate-600">
-        <!-- Details populated here -->
-      </div>
-      <div id="modalShareContainer" class="pt-2">
-        <!-- WhatsApp Share Button populated dynamically -->
-      </div>
-    </div>
-  </div>
-
-  <!-- Bottom Navigation Bar -->
-  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-40 max-w-md mx-auto flex justify-around py-2 px-1 shadow-lg">
-    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center text-indigo-600 space-y-0.5 px-3 py-1 rounded-xl transition">
-      <span class="text-[11px] font-semibold">Dashboard</span>
-    </button>
-    <button onclick="switchTab('pesanan')" id="nav-pesanan" class="flex flex-col items-center text-slate-400 space-y-0.5 px-3 py-1 rounded-xl transition">
-      <span class="text-[11px] font-semibold">Pesanan</span>
-    </button>
-    <button onclick="switchTab('riwayat')" id="nav-riwayat" class="flex flex-col items-center text-slate-400 space-y-0.5 px-3 py-1 rounded-xl transition">
-      <span class="text-[11px] font-semibold">Riwayat</span>
-    </button>
-    <button onclick="switchTab('pengaturan')" id="nav-pengaturan" class="flex flex-col items-center text-slate-400 space-y-0.5 px-3 py-1 rounded-xl transition">
-      <span class="text-[11px] font-semibold">Pengaturan</span>
-    </button>
-  </nav>
-
-  <!-- JavaScript Application Logic -->
-  <script>
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzJqfT5u2fw1s4umX36sKDREU50fZbqsTawCvxuizI-t-i_H-Ua0I5xizu0U5XqeWOZ/exec";
-
-    let currentTarif = 4000;
-    let calculatedData = null;
-    let ordersData = [];
-
-    window.addEventListener('DOMContentLoaded', () => {
-      const savedUrl = localStorage.getItem("gas_url") || GAS_WEB_APP_URL;
-      document.getElementById("gasUrlInput").value = savedUrl;
-      const savedDriverWa = localStorage.getItem("driver_wa") || "6281234567890";
-      document.getElementById("driverWaInput").value = savedDriverWa;
-      loadData();
+    
+    var data = {};
+    try {
+      data = JSON.parse(e.postData.contents);
+    } catch (err) {
+      return createJsonResponse({ status: "error", message: "Invalid JSON payload format." });
+    }
+    
+    var ss = SpreadsheetApp.openById("1iX1WgcN-VtEJWAJn-zkE7NX_bA7PSxjECGGiVcnrA");
+    setupSheetsIfNeeded_(ss);
+    var tariff = getTariff_(ss);
+    
+    var nama = (data.nama || "").trim();
+    var noHp = (data.noHp || "").trim();
+    var alamatJemput = (data.alamatJemput || "").trim();
+    var alamatTujuan = (data.alamatTujuan || "").trim();
+    var catatan = (data.catatan || "").trim();
+    var jarak = parseFloat(data.jarak);
+    var statusInput = (data.status || "").trim();
+    
+    if (!nama) return createJsonResponse({ status: "error", message: "Nama pelanggan wajib diisi." });
+    if (!alamatJemput) return createJsonResponse({ status: "error", message: "Alamat jemput wajib diisi." });
+    if (!alamatTujuan) return createJsonResponse({ status: "error", message: "Alamat tujuan wajib diisi." });
+    if (isNaN(jarak) || jarak <= 0) return createJsonResponse({ status: "error", message: "Jarak tidak valid." });
+    
+    var totalOngkos = Math.round(jarak * tariff);
+    var estimasiMenit = Math.round(jarak * 3);
+    
+    var orderId = "KURIR-" + Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyyMMdd") + "-" + Math.floor(1000 + Math.random() * 9000);
+    var timestamp = new Date();
+    var tanggal = Utilities.formatDate(timestamp, "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss");
+    var status = "Menunggu";
+    
+    var sheetPesanan = ss.getSheetByName("PESANAN");
+    sheetPesanan.appendRow([
+      orderId, timestamp, tanggal, nama, noHp,
+      alamatJemput, alamatTujuan, catatan, jarak,
+      estimasiMenit, tariff, totalOngkos, status
+    ]);
+    
+    return createJsonResponse({
+      status: "success",
+      message: "Pesanan berhasil disimpan",
+      orderId: orderId,
+      totalOngkos: totalOngkos,
+      estimasiMenit: estimasiMenit,
+      tarif: tariff
     });
+    
+  } catch (err) {
+    return createJsonResponse({ status: "error", message: err.toString() });
+  } finally {
+    lock.releaseLock();
+  }
+}
 
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-      document.getElementById('tab-' + tabId).classList.remove('hidden');
+function doOptions(e) {
+  return ContentService.createTextOutput("")
+    .setMimeType(ContentService.MimeType.TEXT)
+    .setHeader("Access-Control-Allow-Origin", "*")
+    .setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+    .setHeader("Access-Control-Allow-Headers", "Content-Type");
+}
 
-      ['dashboard', 'pesanan', 'riwayat', 'pengaturan'].forEach(id => {
-        const btn = document.getElementById('nav-' + id);
-        if (id === tabId) {
-          btn.classList.remove('text-slate-400');
-          btn.classList.add('text-indigo-600');
-        } else {
-          btn.classList.remove('text-indigo-600');
-          btn.classList.add('text-slate-400');
-        }
-      });
-      window.scrollTo(0, 0);
-    }
+function createJsonResponse(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON)
+    .setHeader("Access-Control-Allow-Origin", "*")
+    .setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+    .setHeader("Access-Control-Allow-Headers", "Content-Type");
+}
 
-    function formatRupiah(num) {
-      return "Rp" + Number(num).toLocaleString("id-ID");
-    }
+function setupSheetsIfNeeded_(ss) {
+  var sheetPesanan = ss.getSheetByName("PESANAN");
+  if (!sheetPesanan) {
+    sheetPesanan = ss.insertSheet("PESANAN");
+  }
+  if (sheetPesanan.getLastRow() === 0) {
+    sheetPesanan.appendRow([
+      "ID Pesanan", "Timestamp", "Tanggal", "Nama Pelanggan", "Nomor HP",
+      "Alamat Jemput", "Alamat Tujuan", "Catatan", "Jarak KM", "Estimasi Menit",
+      "Tarif per KM", "Total Ongkos", "Status"
+    ]);
+  }
+  
+  var sheetPengaturan = ss.getSheetByName("PENGATURAN");
+  if (!sheetPengaturan) {
+    sheetPengaturan = ss.insertSheet("PENGATURAN");
+  }
+  if (sheetPengaturan.getLastRow() === 0) {
+    sheetPengaturan.appendRow(["Kunci", "Nilai"]);
+    sheetPengaturan.appendRow(["TARIF_PER_KM", "4000"]);
+  }
+}
 
-    // ROBUST DISTANCE CALCULATION WITH SMART FALLBACK
-    async function calculateDistance() {
-      const jemput = document.getElementById("alamatJemput").value.trim();
-      const tujuan = document.getElementById("alamatTujuan").value.trim();
-      const nama = document.getElementById("nama").value.trim();
-
-      if (!nama || !jemput || !tujuan) {
-        alert("Harap isi Nama Pelanggan, Alamat Jemput, dan Alamat Tujuan terlebih dahulu.");
-        return;
+function getDataFromSheet_(ss, sheetName) {
+  var sheet = ss.getSheetByName(sheetName);
+  if (!sheet) return [];
+  var rows = sheet.getDataRange().getValues();
+  if (rows.length <= 1) return [];
+  var headers = rows[0];
+  var data = [];
+  for (var i = 1; i < rows.length; i++) {
+    var row = rows[i];
+    var obj = {};
+    for (var j = 0; j < headers.length; j++) {
+      var key = headers[j];
+      var val = row[j];
+      if (val instanceof Date) {
+        val = Utilities.formatDate(val, "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss");
       }
-
-      const btn = document.querySelector("button[onclick='calculateDistance()']");
-      const originalText = btn.innerText;
-      btn.disabled = true;
-      btn.innerText = "Menghitung Jarak...";
-
-      let jarakKm = 0;
-      let estimasiMnt = 0;
-
-      try {
-        // Try Geocoding & OSRM Routing
-        const resJemput = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(jemput + ", Indonesia")}&limit=1`);
-        const dataJemput = await resJemput.json();
-
-        const resTujuan = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(tujuan + ", Indonesia")}&limit=1`);
-        const dataTujuan = await resTujuan.json();
-
-        if (dataJemput.length > 0 && dataTujuan.length > 0) {
-          const lon1 = dataJemput[0].lon;
-          const lat1 = dataJemput[0].lat;
-          const lon2 = dataTujuan[0].lon;
-          const lat2 = dataTujuan[0].lat;
-
-          const resRoute = await fetch(`https://router.project-osrm.org/route/v1/driving/${lon1},${lat1};${lon2},${lat2}?overview=false`);
-          const dataRoute = await resRoute.json();
-
-          if (dataRoute.code === "Ok" && dataRoute.routes && dataRoute.routes.length > 0) {
-            const route = dataRoute.routes[0];
-            jarakKm = Number((route.distance / 1000).toFixed(1));
-            estimasiMnt = Math.round(route.duration / 60);
-          }
-        }
-      } catch (err) {
-        console.log("Online routing fallback triggered:", err);
-      }
-
-      // Smart Fallback if map search fails or returns gibberish text
-      if (!jarakKm || jarakKm <= 0) {
-        let combinedText = (jemput + tujuan).toLowerCase();
-        let hash = combinedText.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-        jarakKm = Number(((hash % 120 + 35) / 10).toFixed(1)); // Generates realistic distance between 3.5 KM to 15.5 KM
-        estimasiMnt = Math.round(jarakKm * 3);
-      }
-
-      if (jarakKm < 0.5) jarakKm = 0.5;
-      if (estimasiMnt < 3) estimasiMnt = 3;
-
-      let totalOngkos = Math.round(jarakKm * currentTarif);
-
-      calculatedData = {
-        nama: nama,
-        noHp: document.getElementById("noHp").value.trim(),
-        alamatJemput: jemput,
-        alamatTujuan: tujuan,
-        catatan: document.getElementById("catatan").value.trim(),
-        jarak: jarakKm,
-        estimasiMenit: estimasiMnt,
-        tarif: currentTarif,
-        totalOngkos: totalOngkos
-      };
-
-      document.getElementById("resJemput").innerText = jemput;
-      document.getElementById("resTujuan").innerText = tujuan;
-      document.getElementById("resJarak").innerText = jarakKm + " KM";
-      document.getElementById("resTarif").innerText = formatRupiah(currentTarif) + "/KM";
-      document.getElementById("resEstimasi").innerText = estimasiMnt + " mnt";
-      document.getElementById("resOngkos").innerText = formatRupiah(totalOngkos);
-      
-      document.getElementById("resultCard").classList.remove('hidden');
-      document.getElementById("resultCard").scrollIntoView({ behavior: 'smooth' });
-
-      btn.disabled = false;
-      btn.innerText = originalText;
+      obj[key] = val;
     }
+    data.push(obj);
+  }
+  return data;
+}
 
-    async function saveOrder() {
-      if (!calculatedData) return;
-
-      const btn = document.getElementById("btnSimpan");
-      btn.disabled = true;
-      btn.innerText = "Menyimpan ke Google Sheets...";
-
-      const url = document.getElementById("gasUrlInput").value.trim() || GAS_WEB_APP_URL;
-
-      try {
-        const response = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify(calculatedData)
-        });
-        const result = await response.json();
-        if (result.status === "success") {
-          alert("Pesanan berhasil disimpan ke Google Sheets! ID: " + result.orderId);
-          resetForm();
-          loadData();
-          switchTab('riwayat');
-        } else {
-          alert("Gagal menyimpan: " + (result.message || "Unknown error"));
-          btn.disabled = false;
-          btn.innerText = "SIMPAN PESANAN";
-        }
-      } catch (err) {
-        console.error("Fetch error:", err);
-        alert("Gagal terhubung ke server Google Apps Script. Periksa koneksi atau URL Web App.");
-        btn.disabled = false;
-        btn.innerText = "SIMPAN PESANAN";
-      }
+function getTariff_(ss) {
+  var sheet = ss.getSheetByName("PENGATURAN");
+  if (!sheet) return 4000;
+  var rows = sheet.getDataRange().getValues();
+  for (var i = 1; i < rows.length; i++) {
+    if (rows[i][0] === "TARIF_PER_KM") {
+      var val = parseFloat(rows[i][1]);
+      return isNaN(val) ? 4000 : val;
     }
-
-    function resetForm() {
-      document.getElementById("orderForm").reset();
-      document.getElementById("resultCard").classList.add('hidden');
-      calculatedData = null;
-      const btn = document.getElementById("btnSimpan");
-      btn.disabled = false;
-      btn.innerText = "SIMPAN PESANAN";
-    }
-
-    async function loadData() {
-      const url = document.getElementById("gasUrlInput").value.trim() || GAS_WEB_APP_URL;
-      const statusText = document.getElementById("statusText");
-
-      try {
-        const res = await fetch(url + "?action=get_all");
-        const data = await res.json();
-        if (data.status === "success") {
-          currentTarif = Number(data.tarif) || 4000;
-          document.getElementById("settingsTarifLabel").innerText = formatRupiah(currentTarif) + " / KM";
-          ordersData = data.pesanan || [];
-          statusText.innerText = "Terhubung (Online)";
-          renderDashboardAndHistory();
-          return;
-        }
-      } catch (err) {
-        console.error("Failed fetching from GAS:", err);
-      }
-
-      statusText.innerText = "Gagal Terhubung";
-      ordersData = [];
-      renderDashboardAndHistory();
-    }
-
-    function renderDashboardAndHistory() {
-      let totalOrders = ordersData.length;
-      let totalKm = 0;
-      let totalRevenue = 0;
-      let activeOrders = [];
-
-      ordersData.forEach(o => {
-        let km = Number(o["Jarak KM"] || 0);
-        let cost = Number(o["Total Ongkos"] || 0);
-        let status = o["Status"] || "Menunggu";
-
-        totalKm += km;
-        if (status === "Selesai") {
-          totalRevenue += cost;
-        }
-        if (status !== "Selesai") {
-          activeOrders.push(o);
-        }
-      });
-
-      document.getElementById("dashOrdersCount").innerText = totalOrders;
-      document.getElementById("dashTotalKm").innerText = totalKm.toFixed(1) + " KM";
-      document.getElementById("dashTotalRevenue").innerText = formatRupiah(totalRevenue);
-      document.getElementById("activeCount").innerText = activeOrders.length;
-
-      const activeContainer = document.getElementById("activeOrdersList");
-      if (activeOrders.length === 0) {
-        activeContainer.innerHTML = `<p class="text-xs text-slate-400 text-center py-3">Tidak ada pesanan aktif saat ini.</p>`;
-      } else {
-        activeContainer.innerHTML = activeOrders.map(o => `
-          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-between items-center text-xs">
-            <div>
-              <span class="font-bold text-slate-800 block">${o["Nama Pelanggan"]}</span>
-              <span class="text-slate-500 truncate block max-w-[180px]">Ke: ${o["Alamat Tujuan"]}</span>
-              <span class="text-indigo-600 font-semibold">${o["Jarak KM"]} KM • ${formatRupiah(o["Total Ongkos"])}</span>
-            </div>
-            <div>
-              <span class="px-2 py-1 bg-amber-100 text-amber-800 font-bold rounded-lg text-[10px]">${o["Status"]}</span>
-            </div>
-          </div>
-        `).join('');
-      }
-
-      const tableBody = document.getElementById("historyTableBody");
-      if (ordersData.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-slate-400">Belum ada riwayat pesanan.</td></tr>`;
-      } else {
-        tableBody.innerHTML = ordersData.map(o => `
-          <tr class="hover:bg-slate-50 cursor-pointer border-b border-slate-100" onclick='showDetail(${JSON.stringify(o)})'>
-            <td class="p-2.5">
-              <span class="font-bold text-slate-800 block">${o["Nama Pelanggan"]}</span>
-              <span class="text-[10px] text-slate-400">${o["ID Pesanan"]}</span>
-            </td>
-            <td class="p-2.5 font-medium">${o["Jarak KM"]} KM</td>
-            <td class="p-2.5 font-bold text-emerald-600">${formatRupiah(o["Total Ongkos"])}</td>
-            <td class="p-2.5">
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${getStatusBadgeClass(o["Status"])}">${o["Status"]}</span>
-            </td>
-          </tr>
-        `).join('');
-      }
-    }
-
-    function getStatusBadgeClass(status) {
-      switch(status) {
-        case 'Selesai': return 'bg-emerald-100 text-emerald-800';
-        case 'Dalam Pengiriman': return 'bg-blue-100 text-blue-800';
-        case 'Diambil': return 'bg-purple-100 text-purple-800';
-        default: return 'bg-amber-100 text-amber-800';
-      }
-    }
-
-    function showDetail(order) {
-      const content = document.getElementById("modalContent");
-      content.innerHTML = `
-        <p><strong>ID Pesanan:</strong> ${order["ID Pesanan"]}</p>
-        <p><strong>Tanggal:</strong> ${order["Tanggal"] || order["Timestamp"]}</p>
-        <p><strong>Nama Pelanggan:</strong> ${order["Nama Pelanggan"]} (${order["Nomor HP"] || '-'}</p>
-        <p><strong>Alamat Jemput:</strong> ${order["Alamat Jemput"]}</p>
-        <p><strong>Alamat Tujuan:</strong> ${order["Alamat Tujuan"]}</p>
-        <p><strong>Catatan:</strong> ${order["Catatan"] || '-'}</p>
-        <p><strong>Jarak & Estimasi:</strong> ${order["Jarak KM"]} KM (${order["Estimasi Menit"]} menit)</p>
-        <p><strong>Tarif / KM:</strong> ${formatRupiah(order["Tarif per KM"] || 4000)}</p>
-        <p><strong>Total Ongkos:</strong> <span class="text-emerald-600 font-bold">${formatRupiah(order["Total Ongkos"])}</span></p>
-        <p><strong>Status:</strong> <span class="font-semibold">${order["Status"]}</span></p>
-      `;
-
-      const shareContainer = document.getElementById("modalShareContainer");
-      const driverWa = localStorage.getItem("driver_wa") || "6281234567890";
-      
-      const shareText = `Halo *${order["Nama Pelanggan"]}*,\n\nBerikut adalah rincian pesanan pengiriman kurir Anda:\n- *ID Pesanan:* ${order["ID Pesanan"]}\n- *Jemput:* ${order["Alamat Jemput"]}\n- *Tujuan:* ${order["Alamat Tujuan"]}\n- *Jarak:* ${order["Jarak KM"]} KM\n- *Total Ongkos:* ${formatRupiah(order["Total Ongkos"])}\n- *Status:* ${order["Status"]}\n\nUntuk informasi lebih lanjut, silakan hubungi Driver kami melalui tautan di bawah ini:`;
-      
-      shareContainer.innerHTML = `
-        <a href="https://api.whatsapp.com/send?phone=${order['Nomor HP'] || ''}&text=${encodeURIComponent(shareText + '\n\n*Kontak Driver:* https://wa.me/' + driverWa)}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 transition shadow">
-          <i class="fa-brands fa-whatsapp text-base"></i>
-          <span>Bagikan ke WhatsApp & Kontak Driver</span>
-        </a>
-      `;
-
-      document.getElementById("detailModal").classList.remove('hidden');
-    }
-
-    function closeModal() {
-      document.getElementById("detailModal").classList.add('hidden');
-    }
-
-    function saveSettings() {
-      const url = document.getElementById("gasUrlInput").value.trim();
-      const driverWa = document.getElementById("driverWaInput").value.trim();
-      localStorage.setItem("gas_url", url);
-      localStorage.setItem("driver_wa", driverWa);
-      alert("Pengaturan berhasil disimpan!");
-      loadData();
-    }
-  </script>
-</body>
-</html>
+  }
+  return 4000;
+}
