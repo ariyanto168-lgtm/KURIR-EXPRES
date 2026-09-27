@@ -325,7 +325,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.50 • Powered by Ari GPM
+      v2.51 • Powered by Ari GPM
     </div>
 
   </main>
@@ -386,7 +386,7 @@
         <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-sm"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
-      <!-- VISUAL TIMELINE PROGRESS STATUS -->
+      <!-- VISUAL TIMELINE PROGRESS STATUS (KLIKABLE DI VERSI INI) -->
       <div id="orderTimeline" class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-2">
         <!-- Rendered dynamically -->
       </div>
@@ -936,7 +936,6 @@
     function generateWaText(orderId, nama, noHp, jemput, tujuan, jarak, ongkos, status) {
       const template = localStorage.getItem("wa_template") || DEFAULT_WA_TEMPLATE;
       const baseUrl = window.location.href.split('?')[0];
-      // Link customer lengkap dengan nomor HP dan ID Pesanan agar langsung merujuk ke detail pesanan tersebut
       const linkOrder = noHp ? `${baseUrl}?mode=order&phone=${noHp}&order=${orderId}` : (baseUrl + `?mode=order&order=${orderId}`);
       const jemputLink = `https://maps.google.com/?q=${encodeURIComponent(jemput)}`;
       const tujuanLink = `https://maps.google.com/?q=${encodeURIComponent(tujuan)}`;
@@ -1274,6 +1273,7 @@
       let currentStepIdx = steps.indexOf(currentStatus);
       if (currentStepIdx === -1) currentStepIdx = 0;
 
+      // TIMELINE DENGAN INTERAKSI KLIK PADA TIAP LANGKAH STATUS
       const timelineHtml = `
         <div class="flex justify-between items-center px-1 py-2">
           ${steps.map((st, idx) => {
@@ -1282,8 +1282,8 @@
             let colorClass = isPassed ? (isCurrent ? 'bg-indigo-600 text-white ring-4 ring-indigo-100 font-bold' : 'bg-emerald-500 text-white') : 'bg-slate-200 text-slate-400';
             let icon = idx === 0 ? 'fa-clock' : (idx === 1 ? 'fa-box-open' : (idx === 2 ? 'fa-truck-fast' : 'fa-check'));
             return `
-              <div class="flex flex-col items-center flex-1 relative">
-                <div class="w-7 h-7 rounded-full flex items-center justify-center text-[10px] transition-all ${colorClass}">
+              <div class="flex flex-col items-center flex-1 relative cursor-pointer hover:opacity-75 transition-all group" onclick="updateOrderStatus('${order["ID Pesanan"]}', '${st}')" title="Ketuk untuk ubah status ke ${st}">
+                <div class="w-7 h-7 rounded-full flex items-center justify-center text-[10px] transition-all ${colorClass} group-hover:scale-110">
                   <i class="fa-solid ${icon}"></i>
                 </div>
                 <span class="text-[9px] mt-1 font-medium text-center ${isCurrent ? 'text-indigo-700 font-bold' : 'text-slate-500'}">${st}</span>
@@ -1402,7 +1402,6 @@
       closeModal();
       loadData();
 
-      // Prompt otomatis membuka wa.me setelah status diperbarui (Penjemputan, Perjalanan, Selesai)
       if (updatedOrder) {
         const customerWa = formatPhoneNumber(updatedOrder["Nomor HP"]);
         const shareText = generateWaText(updatedOrder["ID Pesanan"], updatedOrder["Nama Pelanggan"], updatedOrder["Nomor HP"], updatedOrder["Alamat Jemput"], updatedOrder["Alamat Tujuan"], updatedOrder["Jarak KM"], updatedOrder["Total Ongkos"], newStatus);
