@@ -15,7 +15,7 @@
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     }
     .safe-bottom {
-      padding-bottom: 75px;
+      padding-bottom: 85px;
     }
   </style>
 </head>
@@ -23,7 +23,10 @@
 
   <!-- Top Header -->
   <header class="bg-indigo-600 text-white shadow-md sticky top-0 z-40 px-4 py-3 flex justify-between items-center">
-    <h1 class="font-bold text-lg tracking-wide">PESAN KURIR MANDIRI</h1>
+    <div class="flex items-center space-x-2">
+      <i class="fa-solid fa-motorcycle text-lg"></i>
+      <h1 class="font-bold text-base tracking-wide">PESAN KURIR MANDIRI</h1>
+    </div>
     <div id="connectionStatus" class="text-xs bg-indigo-700 px-2 py-1 rounded-full font-medium">
       <span id="statusText">Mode Offline</span>
     </div>
@@ -38,15 +41,24 @@
         <h2 class="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-3">Ringkasan Hari Ini</h2>
         <div class="grid grid-cols-2 gap-3">
           <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-100">
-            <span class="text-xs font-medium text-indigo-600 block mb-1">Pesanan Hari Ini</span>
+            <div class="flex items-center space-x-2 text-indigo-600 mb-1">
+              <i class="fa-solid fa-box text-sm"></i>
+              <span class="text-xs font-medium">Pesanan Hari Ini</span>
+            </div>
             <p id="dashOrdersCount" class="text-2xl font-bold text-indigo-900">0</p>
           </div>
           <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-100">
-            <span class="text-xs font-medium text-emerald-600 block mb-1">Total KM</span>
+            <div class="flex items-center space-x-2 text-emerald-600 mb-1">
+              <i class="fa-solid fa-route text-sm"></i>
+              <span class="text-xs font-medium">Total KM</span>
+            </div>
             <p id="dashTotalKm" class="text-2xl font-bold text-emerald-900">0 KM</p>
           </div>
           <div class="bg-amber-50 p-3 rounded-xl border border-amber-100 col-span-2">
-            <span class="text-xs font-medium text-amber-600 block mb-1">Total Pendapatan</span>
+            <div class="flex items-center space-x-2 text-amber-600 mb-1">
+              <i class="fa-solid fa-wallet text-sm"></i>
+              <span class="text-xs font-medium">Total Pendapatan</span>
+            </div>
             <p id="dashTotalRevenue" class="text-2xl font-bold text-amber-900">Rp0</p>
           </div>
         </div>
@@ -59,14 +71,17 @@
           <p class="text-xs text-indigo-100">Hitung jarak & ongkos presisi</p>
         </div>
         <button onclick="switchTab('pesanan')" class="bg-white text-indigo-600 font-semibold text-xs px-4 py-2.5 rounded-xl shadow hover:bg-indigo-50 transition active:scale-95">
-          Buat Kurir
+          Buat Kurir <i class="fa-solid fa-arrow-right ml-1"></i>
         </button>
       </div>
 
       <!-- Pesanan Aktif -->
       <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
         <div class="flex justify-between items-center mb-3">
-          <h3 class="text-slate-800 font-bold text-sm">Pesanan Aktif (<span id="activeCount">0</span>)</h3>
+          <h3 class="text-slate-800 font-bold text-sm flex items-center space-x-2">
+            <i class="fa-solid fa-spinner text-indigo-600"></i>
+            <span>Pesanan Aktif (<span id="activeCount">0</span>)</span>
+          </h3>
           <span class="text-xs text-slate-400">Menunggu / Proses</span>
         </div>
         <div id="activeOrdersList" class="space-y-2.5">
@@ -78,8 +93,11 @@
     <!-- TAB 2: FORM / PESANAN -->
     <section id="tab-pesanan" class="tab-content hidden space-y-4">
       <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-        <h2 class="font-bold text-slate-800 text-base mb-1">Form Pemesanan Kurir Mandiri</h2>
-        <p class="text-[11px] text-slate-400 mb-3">Ketik lokasi penjemputan & tujuan secara spesifik (Cth: nama jalan, gedung, atau area).</p>
+        <h2 class="font-bold text-slate-800 text-base mb-1 flex items-center space-x-2">
+          <i class="fa-solid fa-box text-indigo-600"></i>
+          <span>Form Pemesanan Kurir Mandiri</span>
+        </h2>
+        <p class="text-[11px] text-slate-400 mb-3">Ketik lokasi penjemputan & tujuan secara spesifik untuk hasil presisi.</p>
 
         <form id="orderForm" onsubmit="event.preventDefault();" class="space-y-3">
           <div>
@@ -94,12 +112,12 @@
 
           <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1">Alamat Jemput (Pickup) <span class="text-red-500">*</span></label>
-            <textarea id="alamatJemput" rows="2" required placeholder="Ketik lokasi jemput, cth: Terminal Cangkiran, Semarang" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+            <textarea id="alamatJemput" rows="2" required placeholder="Ketik lokasi jemput, cth: Terminal Cangkiran" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
           </div>
 
           <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1">Alamat Tujuan <span class="text-red-500">*</span></label>
-            <textarea id="alamatTujuan" rows="2" required placeholder="Ketik lokasi tujuan, cth: Simpang Lima, Semarang" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+            <textarea id="alamatTujuan" rows="2" required placeholder="Ketik lokasi tujuan, cth: Simpang Lima Semarang" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
           </div>
 
           <div>
@@ -108,8 +126,9 @@
           </div>
 
           <!-- Tombol Hitung Jarak -->
-          <button type="button" onclick="calculateDistance()" class="w-full bg-slate-800 text-white font-semibold py-2.5 rounded-xl text-sm shadow hover:bg-slate-900 transition">
-            HITUNG JARAK & ONGKOS PRESISI
+          <button type="button" onclick="calculateDistance()" class="w-full bg-slate-800 text-white font-semibold py-2.5 rounded-xl text-sm shadow hover:bg-slate-900 transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-calculator"></i>
+            <span>HITUNG JARAK & ONGKOS PRESISI</span>
           </button>
         </form>
       </div>
@@ -149,8 +168,9 @@
           <span id="resOngkos" class="text-2xl font-extrabold text-emerald-400">Rp0</span>
         </div>
 
-        <button id="btnSimpan" onclick="saveOrder()" class="w-full bg-emerald-500 text-white font-bold py-3 rounded-xl text-sm shadow-md hover:bg-emerald-600 transition">
-          SIMPAN PESANAN
+        <button id="btnSimpan" onclick="saveOrder()" class="w-full bg-emerald-500 text-white font-bold py-3 rounded-xl text-sm shadow-md hover:bg-emerald-600 transition flex items-center justify-center space-x-2">
+          <i class="fa-solid fa-check-circle"></i>
+          <span>SIMPAN PESANAN</span>
         </button>
       </div>
     </section>
@@ -159,9 +179,12 @@
     <section id="tab-riwayat" class="tab-content hidden space-y-4">
       <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
         <div class="flex justify-between items-center mb-3">
-          <h2 class="font-bold text-slate-800 text-sm">Riwayat Pesanan</h2>
+          <h2 class="font-bold text-slate-800 text-sm flex items-center space-x-2">
+            <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i>
+            <span>Riwayat Pesanan</span>
+          </h2>
           <button onclick="loadData()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-lg transition">
-            Refresh
+            <i class="fa-solid fa-rotate mr-1"></i> Refresh
           </button>
         </div>
 
@@ -187,7 +210,10 @@
     <!-- TAB 4: PENGATURAN -->
     <section id="tab-pengaturan" class="tab-content hidden space-y-4">
       <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-4">
-        <h2 class="font-bold text-slate-800 text-base">Pengaturan & Kontak Driver</h2>
+        <h2 class="font-bold text-slate-800 text-base flex items-center space-x-2">
+          <i class="fa-solid fa-gear text-indigo-600"></i>
+          <span>Pengaturan & Kontak Driver</span>
+        </h2>
 
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor WhatsApp Driver / Kurir</label>
@@ -210,6 +236,11 @@
       </div>
     </section>
 
+    <!-- Version Footer -->
+    <div class="text-center py-4 text-[11px] text-slate-400">
+      v2.12 • Powered by Ari GPM
+    </div>
+
   </main>
 
   <!-- Detail Modal -->
@@ -217,7 +248,7 @@
     <div class="bg-white w-full max-w-sm rounded-2xl p-4 shadow-xl space-y-3">
       <div class="flex justify-between items-center border-b pb-2">
         <h3 class="font-bold text-slate-800 text-sm">Detail Pesanan & Bagikan</h3>
-        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-sm">Tutup</button>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-sm"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div id="modalContent" class="text-xs space-y-2 text-slate-600">
         <!-- Details populated here -->
@@ -228,19 +259,23 @@
     </div>
   </div>
 
-  <!-- Bottom Navigation Bar -->
+  <!-- Bottom Navigation Bar (Restored with Icons) -->
   <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-40 max-w-md mx-auto flex justify-around py-2 px-1 shadow-lg">
     <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center text-indigo-600 space-y-0.5 px-3 py-1 rounded-xl transition">
-      <span class="text-[11px] font-semibold">Dashboard</span>
+      <i class="fa-solid fa-chart-pie text-lg"></i>
+      <span class="text-[10px] font-semibold">Dashboard</span>
     </button>
     <button onclick="switchTab('pesanan')" id="nav-pesanan" class="flex flex-col items-center text-slate-400 space-y-0.5 px-3 py-1 rounded-xl transition">
-      <span class="text-[11px] font-semibold">Pesanan</span>
+      <i class="fa-solid fa-motorcycle text-lg"></i>
+      <span class="text-[10px] font-semibold">Pesanan</span>
     </button>
     <button onclick="switchTab('riwayat')" id="nav-riwayat" class="flex flex-col items-center text-slate-400 space-y-0.5 px-3 py-1 rounded-xl transition">
-      <span class="text-[11px] font-semibold">Riwayat</span>
+      <i class="fa-solid fa-clock-rotate-left text-lg"></i>
+      <span class="text-[10px] font-semibold">Riwayat</span>
     </button>
     <button onclick="switchTab('pengaturan')" id="nav-pengaturan" class="flex flex-col items-center text-slate-400 space-y-0.5 px-3 py-1 rounded-xl transition">
-      <span class="text-[11px] font-semibold">Pengaturan</span>
+      <i class="fa-solid fa-gear text-lg"></i>
+      <span class="text-[10px] font-semibold">Pengaturan</span>
     </button>
   </nav>
 
@@ -283,7 +318,7 @@
 
     // Haversine formula calculation backup with road factor multiplier (1.3x)
     function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
-      const R = 6371; // Radius bumi dalam KM
+      const R = 6371;
       const dLat = (lat2 - lat1) * (Math.PI / 180);
       const dLon = (lon2 - lon1) * (Math.PI / 180);
       const a = 
@@ -291,8 +326,7 @@
         Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * 
         Math.sin(dLon / 2) * Math.sin(dLon / 2);
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      const directDist = R * c;
-      return Number((directDist * 1.3).toFixed(1)); // Dikalikan faktor rute jalan raya 1.3x
+      return Number((R * c * 1.3).toFixed(1));
     }
 
     async function calculateDistance() {
@@ -307,12 +341,11 @@
       }
 
       const btn = document.querySelector("button[onclick='calculateDistance()']");
-      const originalText = btn.innerText;
+      const originalHtml = btn.innerHTML;
       btn.disabled = true;
-      btn.innerText = "Menghitung Jarak Presisi...";
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Menghitung Jarak Presisi...`;
 
       try {
-        // Geocoding dengan filter wilayah Indonesia (countrycodes=id)
         const resJemput = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=id&q=${encodeURIComponent(jemput)}&limit=1`);
         const dataJemput = await resJemput.json();
 
@@ -331,7 +364,6 @@
         let jarakKm = 0;
         let estimasiMnt = 0;
 
-        // Coba hitung via OSRM Driving API
         try {
           const resRoute = await fetch(`https://router.project-osrm.org/route/v1/driving/${lon1},${lat1};${lon2},${lat2}?overview=false`);
           const dataRoute = await resRoute.json();
@@ -341,12 +373,11 @@
             jarakKm = Number((route.distance / 1000).toFixed(1));
             estimasiMnt = Math.round(route.duration / 60);
           } else {
-            throw new Error("OSRM routing fallback");
+            throw new Error("OSRM fallback");
           }
         } catch (routingErr) {
-          // Gunakan kalkulasi presisi Haversine jika OSRM gagal/timeout
           jarakKm = calculateHaversineDistance(lat1, lon1, lat2, lon2);
-          estimasiMnt = Math.round(jarakKm * 3); // Estimasi 3 menit per KM
+          estimasiMnt = Math.round(jarakKm * 3);
         }
 
         if (jarakKm < 0.5) jarakKm = 0.5;
@@ -381,7 +412,7 @@
         alert("Gagal menghitung rute peta: " + err.message);
       } finally {
         btn.disabled = false;
-        btn.innerText = originalText;
+        btn.innerHTML = originalHtml;
       }
     }
 
@@ -390,7 +421,7 @@
 
       const btn = document.getElementById("btnSimpan");
       btn.disabled = true;
-      btn.innerText = "Menyimpan...";
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Menyimpan...`;
 
       const url = document.getElementById("gasUrlInput").value.trim();
 
@@ -410,7 +441,7 @@
           } else {
             alert("Gagal menyimpan: " + (result.message || "Unknown error"));
             btn.disabled = false;
-            btn.innerText = "SIMPAN PESANAN";
+            btn.innerHTML = `<i class="fa-solid fa-check-circle"></i><span>SIMPAN PESANAN</span>`;
           }
         } catch (err) {
           console.error("Fetch error, falling back to local:", err);
@@ -457,7 +488,7 @@
       calculatedData = null;
       const btn = document.getElementById("btnSimpan");
       btn.disabled = false;
-      btn.innerText = "SIMPAN PESANAN";
+      btn.innerHTML = `<i class="fa-solid fa-check-circle"></i><span>SIMPAN PESANAN</span>`;
     }
 
     async function loadData() {
