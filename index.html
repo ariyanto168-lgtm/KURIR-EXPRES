@@ -314,7 +314,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.59 • Powered by Ari GPM
+      v2.61 • Powered by Ari GPM
     </div>
 
   </main>
@@ -882,7 +882,6 @@
             currentTarif = localTarif ? Number(localTarif) : (Number(data.tarif) || 4000);
             document.getElementById("settingsTarifLabel").innerText = formatRupiah(currentTarif) + " / KM";
             
-            // Saring server orders dengan menghapus ID yang ada di blacklist deletedIds
             const serverOrders = (data.pesanan || []).filter(o => !deletedIds.includes(o["ID Pesanan"]));
             const unsyncedOrders = localOrders.filter(o => o._synced === false && !deletedIds.includes(o["ID Pesanan"]));
             
@@ -995,12 +994,10 @@
       loadData();
     }
 
-    // Fungsi Clear All History dengan sistem Blacklist ID Permanen
     function clearAllHistory() {
       if (confirm("Apakah Anda yakin ingin MENGHAPUS SEMUA riwayat pesanan? (Data tidak akan muncul kembali)")) {
         let deletedIds = JSON.parse(localStorage.getItem("kurir_deleted_ids") || "[]");
         
-        // Masukkan semua ID pesanan yang sedang tampil ke daftar blacklist
         ordersData.forEach(o => {
           if (o["ID Pesanan"] && !deletedIds.includes(o["ID Pesanan"])) {
             deletedIds.push(o["ID Pesanan"]);
@@ -1015,7 +1012,6 @@
       }
     }
 
-    // Fungsi Hapus Pesanan Satuan dengan Blacklist ID
     async function deleteOrder(orderId) {
       if (!confirm("Hapus pesanan ini dari riwayat?")) return;
 
@@ -1023,7 +1019,6 @@
       localOrders = localOrders.filter(o => o["ID Pesanan"] !== orderId);
       localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
 
-      // Tambahkan ID ke blacklist deleted_ids agar tidak muncul lagi walau dari server
       let deletedIds = JSON.parse(localStorage.getItem("kurir_deleted_ids") || "[]");
       if (!deletedIds.includes(orderId)) {
         deletedIds.push(orderId);
@@ -1271,10 +1266,12 @@
       `;
 
       const statusContainer = document.getElementById("modalStatusContainer");
+      const shareContainer = document.getElementById("modalShareContainer");
       const safeId = String(order["ID Pesanan"]).replace(/'/g, "\\'").replace(/"/g, '&quot;');
-      let statusHtml = '';
+
+      // Logika Pemisahan Mode: Tersembunyi untuk Pelanggan (Order Mandiri), Tampil Lengkap untuk Driver di Semua Baris Riwayat
       if (!isCustomerMode) {
-        statusHtml = `
+        statusContainer.innerHTML = `
           <div class="bg-slate-100/70 p-3 rounded-xl border border-slate-200 mt-2">
             <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 text-center"><i class="fa-solid fa-sliders mr-1"></i> Panel Kendali Status</span>
             <div class="grid grid-cols-2 gap-2">
@@ -1293,16 +1290,10 @@
             </div>
           </div>
         `;
-      } else {
-        statusHtml = `<div class="text-center text-[11px] text-slate-500 py-1"><i class="fa-solid fa-circle-info mr-1"></i> Status diperbarui secara real-time oleh Driver.</div>`;
-      }
-      statusContainer.innerHTML = statusHtml;
 
-      const shareContainer = document.getElementById("modalShareContainer");
-      const customerWa = formatPhoneNumber(order['Nomor HP']);
-      const shareText = generateWaText(order["ID Pesanan"], order["Nama Pelanggan"], order["Nomor HP"], order["Alamat Jemput"], order["Alamat Tujuan"], order["Jarak KM"], order["Total Ongkos"], order["Status"]);
-      
-      if (!isCustomerMode) {
+        const customerWa = formatPhoneNumber(order['Nomor HP']);
+        const shareText = generateWaText(order["ID Pesanan"], order["Nama Pelanggan"], order["Nomor HP"], order["Alamat Jemput"], order["Alamat Tujuan"], order["Jarak KM"], order["Total Ongkos"], order["Status"]);
+        
         shareContainer.innerHTML = `
           <a href="https://wa.me/${customerWa}?text=${encodeURIComponent(shareText)}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 transition shadow mt-2">
             <i class="fa-brands fa-whatsapp text-base"></i>
@@ -1314,6 +1305,7 @@
           </button>
         `;
       } else {
+        statusContainer.innerHTML = `<div class="text-center text-[11px] text-slate-500 py-1"><i class="fa-solid fa-circle-info mr-1"></i> Status diperbarui secara real-time oleh Driver.</div>`;
         shareContainer.innerHTML = "";
       }
 
