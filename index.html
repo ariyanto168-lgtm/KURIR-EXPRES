@@ -36,7 +36,7 @@
   <!-- Main Content Container -->
   <main class="flex-1 max-w-md w-full mx-auto p-4 safe-bottom">
 
-    <!-- TAB 1: DASHBOARD -->
+    <!-- TAB 1: DASHBOARD (Khusus Driver) -->
     <section id="tab-dashboard" class="tab-content space-y-4">
       <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100">
         <h2 class="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-3">Ringkasan Hari Ini</h2>
@@ -95,7 +95,7 @@
     </section>
 
     <!-- TAB 2: FORM / PESANAN -->
-    <section id="tab-pesanan" class="tab-content hidden space-y-4">
+    <section id="tab-pesanan" class="tab-content space-y-4">
       <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100">
         <h2 class="font-bold text-slate-800 text-base mb-3 flex items-center space-x-2">
           <i class="fa-solid fa-map-location-dot text-indigo-600"></i>
@@ -248,20 +248,6 @@
 
     <!-- TAB 4: PENGATURAN -->
     <section id="tab-pengaturan" class="tab-content hidden space-y-4">
-      <div class="bg-gradient-to-r from-indigo-500 to-violet-600 p-4 rounded-3xl shadow-sm text-white">
-        <h2 class="font-bold text-base mb-2 flex items-center space-x-2">
-          <i class="fa-solid fa-share-nodes"></i>
-          <span>Link Order Pelanggan Berbasis No HP</span>
-        </h2>
-        <p class="text-[11px] text-indigo-100 mb-3">Bagikan link ini agar pelanggan dapat memesan kurir dan melihat riwayat keuangan mereka sendiri.</p>
-        <div class="flex items-center space-x-2 mb-2">
-          <input type="text" id="appLinkInput" readonly class="w-full px-3 py-2 text-xs bg-white text-indigo-900 border border-transparent rounded-xl focus:outline-none">
-          <button onclick="copyAppLink()" class="bg-indigo-900 text-white px-3 py-2 rounded-xl text-xs hover:bg-indigo-800 transition shadow">
-            <i class="fa-regular fa-copy"></i>
-          </button>
-        </div>
-      </div>
-
       <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 space-y-4">
         <h2 class="font-bold text-slate-800 text-base flex items-center space-x-2">
           <i class="fa-solid fa-gear text-indigo-600"></i>
@@ -278,13 +264,14 @@
           <input type="tel" id="driverWaInput" placeholder="Contoh: 6281234567890" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
 
-        <div>
+        <!-- Google Apps Script URL disembunyikan agar tidak terlihat di menu -->
+        <div class="hidden">
           <label class="block text-xs font-semibold text-slate-600 mb-1">Google Apps Script Web App URL</label>
           <input type="url" id="gasUrlInput" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Template Pesan WhatsApp</label>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Template Pesan WhatsApp Konfirmasi Akhir</label>
           <textarea id="waTemplateInput" rows="5" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Ketik template pesan WhatsApp..."></textarea>
           <p class="text-[10px] text-slate-400 mt-1">Kata Kunci: <code>{nama}</code>, <code>{id}</code>, <code>{jemput}</code>, <code>{tujuan}</code>, <code>{jarak}</code>, <code>{ongkos}</code>, <code>{status}</code>, <code>{linkOrder}</code>, <code>{driverWa}</code></p>
         </div>
@@ -314,7 +301,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.73 • Powered by Ari GPM
+      v2.75 • Powered by Ari GPM
     </div>
 
   </main>
@@ -477,11 +464,8 @@
           document.getElementById("noHp").value = customerPhone;
           document.getElementById("noHp").readOnly = true;
         }
-        if (autoOpenOrderId) {
-          switchTab('riwayat');
-        } else {
-          switchTab('pesanan');
-        }
+        // CUSTOMER MODE: Default membuka tab PESANAN (Form Order), bukan Riwayat
+        switchTab('pesanan');
       }
 
       const savedUrl = localStorage.getItem("gas_url") || GAS_WEB_APP_URL;
@@ -513,8 +497,6 @@
       if (val.length >= 10) {
         customerPhone = val.replace(/\D/g, '');
         localStorage.setItem("my_customer_phone", customerPhone);
-        const baseUrl = window.location.href.split('?')[0];
-        document.getElementById("appLinkInput").value = `${baseUrl}?mode=order&phone=${customerPhone}`;
       }
     }
 
@@ -550,13 +532,6 @@
         formatted = '62' + formatted.substring(1);
       }
       return formatted;
-    }
-
-    function copyAppLink() {
-      const link = document.getElementById("appLinkInput").value;
-      navigator.clipboard.writeText(link).then(() => {
-        showToast("Berhasil Disalin!", "Link order pelanggan berbasis No HP berhasil disalin. Silakan bagikan via WhatsApp.", "success");
-      });
     }
 
     function handleAddressInput(inputId, saranId) {
@@ -848,6 +823,9 @@
 
     function resetForm() {
       document.getElementById("orderForm").reset();
+      if (!isCustomerMode) {
+        document.getElementById("noHp").value = "";
+      }
       document.getElementById("alamatJemput").dataset.lat = "";
       document.getElementById("alamatJemput").dataset.lon = "";
       document.getElementById("alamatTujuan").dataset.lat = "";
@@ -1126,7 +1104,6 @@
             let st = o["Status"] || "Menunggu";
             let nextActionBtn = '';
             
-            // TOMBOL AKSI DI KARTU DASHBOARD SUDAH DIPINDAH KE BAWAH SENDIRI
             if (st === "Menunggu") {
               nextActionBtn = `<button onclick="event.stopPropagation(); updateOrderStatus('${safeId}', 'Diambil')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold px-4 py-2 rounded-xl transition shadow-sm"><i class="fa-solid fa-box-open mr-1"></i> Pickup Sekarang</button>`;
             } else if (st === "Diambil") {
@@ -1138,7 +1115,6 @@
             return `
               <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex flex-col cursor-pointer hover:border-indigo-300 transition mb-3" onclick="showDetailById('${safeId}')">
                 
-                <!-- Baris 1: Nama & Status -->
                 <div class="flex items-center justify-between mb-2">
                   <div class="flex items-center space-x-2">
                     <span class="font-bold text-slate-800 text-sm">${o["Nama Pelanggan"]} ${o._synced === false ? '<i class="fa-solid fa-cloud-arrow-up text-amber-500 ml-1"></i>' : ''}</span>
@@ -1146,13 +1122,11 @@
                   <span class="px-2.5 py-1 ${getStatusBadgeClass(st)} font-bold rounded-lg text-[10px]">${st}</span>
                 </div>
 
-                <!-- Baris 2: Detail Teks (Lega dan Tidak Nabrak) -->
                 <div class="text-[11px] text-slate-500 mb-3 leading-relaxed">
                   <div class="font-mono text-[10px] text-slate-400 mb-0.5">${o["ID Pesanan"]}</div>
                   <span class="font-semibold text-slate-700">${o["Jarak KM"]} KM</span> • <span class="font-bold text-[#10b981]">${formatRupiah(o["Total Ongkos"])}</span>
                 </div>
                 
-                <!-- Baris 3: Tombol Aksi di Bawah -->
                 <div class="border-t border-slate-100 pt-3 flex justify-end">
                   ${nextActionBtn}
                 </div>
@@ -1304,10 +1278,15 @@
         const customerWa = formatPhoneNumber(order['Nomor HP']);
         const shareText = generateWaText(order["ID Pesanan"], order["Nama Pelanggan"], order["Nomor HP"], order["Alamat Jemput"], order["Alamat Tujuan"], order["Jarak KM"], order["Total Ongkos"], order["Status"]);
         
-        // Teks WA khusus Konfirmasi
-        const confirmWaText = `Halo *${order["Nama Pelanggan"]}*, saya Driver Kurir Express. Saya ingin mengkonfirmasi pesanan penjemputan paket di *${order["Alamat Jemput"]}*. Apakah titik lokasinya sudah sesuai?`;
+        const baseUrl = window.location.href.split('?')[0];
+        const rawPhone = (order["Nomor HP"] || "").replace(/\D/g, '');
+        const linkCustomerOrder = `${baseUrl}?mode=order&phone=${rawPhone}`;
+        
+        const confirmWaText = `Halo *{nama}*, saya Driver Kurir Express. Saya ingin mengkonfirmasi pesanan penjemputan paket di *{jemput}*. Apakah titik lokasinya sudah sesuai?\n\n🔗 *Link Khusus Pesan Kurir Untuk Anda:*\n{linkOrder}`
+          .replace(/{nama}/g, order["Nama Pelanggan"])
+          .replace(/{jemput}/g, order["Alamat Jemput"])
+          .replace(/{linkOrder}/g, linkCustomerOrder);
 
-        // 2 Tombol WA ditambahkan bersisian (Grid)
         shareContainer.innerHTML = `
           <div class="flex items-center justify-center space-x-2 mb-4">
             <i class="fa-solid fa-circle-check ${statusIconColor} text-[18px]"></i>
