@@ -314,7 +314,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.58 • Powered by Ari GPM
+      v2.59 • Powered by Ari GPM
     </div>
 
   </main>
@@ -790,9 +790,6 @@
         "_synced": false
       };
 
-      // Hapus status clear agar pesanan baru bisa muncul kembali
-      localStorage.removeItem("kurir_cleared");
-
       let localOrders = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
       localOrders.unshift(newOrder);
       localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
@@ -827,8 +824,6 @@
     }
 
     function handlePostSaveSuccess(orderId) {
-      // Hapus status clear agar saat disimpan, data langsung dimuat ulang ke memori aktif
-      localStorage.removeItem("kurir_cleared");
       resetForm();
 
       if (isCustomerMode) {
@@ -870,7 +865,7 @@
       const localTarif = localStorage.getItem("local_tarif");
 
       let localOrders = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
-      const isCleared = localStorage.getItem("kurir_cleared") === "true";
+      let deletedIds = JSON.parse(localStorage.getItem("kurir_deleted_ids") || "[]");
 
       if (url) {
         statusDot.className = "w-2 h-2 rounded-full bg-blue-400 inline-block animate-pulse";
@@ -887,10 +882,11 @@
             currentTarif = localTarif ? Number(localTarif) : (Number(data.tarif) || 4000);
             document.getElementById("settingsTarifLabel").innerText = formatRupiah(currentTarif) + " / KM";
             
-            const serverOrders = data.pesanan || [];
-            const unsyncedOrders = localOrders.filter(o => o._synced === false);
+            // Saring server orders dengan menghapus ID yang ada di blacklist deletedIds
+            const serverOrders = (data.pesanan || []).filter(o => !deletedIds.includes(o["ID Pesanan"]));
+            const unsyncedOrders = localOrders.filter(o => o._synced === false && !deletedIds.includes(o["ID Pesanan"]));
             
-            ordersData = isCleared ? unsyncedOrders : [...unsyncedOrders, ...serverOrders];
+            ordersData = [...unsyncedOrders, ...serverOrders];
             
             statusDot.className = "w-2 h-2 rounded-full bg-emerald-400 inline-block";
             statusText.innerText = "Terhubung (Online)";
@@ -910,11 +906,12 @@
       currentTarif = localTarif ? Number(localTarif) : 4000;
       document.getElementById("settingsTarifLabel").innerText = formatRupiah(currentTarif) + " / KM";
 
-      if (localOrders.length === 0 && !isCleared) {
+      if (localOrders.length === 0 && deletedIds.length === 0) {
         localOrders = getDefaultDummyOrders();
       }
-      ordersData = localOrders;
-      checkUnsyncedData(localOrders.filter(o => o._synced === false));
+      
+      ordersData = localOrders.filter(o => !deletedIds.includes(o["ID Pesanan"]));
+      checkUnsyncedData(ordersData.filter(o => o._synced === false));
       renderDashboardAndHistory();
       checkAutoOpenOrder();
     }
@@ -998,22 +995,40 @@
       loadData();
     }
 
+    // Fungsi Clear All History dengan sistem Blacklist ID Permanen
     function clearAllHistory() {
-      if (confirm("Apakah Anda yakin ingin MENGHAPUS SEMUA riwayat pesanan?")) {
+      if (confirm("Apakah Anda yakin ingin MENGHAPUS SEMUA riwayat pesanan? (Data tidak akan muncul kembali)")) {
+        let deletedIds = JSON.parse(localStorage.getItem("kurir_deleted_ids") || "[]");
+        
+        // Masukkan semua ID pesanan yang sedang tampil ke daftar blacklist
+        ordersData.forEach(o => {
+          if (o["ID Pesanan"] && !deletedIds.includes(o["ID Pesanan"])) {
+            deletedIds.push(o["ID Pesanan"]);
+          }
+        });
+
+        localStorage.setItem("kurir_deleted_ids", JSON.stringify(deletedIds));
         localStorage.setItem("kurir_orders", JSON.stringify([]));
-        localStorage.setItem("kurir_cleared", "true");
         ordersData = [];
         renderDashboardAndHistory();
-        showToast("Dibersihkan", "Semua riwayat berhasil dihapus.", "success");
+        showToast("Dibersihkan", "Semua riwayat berhasil dihapus secara permanen.", "success");
       }
     }
 
+    // Fungsi Hapus Pesanan Satuan dengan Blacklist ID
     async function deleteOrder(orderId) {
       if (!confirm("Hapus pesanan ini dari riwayat?")) return;
 
       let localOrders = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
       localOrders = localOrders.filter(o => o["ID Pesanan"] !== orderId);
       localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
+
+      // Tambahkan ID ke blacklist deleted_ids agar tidak muncul lagi walau dari server
+      let deletedIds = JSON.parse(localStorage.getItem("kurir_deleted_ids") || "[]");
+      if (!deletedIds.includes(orderId)) {
+        deletedIds.push(orderId);
+        localStorage.setItem("kurir_deleted_ids", JSON.stringify(deletedIds));
+      }
 
       ordersData = ordersData.filter(o => o["ID Pesanan"] !== orderId);
 
