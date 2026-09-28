@@ -131,7 +131,8 @@
                 <i class="fa-solid fa-map-pin"></i> <span>Pilih Titik di Peta</span>
               </button>
             </div>
-            <textarea id="alamatJemput" rows="2" required placeholder="Ketik atau pilih dari peta interaktif" oninput="handleAddressInput('alamatJemput', 'saranJemput')" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+            <!-- Ditambahkan data attribute simpan koordinat -->
+            <textarea id="alamatJemput" data-lat="" data-lon="" rows="2" required placeholder="Ketik atau pilih dari peta interaktif" oninput="handleAddressInput('alamatJemput', 'saranJemput')" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
             <div id="saranJemput" class="absolute z-30 left-0 right-0 bg-white border border-slate-200 rounded-lg shadow-xl hidden flex-col divide-y divide-slate-100 max-h-48 overflow-y-auto text-xs mt-1"></div>
           </div>
 
@@ -143,7 +144,7 @@
                 <i class="fa-solid fa-map-pin"></i> <span>Pilih Titik di Peta</span>
               </button>
             </div>
-            <textarea id="alamatTujuan" rows="2" required placeholder="Ketik atau pilih dari peta interaktif" oninput="handleAddressInput('alamatTujuan', 'saranTujuan')" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+            <textarea id="alamatTujuan" data-lat="" data-lon="" rows="2" required placeholder="Ketik atau pilih dari peta interaktif" oninput="handleAddressInput('alamatTujuan', 'saranTujuan')" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
             <div id="saranTujuan" class="absolute z-30 left-0 right-0 bg-white border border-slate-200 rounded-lg shadow-xl hidden flex-col divide-y divide-slate-100 max-h-48 overflow-y-auto text-xs mt-1"></div>
           </div>
 
@@ -325,7 +326,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.51 • Powered by Ari GPM
+      v2.52 • Powered by Ari GPM
     </div>
 
   </main>
@@ -458,6 +459,9 @@
     let pickerMarker = null;
     let activeTargetInputId = "";
     let currentSelectedAddress = "";
+    // Variabel untuk menyimpan koordinat sementara saat memilih dari peta
+    let currentSelectedLat = null;
+    let currentSelectedLon = null;
 
     function showToast(title, message, type = 'success') {
       const modal = document.getElementById("customToastModal");
@@ -577,11 +581,15 @@
 
           pickerMarker.on('dragend', function(e) {
             const pos = pickerMarker.getLatLng();
+            currentSelectedLat = pos.lat;
+            currentSelectedLon = pos.lng;
             reverseGeocode(pos.lat, pos.lng);
           });
 
           pickerMap.on('click', function(e) {
             pickerMarker.setLatLng(e.latlng);
+            currentSelectedLat = e.latlng.lat;
+            currentSelectedLon = e.latlng.lng;
             reverseGeocode(e.latlng.lat, e.latlng.lng);
           });
         } else {
@@ -594,11 +602,17 @@
             const lng = position.coords.longitude;
             pickerMap.setView([lat, lng], 16);
             pickerMarker.setLatLng([lat, lng]);
+            currentSelectedLat = lat;
+            currentSelectedLon = lng;
             reverseGeocode(lat, lng);
           }, () => {
+            currentSelectedLat = -6.9666;
+            currentSelectedLon = 110.4167;
             reverseGeocode(-6.9666, 110.4167);
           });
         } else {
+          currentSelectedLat = -6.9666;
+          currentSelectedLon = 110.4167;
           reverseGeocode(-6.9666, 110.4167);
         }
       }, 200);
@@ -650,6 +664,8 @@
       if (pickerMap && pickerMarker) {
         pickerMap.setView([lat, lon], 17);
         pickerMarker.setLatLng([lat, lon]);
+        currentSelectedLat = lat;
+        currentSelectedLon = lon;
         currentSelectedAddress = displayName;
         document.getElementById("selectedMapAddress").innerText = currentSelectedAddress;
       }
@@ -675,7 +691,13 @@
 
     function confirmMapLocation() {
       if (activeTargetInputId && currentSelectedAddress) {
-        document.getElementById(activeTargetInputId).value = currentSelectedAddress;
+        const inputEl = document.getElementById(activeTargetInputId);
+        inputEl.value = currentSelectedAddress;
+        // Simpan koordinat yang dipilih langsung ke element input
+        if(currentSelectedLat && currentSelectedLon) {
+          inputEl.dataset.lat = currentSelectedLat;
+          inputEl.dataset.lon = currentSelectedLon;
+        }
       }
       closeMapPicker();
     }
@@ -734,6 +756,10 @@
       clearTimeout(typingTimer);
       const query = document.getElementById(inputId).value.trim();
       const saranDiv = document.getElementById(saranId);
+      
+      // Jika user mengetik manual, bersihkan data lat/lon agar tidak menggunakan koordinat lama
+      document.getElementById(inputId).dataset.lat = "";
+      document.getElementById(inputId).dataset.lon = "";
 
       if (query.length < 3) {
         saranDiv.classList.add('hidden');
@@ -754,7 +780,7 @@
             saranDiv.innerHTML = `<div class="p-2.5 text-center text-amber-600">Lokasi tidak ditemukan</div>`;
           } else {
             saranDiv.innerHTML = data.map(item => `
-              <div class="p-2.5 hover:bg-indigo-50 cursor-pointer text-slate-700 truncate" onclick="pilihLokasi('${inputId}', '${saranId}', '${item.display_name.replace(/'/g, "\\'")}')">
+              <div class="p-2.5 hover:bg-indigo-50 cursor-pointer text-slate-700 truncate" onclick="pilihLokasi('${inputId}', '${saranId}', '${item.display_name.replace(/'/g, "\\'")}', ${item.lat}, ${item.lon})">
                 <i class="fa-solid fa-location-dot text-indigo-500 mr-1.5"></i> ${item.display_name}
               </div>
             `).join('');
@@ -765,8 +791,11 @@
       }, 400);
     }
 
-    function pilihLokasi(inputId, saranId, namaLokasi) {
-      document.getElementById(inputId).value = namaLokasi;
+    function pilihLokasi(inputId, saranId, namaLokasi, lat, lon) {
+      const inputEl = document.getElementById(inputId);
+      inputEl.value = namaLokasi;
+      inputEl.dataset.lat = lat;
+      inputEl.dataset.lon = lon;
       const saranDiv = document.getElementById(saranId);
       saranDiv.classList.add('hidden');
       saranDiv.classList.remove('flex');
@@ -782,6 +811,22 @@
         Math.sin(dLon / 2) * Math.sin(dLon / 2);
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       return Number((R * c * 1.3).toFixed(1));
+    }
+
+    async function getCoordinates(inputId, queryStr) {
+      const el = document.getElementById(inputId);
+      // Jika sudah ada koordinat tersimpan dari peta/saran, langsung gunakan
+      if (el.dataset.lat && el.dataset.lon) {
+        return { lat: parseFloat(el.dataset.lat), lon: parseFloat(el.dataset.lon) };
+      }
+      
+      // Jika belum ada, coba cari lewat API
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=id&q=${encodeURIComponent(queryStr)}&limit=1`);
+      const data = await res.json();
+      if (data && data.length > 0) {
+        return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+      }
+      return null;
     }
 
     async function calculateDistance() {
@@ -804,20 +849,20 @@
       btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Memproses Jarak...`;
 
       try {
-        const resJemput = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=id&q=${encodeURIComponent(jemput)}&limit=1`);
-        const dataJemput = await resJemput.json();
-
-        const resTujuan = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=id&q=${encodeURIComponent(tujuan)}&limit=1`);
-        const dataTujuan = await resTujuan.json();
-
-        if (dataJemput.length === 0 || dataTujuan.length === 0) {
-          throw new Error("Alamat belum valid. Pilih alamat dari daftar saran atau gunakan 'Pilih Titik di Peta'.");
+        const coordsJemput = await getCoordinates("alamatJemput", jemput);
+        if (!coordsJemput) {
+          throw new Error("Pencarian alamat jemput gagal. Silakan gunakan fitur 'Pilih Titik di Peta' untuk akurasi yang lebih baik.");
+        }
+        
+        const coordsTujuan = await getCoordinates("alamatTujuan", tujuan);
+        if (!coordsTujuan) {
+           throw new Error("Pencarian alamat tujuan gagal. Silakan gunakan fitur 'Pilih Titik di Peta' untuk akurasi yang lebih baik.");
         }
 
-        const lon1 = parseFloat(dataJemput[0].lon);
-        const lat1 = parseFloat(dataJemput[0].lat);
-        const lon2 = parseFloat(dataTujuan[0].lon);
-        const lat2 = parseFloat(dataTujuan[0].lat);
+        const lon1 = coordsJemput.lon;
+        const lat1 = coordsJemput.lat;
+        const lon2 = coordsTujuan.lon;
+        const lat2 = coordsTujuan.lat;
 
         let jarakKm = 0;
         let estimasiMnt = 0;
@@ -867,7 +912,8 @@
 
       } catch (err) {
         console.error("Routing error:", err);
-        showToast("Gagal Rute", err.message, "warning");
+        // Error tidak lagi generik, memberikan panduan jelas untuk menggunakan peta
+        showToast("Alamat Tidak Ditemukan", err.message, "warning");
       } finally {
         btn.disabled = false;
         btn.innerHTML = originalHtml;
@@ -976,6 +1022,12 @@
 
     function resetForm() {
       document.getElementById("orderForm").reset();
+      // Bersihkan data koordinat
+      document.getElementById("alamatJemput").dataset.lat = "";
+      document.getElementById("alamatJemput").dataset.lon = "";
+      document.getElementById("alamatTujuan").dataset.lat = "";
+      document.getElementById("alamatTujuan").dataset.lon = "";
+      
       document.getElementById("resultCard").classList.add('hidden');
       calculatedData = null;
       const btn = document.getElementById("btnSimpan");
