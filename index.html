@@ -314,7 +314,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.67 • Powered by Ari GPM
+      v2.68 • Powered by Ari GPM
     </div>
 
   </main>
@@ -1121,11 +1121,11 @@
             let st = o["Status"] || "Menunggu";
             let nextActionBtn = '';
             if (st === "Menunggu") {
-              nextActionBtn = `<button onclick="event.stopPropagation(); updateOrderStatus('${safeId}', 'Diambil')" class="bg-purple-600 hover:bg-purple-700 text-white text-[10px] font-bold px-2 py-1 rounded-lg transition shadow"><i class="fa-solid fa-box-open mr-1"></i> Pickup</button>`;
+              nextActionBtn = `<button onclick="event.stopPropagation(); updateOrderStatus('${safeId}', 'Diambil')" class="bg-purple-600 hover:bg-purple-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg transition shadow"><i class="fa-solid fa-box-open mr-1"></i> Pickup</button>`;
             } else if (st === "Diambil") {
-              nextActionBtn = `<button onclick="event.stopPropagation(); updateOrderStatus('${safeId}', 'Dalam Pengiriman')" class="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold px-2 py-1 rounded-lg transition shadow"><i class="fa-solid fa-truck-fast mr-1"></i> Kirim</button>`;
+              nextActionBtn = `<button onclick="event.stopPropagation(); updateOrderStatus('${safeId}', 'Dalam Pengiriman')" class="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg transition shadow"><i class="fa-solid fa-truck-fast mr-1"></i> Kirim</button>`;
             } else if (st === "Dalam Pengiriman") {
-              nextActionBtn = `<button onclick="event.stopPropagation(); updateOrderStatus('${safeId}', 'Selesai')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold px-2 py-1 rounded-lg transition shadow"><i class="fa-solid fa-check mr-1"></i> Selesai</button>`;
+              nextActionBtn = `<button onclick="event.stopPropagation(); updateOrderStatus('${safeId}', 'Selesai')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg transition shadow"><i class="fa-solid fa-check mr-1"></i> Selesai</button>`;
             }
 
             return `
@@ -1347,7 +1347,6 @@
         }
       }
 
-      showToast("Status Diperbarui", "Status pesanan berhasil diperbarui menjadi: " + newStatus, "success");
       closeModal();
       renderDashboardAndHistory();
 
