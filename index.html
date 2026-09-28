@@ -131,7 +131,6 @@
                 <i class="fa-solid fa-map-pin"></i> <span>Pilih Titik di Peta</span>
               </button>
             </div>
-            <!-- Ditambahkan data attribute simpan koordinat -->
             <textarea id="alamatJemput" data-lat="" data-lon="" rows="2" required placeholder="Ketik atau pilih dari peta interaktif" oninput="handleAddressInput('alamatJemput', 'saranJemput')" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
             <div id="saranJemput" class="absolute z-30 left-0 right-0 bg-white border border-slate-200 rounded-lg shadow-xl hidden flex-col divide-y divide-slate-100 max-h-48 overflow-y-auto text-xs mt-1"></div>
           </div>
@@ -297,7 +296,7 @@
 
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">Template Pesan WhatsApp</label>
-          <textarea id="waTemplateInput" rows="4" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Ketik template pesan WhatsApp..."></textarea>
+          <textarea id="waTemplateInput" rows="5" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Ketik template pesan WhatsApp..."></textarea>
           <p class="text-[10px] text-slate-400 mt-1">Gunakan kata kunci: <code>{nama}</code>, <code>{id}</code>, <code>{jemput}</code>, <code>{tujuan}</code>, <code>{jarak}</code>, <code>{ongkos}</code>, <code>{status}</code>, <code>{linkOrder}</code></p>
         </div>
 
@@ -326,7 +325,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.52 • Powered by Ari GPM
+      v2.53 • Powered by Ari GPM
     </div>
 
   </main>
@@ -387,7 +386,7 @@
         <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-sm"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
-      <!-- VISUAL TIMELINE PROGRESS STATUS (KLIKABLE DI VERSI INI) -->
+      <!-- VISUAL TIMELINE PROGRESS STATUS -->
       <div id="orderTimeline" class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-2">
         <!-- Rendered dynamically -->
       </div>
@@ -451,6 +450,7 @@
     let ordersData = [];
     let isCustomerMode = false;
     let customerPhone = "";
+    let autoOpenOrderId = null; // Menampung ID order untuk auto-open
     let typingTimer;
     let mapSearchTimer;
     let activeOrdersExpanded = false;
@@ -459,7 +459,6 @@
     let pickerMarker = null;
     let activeTargetInputId = "";
     let currentSelectedAddress = "";
-    // Variabel untuk menyimpan koordinat sementara saat memilih dari peta
     let currentSelectedLat = null;
     let currentSelectedLon = null;
 
@@ -510,9 +509,12 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('mode') === 'order') {
+      
+      // Jika mode order atau terdapat order id di parameter link
+      if (urlParams.get('mode') === 'order' || urlParams.get('order')) {
         isCustomerMode = true;
         customerPhone = urlParams.get('phone') || "";
+        autoOpenOrderId = urlParams.get('order') || null;
       }
 
       const baseUrl = window.location.href.split('?')[0];
@@ -530,7 +532,12 @@
           document.getElementById("noHp").value = customerPhone;
           document.getElementById("noHp").readOnly = true;
         }
-        switchTab('pesanan');
+        // Jika ada order ID spesifik, prioritaskan riwayat. Jika tidak, form pesanan baru.
+        if (autoOpenOrderId) {
+          switchTab('riwayat');
+        } else {
+          switchTab('pesanan');
+        }
       }
 
       const savedUrl = localStorage.getItem("gas_url") || GAS_WEB_APP_URL;
@@ -693,7 +700,6 @@
       if (activeTargetInputId && currentSelectedAddress) {
         const inputEl = document.getElementById(activeTargetInputId);
         inputEl.value = currentSelectedAddress;
-        // Simpan koordinat yang dipilih langsung ke element input
         if(currentSelectedLat && currentSelectedLon) {
           inputEl.dataset.lat = currentSelectedLat;
           inputEl.dataset.lon = currentSelectedLon;
@@ -757,7 +763,6 @@
       const query = document.getElementById(inputId).value.trim();
       const saranDiv = document.getElementById(saranId);
       
-      // Jika user mengetik manual, bersihkan data lat/lon agar tidak menggunakan koordinat lama
       document.getElementById(inputId).dataset.lat = "";
       document.getElementById(inputId).dataset.lon = "";
 
@@ -815,12 +820,10 @@
 
     async function getCoordinates(inputId, queryStr) {
       const el = document.getElementById(inputId);
-      // Jika sudah ada koordinat tersimpan dari peta/saran, langsung gunakan
       if (el.dataset.lat && el.dataset.lon) {
         return { lat: parseFloat(el.dataset.lat), lon: parseFloat(el.dataset.lon) };
       }
       
-      // Jika belum ada, coba cari lewat API
       const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=id&q=${encodeURIComponent(queryStr)}&limit=1`);
       const data = await res.json();
       if (data && data.length > 0) {
@@ -912,7 +915,6 @@
 
       } catch (err) {
         console.error("Routing error:", err);
-        // Error tidak lagi generik, memberikan panduan jelas untuk menggunakan peta
         showToast("Alamat Tidak Ditemukan", err.message, "warning");
       } finally {
         btn.disabled = false;
@@ -980,7 +982,13 @@
     }
 
     function generateWaText(orderId, nama, noHp, jemput, tujuan, jarak, ongkos, status) {
-      const template = localStorage.getItem("wa_template") || DEFAULT_WA_TEMPLATE;
+      let template = localStorage.getItem("wa_template") || DEFAULT_WA_TEMPLATE;
+      
+      // Auto-append {linkOrder} fallback if user uses an old template that doesn't have it
+      if (!template.includes("{linkOrder}")) {
+         template += "\n\n🔗 Cek Riwayat & Detail Pesanan Anda:\n{linkOrder}";
+      }
+
       const baseUrl = window.location.href.split('?')[0];
       const linkOrder = noHp ? `${baseUrl}?mode=order&phone=${noHp}&order=${orderId}` : (baseUrl + `?mode=order&order=${orderId}`);
       const jemputLink = `https://maps.google.com/?q=${encodeURIComponent(jemput)}`;
@@ -1022,7 +1030,6 @@
 
     function resetForm() {
       document.getElementById("orderForm").reset();
-      // Bersihkan data koordinat
       document.getElementById("alamatJemput").dataset.lat = "";
       document.getElementById("alamatJemput").dataset.lon = "";
       document.getElementById("alamatTujuan").dataset.lat = "";
@@ -1066,6 +1073,7 @@
             statusText.innerText = "Terhubung (Online)";
             checkUnsyncedData(unsyncedOrders);
             renderDashboardAndHistory();
+            checkAutoOpenOrder();
             return;
           }
         } catch (err) {
@@ -1085,6 +1093,17 @@
       ordersData = localOrders;
       checkUnsyncedData(localOrders.filter(o => o._synced === false));
       renderDashboardAndHistory();
+      checkAutoOpenOrder();
+    }
+    
+    // Fungsi baru untuk Auto Open Modal Detail berdasarkan parameter link order
+    function checkAutoOpenOrder() {
+      if (autoOpenOrderId) {
+        setTimeout(() => {
+          showDetailById(autoOpenOrderId);
+          autoOpenOrderId = null; // Kosongkan agar tidak ter-trigger ulang saat manual refresh tab
+        }, 400);
+      }
     }
 
     function checkUnsyncedData(unsyncedOrders) {
@@ -1314,7 +1333,7 @@
       if (order) {
         showDetail(order);
       } else {
-        showToast("Peringatan", "Data pesanan tidak ditemukan.", "warning");
+        showToast("Peringatan", "Data pesanan tidak ditemukan atau beda nomor HP.", "warning");
       }
     }
 
@@ -1325,7 +1344,6 @@
       let currentStepIdx = steps.indexOf(currentStatus);
       if (currentStepIdx === -1) currentStepIdx = 0;
 
-      // TIMELINE DENGAN INTERAKSI KLIK PADA TIAP LANGKAH STATUS
       const timelineHtml = `
         <div class="flex justify-between items-center px-1 py-2">
           ${steps.map((st, idx) => {
@@ -1409,6 +1427,8 @@
     }
 
     async function updateOrderStatus(orderId, newStatus) {
+      if (isCustomerMode) return; // Customer cannot change status
+
       const url = document.getElementById("gasUrlInput").value.trim();
       const isOnline = document.getElementById("statusText").innerText.includes("Online");
       
