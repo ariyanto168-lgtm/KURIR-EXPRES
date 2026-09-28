@@ -314,7 +314,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.56 • Powered by Ari GPM
+      v2.57 • Powered by Ari GPM
     </div>
 
   </main>
@@ -562,7 +562,6 @@
       });
     }
 
-    // Menggunakan Photon API untuk pencarian alamat yang jauh lebih akurat (fuzzy search)
     function handleAddressInput(inputId, saranId) {
       clearTimeout(typingTimer);
       const query = document.getElementById(inputId).value.trim();
@@ -583,7 +582,6 @@
         saranDiv.classList.add('flex');
 
         try {
-          // Bounding Box untuk Indonesia agar hasil lebih akurat
           const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5&bbox=94.0,-11.0,141.0,6.0`);
           const data = await res.json();
           
@@ -593,9 +591,8 @@
             let html = '';
             data.features.forEach(f => {
               const p = f.properties;
-              const coords = f.geometry.coordinates; // Photon returns [lon, lat]
+              const coords = f.geometry.coordinates;
               
-              // Menyusun nama alamat yang rapi dan menghindari duplikasi kata
               let rawParts = [p.name, p.street, p.district, p.city, p.state];
               let uniqueParts = [...new Set(rawParts.filter(Boolean))];
               let displayName = uniqueParts.join(', ');
@@ -638,12 +635,10 @@
 
     async function getCoordinates(inputId, queryStr) {
       const el = document.getElementById(inputId);
-      // Jika user sudah klik dari daftar saran, gunakan lat/lon tersebut
       if (el.dataset.lat && el.dataset.lon) {
         return { lat: parseFloat(el.dataset.lat), lon: parseFloat(el.dataset.lon) };
       }
       
-      // Fallback jika diketik manual tapi tidak diklik di saran (Pakai Photon API)
       const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(queryStr)}&limit=1&bbox=94.0,-11.0,141.0,6.0`);
       const data = await res.json();
       if (data.features && data.features.length > 0) {
@@ -870,6 +865,9 @@
 
       let localOrders = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
 
+      // Cek apakah user pernah menghapus semua riwayat sebelumnya (flag clear)
+      const isCleared = localStorage.getItem("kurir_cleared") === "true";
+
       if (url) {
         statusDot.className = "w-2 h-2 rounded-full bg-blue-400 inline-block animate-pulse";
         statusText.innerText = "Menghubungkan...";
@@ -887,7 +885,9 @@
             
             const serverOrders = data.pesanan || [];
             const unsyncedOrders = localOrders.filter(o => o._synced === false);
-            ordersData = [...unsyncedOrders, ...serverOrders];
+            
+            // Jika belum di-clear secara lokal, gabungkan dengan server
+            ordersData = isCleared ? unsyncedOrders : [...unsyncedOrders, ...serverOrders];
             
             statusDot.className = "w-2 h-2 rounded-full bg-emerald-400 inline-block";
             statusText.innerText = "Terhubung (Online)";
@@ -907,7 +907,7 @@
       currentTarif = localTarif ? Number(localTarif) : 4000;
       document.getElementById("settingsTarifLabel").innerText = formatRupiah(currentTarif) + " / KM";
 
-      if (localOrders.length === 0) {
+      if (localOrders.length === 0 && !isCleared) {
         localOrders = getDefaultDummyOrders();
       }
       ordersData = localOrders;
@@ -995,14 +995,14 @@
       loadData();
     }
 
-    // Fungsi Clear All History
+    // Fungsi Clear All History dengan penanda clear permanen
     function clearAllHistory() {
-      if (confirm("Apakah Anda yakin ingin MENGHAPUS SEMUA riwayat pesanan lokal di perangkat ini? (Data di server Google Sheet tetap aman)")) {
-        localStorage.removeItem("kurir_orders");
+      if (confirm("Apakah Anda yakin ingin MENGHAPUS SEMUA riwayat pesanan? (Data tidak akan muncul kembali saat di-refresh)")) {
+        localStorage.setItem("kurir_orders", JSON.stringify([]));
+        localStorage.setItem("kurir_cleared", "true");
         ordersData = [];
         renderDashboardAndHistory();
-        showToast("Dibersihkan", "Semua riwayat lokal berhasil dihapus.", "success");
-        loadData();
+        showToast("Dibersihkan", "Semua riwayat berhasil dihapus.", "success");
       }
     }
 
@@ -1010,12 +1010,13 @@
     async function deleteOrder(orderId) {
       if (!confirm("Hapus pesanan ini dari riwayat?")) return;
 
-      // Hapus lokal
       let localOrders = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
       localOrders = localOrders.filter(o => o["ID Pesanan"] !== orderId);
       localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
 
-      // Opsional: Coba hapus di server jika online (jika script backend mendukung 'delete_order')
+      // Hapus juga dari array memori aktif
+      ordersData = ordersData.filter(o => o["ID Pesanan"] !== orderId);
+
       const url = document.getElementById("gasUrlInput").value.trim();
       const isOnline = document.getElementById("statusText").innerText.includes("Online");
       if (url && isOnline) {
@@ -1032,7 +1033,7 @@
 
       showToast("Dihapus", "Pesanan berhasil dihapus.", "success");
       closeModal();
-      loadData();
+      renderDashboardAndHistory();
     }
 
     function getDefaultDummyOrders() {
@@ -1196,7 +1197,7 @@
       if (order) {
         showDetail(order);
       } else {
-        showToast("Peringatan", "Data pesanan tidak ditemukan atau beda nomor HP.", "warning");
+        showToast("Peringatan", "Data pesanan tidak ditemukan.", "warning");
       }
     }
 
@@ -1325,6 +1326,14 @@
         localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
       }
 
+      // Update juga di memori aktif ordersData
+      for (let i = 0; i < ordersData.length; i++) {
+        if (ordersData[i]["ID Pesanan"] === orderId) {
+          ordersData[i]["Status"] = newStatus;
+          break;
+        }
+      }
+
       if (url && isOnline) {
         try {
           const payload = { action: "update_status", orderId: orderId, status: newStatus };
@@ -1333,16 +1342,6 @@
             headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify(payload)
           });
-          
-          localOrders = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
-          for (let i = 0; i < localOrders.length; i++) {
-            if (localOrders[i]["ID Pesanan"] === orderId) {
-              localOrders[i]["_synced"] = true;
-              break;
-            }
-          }
-          localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
-
         } catch (e) {
           console.error("Gagal sinkronisasi status ke server", e);
         }
@@ -1350,7 +1349,7 @@
 
       showToast("Status Diperbarui", "Status pesanan berhasil diperbarui menjadi: " + newStatus, "success");
       closeModal();
-      loadData();
+      renderDashboardAndHistory();
 
       if (updatedOrder) {
         const customerWa = formatPhoneNumber(updatedOrder["Nomor HP"]);
