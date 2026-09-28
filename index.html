@@ -314,7 +314,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.61 • Powered by Ari GPM
+      v2.62 • Powered by Ari GPM
     </div>
 
   </main>
@@ -459,11 +459,12 @@
     window.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
       
-      if (urlParams.get('mode') === 'order' || urlParams.get('order')) {
+      // DIPERBAIKI: Mode Pelanggan HANYA aktif jika parameter mode=order explicitly dipanggil
+      if (urlParams.get('mode') === 'order') {
         isCustomerMode = true;
         customerPhone = urlParams.get('phone') || "";
-        autoOpenOrderId = urlParams.get('order') || null;
       }
+      autoOpenOrderId = urlParams.get('order') || null;
 
       const baseUrl = window.location.href.split('?')[0];
       if (!customerPhone && isCustomerMode) {
@@ -1269,7 +1270,7 @@
       const shareContainer = document.getElementById("modalShareContainer");
       const safeId = String(order["ID Pesanan"]).replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
-      // Logika Pemisahan Mode: Tersembunyi untuk Pelanggan (Order Mandiri), Tampil Lengkap untuk Driver di Semua Baris Riwayat
+      // Pemisahan Mode: Hanya sembunyikan kendali jika mode=order (Pelanggan Mandiri). Di Mode Driver (Kurir Express), selalu tampil lengkap di semua baris.
       if (!isCustomerMode) {
         statusContainer.innerHTML = `
           <div class="bg-slate-100/70 p-3 rounded-xl border border-slate-200 mt-2">
