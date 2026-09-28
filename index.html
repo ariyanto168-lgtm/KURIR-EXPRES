@@ -314,7 +314,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.57 • Powered by Ari GPM
+      v2.58 • Powered by Ari GPM
     </div>
 
   </main>
@@ -790,6 +790,9 @@
         "_synced": false
       };
 
+      // Hapus status clear agar pesanan baru bisa muncul kembali
+      localStorage.removeItem("kurir_cleared");
+
       let localOrders = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
       localOrders.unshift(newOrder);
       localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
@@ -824,7 +827,10 @@
     }
 
     function handlePostSaveSuccess(orderId) {
+      // Hapus status clear agar saat disimpan, data langsung dimuat ulang ke memori aktif
+      localStorage.removeItem("kurir_cleared");
       resetForm();
+
       if (isCustomerMode) {
         const driverWa = formatPhoneNumber(localStorage.getItem("driver_wa") || "6281234567890");
         const reportText = generateWaText(orderId, calculatedData.nama, calculatedData.noHp, calculatedData.alamatJemput, calculatedData.alamatTujuan, calculatedData.jarak, calculatedData.totalOngkos, "Menunggu");
@@ -864,8 +870,6 @@
       const localTarif = localStorage.getItem("local_tarif");
 
       let localOrders = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
-
-      // Cek apakah user pernah menghapus semua riwayat sebelumnya (flag clear)
       const isCleared = localStorage.getItem("kurir_cleared") === "true";
 
       if (url) {
@@ -886,7 +890,6 @@
             const serverOrders = data.pesanan || [];
             const unsyncedOrders = localOrders.filter(o => o._synced === false);
             
-            // Jika belum di-clear secara lokal, gabungkan dengan server
             ordersData = isCleared ? unsyncedOrders : [...unsyncedOrders, ...serverOrders];
             
             statusDot.className = "w-2 h-2 rounded-full bg-emerald-400 inline-block";
@@ -995,9 +998,8 @@
       loadData();
     }
 
-    // Fungsi Clear All History dengan penanda clear permanen
     function clearAllHistory() {
-      if (confirm("Apakah Anda yakin ingin MENGHAPUS SEMUA riwayat pesanan? (Data tidak akan muncul kembali saat di-refresh)")) {
+      if (confirm("Apakah Anda yakin ingin MENGHAPUS SEMUA riwayat pesanan?")) {
         localStorage.setItem("kurir_orders", JSON.stringify([]));
         localStorage.setItem("kurir_cleared", "true");
         ordersData = [];
@@ -1006,7 +1008,6 @@
       }
     }
 
-    // Fungsi Hapus Pesanan Satuan
     async function deleteOrder(orderId) {
       if (!confirm("Hapus pesanan ini dari riwayat?")) return;
 
@@ -1014,7 +1015,6 @@
       localOrders = localOrders.filter(o => o["ID Pesanan"] !== orderId);
       localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
 
-      // Hapus juga dari array memori aktif
       ordersData = ordersData.filter(o => o["ID Pesanan"] !== orderId);
 
       const url = document.getElementById("gasUrlInput").value.trim();
@@ -1326,7 +1326,6 @@
         localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
       }
 
-      // Update juga di memori aktif ordersData
       for (let i = 0; i < ordersData.length; i++) {
         if (ordersData[i]["ID Pesanan"] === orderId) {
           ordersData[i]["Status"] = newStatus;
