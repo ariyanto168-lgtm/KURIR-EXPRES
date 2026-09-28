@@ -314,7 +314,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.66 • Powered by Ari GPM
+      v2.67 • Powered by Ari GPM
     </div>
 
   </main>
@@ -339,7 +339,7 @@
   <div id="detailModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-sm rounded-2xl p-4 shadow-xl space-y-3">
       <div class="flex justify-between items-center border-b pb-2">
-        <h3 id="modalHeaderTitle" class="font-bold text-slate-800 text-sm">Detail Pesanan</h3>
+        <h3 id="modalHeaderTitle" class="font-bold text-slate-800 text-sm">Status & Alur Proses Pengiriman</h3>
         <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-sm"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
@@ -1116,7 +1116,6 @@
         if (activeOrders.length === 0) {
           activeContainer.innerHTML = `<p class="text-xs text-slate-400 text-center py-2">Tidak ada pesanan aktif saat ini.</p>`;
         } else {
-          // Model template ringkas seperti di Riwayat untuk Pesanan Aktif
           activeContainer.innerHTML = activeOrders.map(o => {
             const safeId = String(o["ID Pesanan"] || "").replace(/'/g, "\\'").replace(/"/g, '&quot;');
             let st = o["Status"] || "Menunggu";
