@@ -314,7 +314,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.70 • Powered by Ari GPM
+      v2.71 • Powered by Ari GPM
     </div>
 
   </main>
@@ -1126,12 +1126,13 @@
             let st = o["Status"] || "Menunggu";
             let nextActionBtn = '';
             
+            // TOMBOL AKSI KOMPAK (Lebih kecil dan rapi di sisi kanan)
             if (st === "Menunggu") {
-              nextActionBtn = `<button onclick="event.stopPropagation(); updateOrderStatus('${safeId}', 'Diambil')" class="bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition shadow-sm"><i class="fa-solid fa-box-open mr-1"></i> Pickup</button>`;
+              nextActionBtn = `<button onclick="event.stopPropagation(); updateOrderStatus('${safeId}', 'Diambil')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition shadow-sm"><i class="fa-solid fa-box-open mr-1"></i> Pickup</button>`;
             } else if (st === "Diambil") {
-              nextActionBtn = `<button onclick="event.stopPropagation(); updateOrderStatus('${safeId}', 'Dalam Pengiriman')" class="bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition shadow-sm"><i class="fa-solid fa-truck-fast mr-1"></i> Kirim</button>`;
+              nextActionBtn = `<button onclick="event.stopPropagation(); updateOrderStatus('${safeId}', 'Dalam Pengiriman')" class="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition shadow-sm"><i class="fa-solid fa-truck-fast mr-1"></i> Kirim</button>`;
             } else if (st === "Dalam Pengiriman") {
-              nextActionBtn = `<button onclick="event.stopPropagation(); updateOrderStatus('${safeId}', 'Selesai')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition shadow-sm"><i class="fa-solid fa-check mr-1"></i> Selesai</button>`;
+              nextActionBtn = `<button onclick="event.stopPropagation(); updateOrderStatus('${safeId}', 'Selesai')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition shadow-sm"><i class="fa-solid fa-check mr-1"></i> Selesai</button>`;
             }
 
             return `
@@ -1141,9 +1142,9 @@
                     <span class="font-bold text-slate-800 text-xs">${o["Nama Pelanggan"]} ${o._synced === false ? '<i class="fa-solid fa-cloud-arrow-up text-amber-500 ml-1" title="Belum Sinkron"></i>' : ''}</span>
                     <span class="px-2 py-0.5 ${getStatusBadgeClass(st)} font-bold rounded-lg text-[10px]">${st}</span>
                   </div>
-                  <div class="text-[11px] text-slate-400 truncate flex items-center justify-between w-full pr-2">
-                    <span>${o["ID Pesanan"]} • <span class="font-semibold text-slate-600">${o["Jarak KM"]} KM</span> • <span class="font-bold text-[#10b981]">${formatRupiah(o["Total Ongkos"])}</span></span>
-                    ${nextActionBtn}
+                  <div class="text-[11px] text-slate-400 flex items-center justify-between w-full pr-1">
+                    <span class="truncate mr-2">${o["ID Pesanan"]} • <span class="font-semibold text-slate-600">${o["Jarak KM"]} KM</span> • <span class="font-bold text-emerald-600">${formatRupiah(o["Total Ongkos"])}</span></span>
+                    <div class="shrink-0">${nextActionBtn}</div>
                   </div>
                 </div>
               </div>
@@ -1206,7 +1207,7 @@
       let currentStepIdx = steps.indexOf(currentStatus);
       if (currentStepIdx === -1) currentStepIdx = 0;
 
-      // Desain Timeline 100% Mengikuti Gambar Template 
+      // Desain Timeline Presisi Sesuai Template
       timelineEl.innerHTML = `
         <div class="flex justify-between items-center relative pt-3 pb-5">
           <!-- Background Line -->
@@ -1241,7 +1242,7 @@
         </div>
       `;
 
-      // Rincian teks bersih tanpa border kotak, menggunakan flex untuk rata kiri-kanan
+      // Rincian teks bersih tanpa border kotak
       const content = document.getElementById("modalContent");
       content.innerHTML = `
         <div class="space-y-2 text-[13px] text-slate-700 border-t border-b border-slate-100 py-4 mb-2">
@@ -1260,7 +1261,7 @@
       const mapJemputUrl = `https://maps.google.com/?q=${encodeURIComponent(order["Alamat Jemput"])}`;
       const mapTujuanUrl = `https://maps.google.com/?q=${encodeURIComponent(order["Alamat Tujuan"])}`;
 
-      // Desain Tombol Peta mengikuti template 
+      // Tombol peta: Penjemputan dan Dalam Pengiriman
       document.getElementById("modalMapNavContainer").innerHTML = `
         <div class="grid grid-cols-2 gap-3 mt-4 mb-5">
           <a href="${mapJemputUrl}" target="_blank" class="bg-white border border-indigo-100 text-indigo-700 font-bold py-3 px-2 rounded-2xl text-[12px] flex items-center justify-center space-x-2 hover:bg-indigo-50 transition shadow-sm">
@@ -1295,7 +1296,7 @@
         const customerWa = formatPhoneNumber(order['Nomor HP']);
         const shareText = generateWaText(order["ID Pesanan"], order["Nama Pelanggan"], order["Nomor HP"], order["Alamat Jemput"], order["Alamat Tujuan"], order["Jarak KM"], order["Total Ongkos"], order["Status"]);
         
-        // Status indicator di bawah tombol peta, di atas tombol whatsapp
+        // Status di bawah tombol peta, di atas tombol whatsapp hijau
         shareContainer.innerHTML = `
           <div class="flex items-center justify-center space-x-2 mb-4">
             <i class="fa-solid fa-circle-check ${statusIconColor} text-[18px]"></i>
