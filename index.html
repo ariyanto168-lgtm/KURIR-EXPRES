@@ -218,9 +218,14 @@
             <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i>
             <span>Riwayat Pesanan</span>
           </h2>
-          <button onclick="loadData()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-lg transition">
-            <i class="fa-solid fa-rotate mr-1"></i> Refresh
-          </button>
+          <div class="flex items-center space-x-1.5">
+            <button onclick="clearAllHistory()" class="text-[10px] bg-red-50 hover:bg-red-100 text-red-600 px-2.5 py-1.5 rounded-lg transition font-semibold" title="Bersihkan Semua Riwayat Lokal">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+            <button onclick="loadData()" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-lg transition font-semibold">
+              <i class="fa-solid fa-rotate mr-1"></i> Refresh
+            </button>
+          </div>
         </div>
 
         <div class="overflow-x-auto">
@@ -309,7 +314,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.55 • Powered by Ari GPM
+      v2.56 • Powered by Ari GPM
     </div>
 
   </main>
@@ -990,6 +995,46 @@
       loadData();
     }
 
+    // Fungsi Clear All History
+    function clearAllHistory() {
+      if (confirm("Apakah Anda yakin ingin MENGHAPUS SEMUA riwayat pesanan lokal di perangkat ini? (Data di server Google Sheet tetap aman)")) {
+        localStorage.removeItem("kurir_orders");
+        ordersData = [];
+        renderDashboardAndHistory();
+        showToast("Dibersihkan", "Semua riwayat lokal berhasil dihapus.", "success");
+        loadData();
+      }
+    }
+
+    // Fungsi Hapus Pesanan Satuan
+    async function deleteOrder(orderId) {
+      if (!confirm("Hapus pesanan ini dari riwayat?")) return;
+
+      // Hapus lokal
+      let localOrders = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
+      localOrders = localOrders.filter(o => o["ID Pesanan"] !== orderId);
+      localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
+
+      // Opsional: Coba hapus di server jika online (jika script backend mendukung 'delete_order')
+      const url = document.getElementById("gasUrlInput").value.trim();
+      const isOnline = document.getElementById("statusText").innerText.includes("Online");
+      if (url && isOnline) {
+        try {
+          await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: "delete_order", orderId: orderId })
+          });
+        } catch(e) {
+          console.log("Server deletion not supported or failed", e);
+        }
+      }
+
+      showToast("Dihapus", "Pesanan berhasil dihapus.", "success");
+      closeModal();
+      loadData();
+    }
+
     function getDefaultDummyOrders() {
       const dummy = [
         {
@@ -1210,9 +1255,9 @@
       `;
 
       const statusContainer = document.getElementById("modalStatusContainer");
+      const safeId = String(order["ID Pesanan"]).replace(/'/g, "\\'").replace(/"/g, '&quot;');
       let statusHtml = '';
       if (!isCustomerMode) {
-        const safeId = String(order["ID Pesanan"]).replace(/'/g, "\\'").replace(/"/g, '&quot;');
         statusHtml = `
           <div class="bg-slate-100/70 p-3 rounded-xl border border-slate-200 mt-2">
             <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 text-center"><i class="fa-solid fa-sliders mr-1"></i> Panel Kendali Status</span>
@@ -1245,8 +1290,12 @@
         shareContainer.innerHTML = `
           <a href="https://wa.me/${customerWa}?text=${encodeURIComponent(shareText)}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 transition shadow mt-2">
             <i class="fa-brands fa-whatsapp text-base"></i>
-            <span>Bagikan Update ke WhatsApp Pelanggan</span>
+            <span>Bagikan Update ke WhatsApp</span>
           </a>
+          <button onclick="deleteOrder('${safeId}')" class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-semibold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 transition mt-2 border border-red-200">
+            <i class="fa-solid fa-trash"></i>
+            <span>Hapus Pesanan Ini</span>
+          </button>
         `;
       } else {
         shareContainer.innerHTML = "";
