@@ -301,7 +301,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.75 • Powered by Ari GPM
+      v2.76 • Powered by Ari GPM
     </div>
 
   </main>
@@ -400,6 +400,7 @@
     let autoOpenOrderId = null; 
     let typingTimer;
     let activeOrdersExpanded = true;
+    let isSaving = false; // Flag anti double-submit
 
     function showToast(title, message, type = 'success') {
       const modal = document.getElementById("customToastModal");
@@ -464,7 +465,6 @@
           document.getElementById("noHp").value = customerPhone;
           document.getElementById("noHp").readOnly = true;
         }
-        // CUSTOMER MODE: Default membuka tab PESANAN (Form Order), bukan Riwayat
         switchTab('pesanan');
       }
 
@@ -473,7 +473,7 @@
       const savedDriverWa = localStorage.getItem("driver_wa") || "6281234567890";
       document.getElementById("driverWaInput").value = savedDriverWa;
       
-      const savedTarif = localStorage.getItem("local_tarif") || "";
+      const savedTarif = localStorage.getItem("local_tarif"] || "";
       document.getElementById("localTarifInput").value = savedTarif;
 
       const savedTemplate = localStorage.getItem("wa_template") || DEFAULT_WA_TEMPLATE;
@@ -711,8 +711,9 @@
     }
 
     async function saveOrder() {
-      if (!calculatedData) return;
+      if (!calculatedData || isSaving) return; // Anti-double submit & anti-refresh
 
+      isSaving = true;
       const btn = document.getElementById("btnSimpan");
       btn.disabled = true;
       btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Menyimpan...`;
@@ -731,6 +732,7 @@
             handlePostSaveSuccess(result.orderId);
           } else {
             showToast("Gagal Menyimpan", result.message || "Unknown error", "warning");
+            isSaving = false;
             btn.disabled = false;
             btn.innerHTML = `<i class="fa-solid fa-check-circle"></i><span>SIMPAN PESANAN</span>`;
           }
@@ -801,11 +803,14 @@
     }
 
     function handlePostSaveSuccess(orderId) {
+      // Bersihkan data kalkulasi secara instan agar anti-refresh / anti-double submit
+      calculatedData = null;
+      isSaving = false;
       resetForm();
 
       if (isCustomerMode) {
         const driverWa = formatPhoneNumber(localStorage.getItem("driver_wa") || "6281234567890");
-        const reportText = generateWaText(orderId, calculatedData.nama, calculatedData.noHp, calculatedData.alamatJemput, calculatedData.alamatTujuan, calculatedData.jarak, calculatedData.totalOngkos, "Menunggu");
+        const reportText = generateWaText(orderId, document.getElementById("nama").value, customerPhone, "Alamat Jemput", "Alamat Tujuan", 0, 0, "Menunggu");
 
         document.getElementById("customerShareBtnContainer").innerHTML = `
           <a href="https://wa.me/${driverWa}?text=${encodeURIComponent(reportText)}" target="_blank" class="w-full bg-[#10b981] hover:bg-emerald-600 text-white font-bold py-3 px-4 rounded-xl text-sm flex items-center justify-center space-x-2 transition shadow-md">
@@ -823,8 +828,8 @@
 
     function resetForm() {
       document.getElementById("orderForm").reset();
-      if (!isCustomerMode) {
-        document.getElementById("noHp").value = "";
+      if (isCustomerMode && customerPhone) {
+        document.getElementById("noHp").value = customerPhone;
       }
       document.getElementById("alamatJemput").dataset.lat = "";
       document.getElementById("alamatJemput").dataset.lon = "";
@@ -833,9 +838,12 @@
       
       document.getElementById("resultCard").classList.add('hidden');
       calculatedData = null;
+      isSaving = false;
       const btn = document.getElementById("btnSimpan");
-      btn.disabled = false;
-      btn.innerHTML = `<i class="fa-solid fa-check-circle"></i><span>SIMPAN PESANAN</span>`;
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-check-circle"></i><span>SIMPAN PESANAN</span>`;
+      }
     }
 
     async function loadData() {
@@ -1308,7 +1316,7 @@
         `;
       } else {
         const driverWaNum = formatPhoneNumber(localStorage.getItem("driver_wa") || "6281234567890");
-        const confirmToDriverText = `Halo Driver, saya ingin mengkonfirmasi pesanan saya dengan ID: *${order["ID Pesanan"]}*.`;
+        const confirmToDriverText = `Halo Driver, saya ingin mengkonfirmasi pesanan saya dengan ID: *{id}*.`.replace(/{id}/g, order["ID Pesanan"]);
         
         shareContainer.innerHTML = `
           <div class="flex items-center justify-center space-x-2 mb-4">
