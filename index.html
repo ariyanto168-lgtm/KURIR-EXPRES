@@ -8,10 +8,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- FontAwesome for Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Leaflet CSS for Interactive Map -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     body {
       background-color: #f8fafc;
@@ -20,12 +16,6 @@
     }
     .safe-bottom {
       padding-bottom: 85px;
-    }
-    #mapPickerContainer {
-      height: 250px;
-      width: 100%;
-      border-radius: 1rem;
-      z-index: 10;
     }
   </style>
 </head>
@@ -127,11 +117,8 @@
           <div class="relative">
             <div class="flex justify-between items-center mb-1">
               <label class="block text-xs font-semibold text-slate-600">Alamat Jemput <span class="text-red-500">*</span></label>
-              <button type="button" onclick="openMapPicker('alamatJemput')" class="text-[10px] bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2 py-0.5 rounded-lg font-medium transition flex items-center space-x-1">
-                <i class="fa-solid fa-map-pin"></i> <span>Pilih Titik di Peta</span>
-              </button>
             </div>
-            <textarea id="alamatJemput" data-lat="" data-lon="" rows="2" required placeholder="Ketik atau pilih dari peta interaktif" oninput="handleAddressInput('alamatJemput', 'saranJemput')" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+            <textarea id="alamatJemput" data-lat="" data-lon="" rows="2" required placeholder="Ketik area/jalan/kota (otomatis dicari)" oninput="handleAddressInput('alamatJemput', 'saranJemput')" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
             <div id="saranJemput" class="absolute z-30 left-0 right-0 bg-white border border-slate-200 rounded-lg shadow-xl hidden flex-col divide-y divide-slate-100 max-h-48 overflow-y-auto text-xs mt-1"></div>
           </div>
 
@@ -139,11 +126,8 @@
           <div class="relative">
             <div class="flex justify-between items-center mb-1">
               <label class="block text-xs font-semibold text-slate-600">Alamat Tujuan <span class="text-red-500">*</span></label>
-              <button type="button" onclick="openMapPicker('alamatTujuan')" class="text-[10px] bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2 py-0.5 rounded-lg font-medium transition flex items-center space-x-1">
-                <i class="fa-solid fa-map-pin"></i> <span>Pilih Titik di Peta</span>
-              </button>
             </div>
-            <textarea id="alamatTujuan" data-lat="" data-lon="" rows="2" required placeholder="Ketik atau pilih dari peta interaktif" oninput="handleAddressInput('alamatTujuan', 'saranTujuan')" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+            <textarea id="alamatTujuan" data-lat="" data-lon="" rows="2" required placeholder="Ketik area/jalan/kota (otomatis dicari)" oninput="handleAddressInput('alamatTujuan', 'saranTujuan')" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
             <div id="saranTujuan" class="absolute z-30 left-0 right-0 bg-white border border-slate-200 rounded-lg shadow-xl hidden flex-col divide-y divide-slate-100 max-h-48 overflow-y-auto text-xs mt-1"></div>
           </div>
 
@@ -325,7 +309,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.53 • Powered by Ari GPM
+      v2.55 • Powered by Ari GPM
     </div>
 
   </main>
@@ -342,38 +326,6 @@
       </div>
       <button onclick="closeCustomToast()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-xl text-xs transition shadow">
         OK, Mengerti
-      </button>
-    </div>
-  </div>
-
-  <!-- MAP PICKER MODAL -->
-  <div id="mapPickerModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-sm rounded-2xl p-4 shadow-xl space-y-3">
-      <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-bold text-slate-800 text-sm flex items-center space-x-1.5">
-          <i class="fa-solid fa-location-crosshairs text-indigo-600"></i>
-          <span>Pilih Lokasi & Geser Pin</span>
-        </h3>
-        <button onclick="closeMapPicker()" class="text-slate-400 hover:text-slate-600 text-sm"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-      
-      <div class="relative">
-        <div class="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 space-x-2">
-          <i class="fa-solid fa-magnifying-glass text-slate-400 text-xs"></i>
-          <input type="text" id="mapSearchInput" placeholder="Ketik nama jalan / toko / tempat..." oninput="handleMapSearchInput(this.value)" class="w-full text-xs bg-transparent focus:outline-none text-slate-800">
-        </div>
-        <div id="mapSearchSuggestions" class="absolute z-50 left-0 right-0 bg-white border border-slate-200 rounded-lg shadow-xl hidden flex-col divide-y divide-slate-100 max-h-36 overflow-y-auto text-xs mt-1"></div>
-      </div>
-
-      <div id="mapPickerContainer"></div>
-
-      <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
-        <span class="text-[10px] text-slate-400 block font-semibold uppercase">Lokasi Terpilih:</span>
-        <p id="selectedMapAddress" class="text-xs font-bold text-slate-800 truncate">Geser pin atau cari lokasi...</p>
-      </div>
-
-      <button onclick="confirmMapLocation()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-xl text-xs transition shadow">
-        Gunakan Lokasi Ini
       </button>
     </div>
   </div>
@@ -397,7 +349,7 @@
       <div id="modalMapNavContainer" class="grid grid-cols-2 gap-2 pt-1">
         <!-- Rendered dynamically -->
       </div>
-      <div id="modalStatusContainer" class="pt-2 border-t border-slate-100"></div>
+      <div id="modalStatusContainer" class="pt-1 border-t border-slate-100"></div>
       <div id="modalShareContainer" class="pt-1"></div>
     </div>
   </div>
@@ -450,17 +402,9 @@
     let ordersData = [];
     let isCustomerMode = false;
     let customerPhone = "";
-    let autoOpenOrderId = null; // Menampung ID order untuk auto-open
+    let autoOpenOrderId = null; 
     let typingTimer;
-    let mapSearchTimer;
     let activeOrdersExpanded = false;
-
-    let pickerMap = null;
-    let pickerMarker = null;
-    let activeTargetInputId = "";
-    let currentSelectedAddress = "";
-    let currentSelectedLat = null;
-    let currentSelectedLon = null;
 
     function showToast(title, message, type = 'success') {
       const modal = document.getElementById("customToastModal");
@@ -510,7 +454,6 @@
     window.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
       
-      // Jika mode order atau terdapat order id di parameter link
       if (urlParams.get('mode') === 'order' || urlParams.get('order')) {
         isCustomerMode = true;
         customerPhone = urlParams.get('phone') || "";
@@ -532,7 +475,6 @@
           document.getElementById("noHp").value = customerPhone;
           document.getElementById("noHp").readOnly = true;
         }
-        // Jika ada order ID spesifik, prioritaskan riwayat. Jika tidak, form pesanan baru.
         if (autoOpenOrderId) {
           switchTab('riwayat');
         } else {
@@ -560,153 +502,10 @@
           document.getElementById('saranTujuan').classList.add('hidden');
           document.getElementById('saranTujuan').classList.remove('flex');
         }
-        if (!e.target.closest('#mapSearchInput') && !e.target.closest('#mapSearchSuggestions')) {
-          document.getElementById('mapSearchSuggestions').classList.add('hidden');
-          document.getElementById('mapSearchSuggestions').classList.remove('flex');
-        }
       });
 
       loadData();
     });
-
-    function openMapPicker(inputId) {
-      activeTargetInputId = inputId;
-      document.getElementById("mapSearchInput").value = "";
-      document.getElementById("mapSearchSuggestions").classList.add('hidden');
-      document.getElementById("mapPickerModal").classList.remove('hidden');
-      
-      setTimeout(() => {
-        if (!pickerMap) {
-          pickerMap = L.map('mapPickerContainer').setView([-6.9666, 110.4167], 14);
-          
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '© OpenStreetMap'
-          }).addTo(pickerMap);
-
-          pickerMarker = L.marker([-6.9666, 110.4167], { draggable: true }).addTo(pickerMap);
-
-          pickerMarker.on('dragend', function(e) {
-            const pos = pickerMarker.getLatLng();
-            currentSelectedLat = pos.lat;
-            currentSelectedLon = pos.lng;
-            reverseGeocode(pos.lat, pos.lng);
-          });
-
-          pickerMap.on('click', function(e) {
-            pickerMarker.setLatLng(e.latlng);
-            currentSelectedLat = e.latlng.lat;
-            currentSelectedLon = e.latlng.lng;
-            reverseGeocode(e.latlng.lat, e.latlng.lng);
-          });
-        } else {
-          pickerMap.invalidateSize();
-        }
-        
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(position => {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            pickerMap.setView([lat, lng], 16);
-            pickerMarker.setLatLng([lat, lng]);
-            currentSelectedLat = lat;
-            currentSelectedLon = lng;
-            reverseGeocode(lat, lng);
-          }, () => {
-            currentSelectedLat = -6.9666;
-            currentSelectedLon = 110.4167;
-            reverseGeocode(-6.9666, 110.4167);
-          });
-        } else {
-          currentSelectedLat = -6.9666;
-          currentSelectedLon = 110.4167;
-          reverseGeocode(-6.9666, 110.4167);
-        }
-      }, 200);
-    }
-
-    function closeMapPicker() {
-      document.getElementById("mapPickerModal").classList.add('hidden');
-    }
-
-    function handleMapSearchInput(query) {
-      clearTimeout(mapSearchTimer);
-      const suggDiv = document.getElementById("mapSearchSuggestions");
-
-      if (query.length < 3) {
-        suggDiv.classList.add('hidden');
-        suggDiv.classList.remove('flex');
-        return;
-      }
-
-      mapSearchTimer = setTimeout(async () => {
-        suggDiv.innerHTML = `<div class="p-2.5 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin"></i> Mencari lokasi...</div>`;
-        suggDiv.classList.remove('hidden');
-        suggDiv.classList.add('flex');
-
-        try {
-          const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=id&q=${encodeURIComponent(query)}&limit=5`);
-          const data = await res.json();
-          
-          if (data.length === 0) {
-            suggDiv.innerHTML = `<div class="p-2.5 text-center text-amber-600">Lokasi tidak ditemukan</div>`;
-          } else {
-            suggDiv.innerHTML = data.map(item => `
-              <div class="p-2.5 hover:bg-indigo-50 cursor-pointer text-slate-700 truncate" onclick="selectMapSearchResult(${item.lat}, ${item.lon}, '${item.display_name.replace(/'/g, "\\'")}')">
-                <i class="fa-solid fa-location-dot text-indigo-500 mr-1.5"></i> ${item.display_name}
-              </div>
-            `).join('');
-          }
-        } catch (err) {
-          suggDiv.classList.add('hidden');
-        }
-      }, 400);
-    }
-
-    function selectMapSearchResult(lat, lon, displayName) {
-      document.getElementById("mapSearchSuggestions").classList.add('hidden');
-      document.getElementById("mapSearchSuggestions").classList.remove('flex');
-      document.getElementById("mapSearchInput").value = "";
-
-      if (pickerMap && pickerMarker) {
-        pickerMap.setView([lat, lon], 17);
-        pickerMarker.setLatLng([lat, lon]);
-        currentSelectedLat = lat;
-        currentSelectedLon = lon;
-        currentSelectedAddress = displayName;
-        document.getElementById("selectedMapAddress").innerText = currentSelectedAddress;
-      }
-    }
-
-    async function reverseGeocode(lat, lon) {
-      document.getElementById("selectedMapAddress").innerText = "Mencari nama lokasi...";
-      try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
-        const data = await res.json();
-        if (data && data.display_name) {
-          currentSelectedAddress = data.display_name;
-          document.getElementById("selectedMapAddress").innerText = currentSelectedAddress;
-        } else {
-          currentSelectedAddress = `Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)}`;
-          document.getElementById("selectedMapAddress").innerText = currentSelectedAddress;
-        }
-      } catch (err) {
-        currentSelectedAddress = `Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)}`;
-        document.getElementById("selectedMapAddress").innerText = currentSelectedAddress;
-      }
-    }
-
-    function confirmMapLocation() {
-      if (activeTargetInputId && currentSelectedAddress) {
-        const inputEl = document.getElementById(activeTargetInputId);
-        inputEl.value = currentSelectedAddress;
-        if(currentSelectedLat && currentSelectedLon) {
-          inputEl.dataset.lat = currentSelectedLat;
-          inputEl.dataset.lon = currentSelectedLon;
-        }
-      }
-      closeMapPicker();
-    }
 
     function onPhoneInput(val) {
       if (val.length >= 10) {
@@ -758,6 +557,7 @@
       });
     }
 
+    // Menggunakan Photon API untuk pencarian alamat yang jauh lebih akurat (fuzzy search)
     function handleAddressInput(inputId, saranId) {
       clearTimeout(typingTimer);
       const query = document.getElementById(inputId).value.trim();
@@ -778,17 +578,30 @@
         saranDiv.classList.add('flex');
 
         try {
-          const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=id&q=${encodeURIComponent(query)}&limit=5`);
+          // Bounding Box untuk Indonesia agar hasil lebih akurat
+          const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5&bbox=94.0,-11.0,141.0,6.0`);
           const data = await res.json();
           
-          if (data.length === 0) {
-            saranDiv.innerHTML = `<div class="p-2.5 text-center text-amber-600">Lokasi tidak ditemukan</div>`;
+          if (!data.features || data.features.length === 0) {
+            saranDiv.innerHTML = `<div class="p-2.5 text-center text-amber-600">Lokasi tidak ditemukan. Coba ketik nama daerah/kecamatan.</div>`;
           } else {
-            saranDiv.innerHTML = data.map(item => `
-              <div class="p-2.5 hover:bg-indigo-50 cursor-pointer text-slate-700 truncate" onclick="pilihLokasi('${inputId}', '${saranId}', '${item.display_name.replace(/'/g, "\\'")}', ${item.lat}, ${item.lon})">
-                <i class="fa-solid fa-location-dot text-indigo-500 mr-1.5"></i> ${item.display_name}
-              </div>
-            `).join('');
+            let html = '';
+            data.features.forEach(f => {
+              const p = f.properties;
+              const coords = f.geometry.coordinates; // Photon returns [lon, lat]
+              
+              // Menyusun nama alamat yang rapi dan menghindari duplikasi kata
+              let rawParts = [p.name, p.street, p.district, p.city, p.state];
+              let uniqueParts = [...new Set(rawParts.filter(Boolean))];
+              let displayName = uniqueParts.join(', ');
+              
+              html += `
+                <div class="p-2.5 hover:bg-indigo-50 cursor-pointer text-slate-700 truncate" onclick="pilihLokasi('${inputId}', '${saranId}', '${displayName.replace(/'/g, "\\'")}', ${coords[1]}, ${coords[0]})">
+                  <i class="fa-solid fa-location-dot text-indigo-500 mr-1.5"></i> ${displayName}
+                </div>
+              `;
+            });
+            saranDiv.innerHTML = html;
           }
         } catch (err) {
           saranDiv.classList.add('hidden');
@@ -820,14 +633,17 @@
 
     async function getCoordinates(inputId, queryStr) {
       const el = document.getElementById(inputId);
+      // Jika user sudah klik dari daftar saran, gunakan lat/lon tersebut
       if (el.dataset.lat && el.dataset.lon) {
         return { lat: parseFloat(el.dataset.lat), lon: parseFloat(el.dataset.lon) };
       }
       
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=id&q=${encodeURIComponent(queryStr)}&limit=1`);
+      // Fallback jika diketik manual tapi tidak diklik di saran (Pakai Photon API)
+      const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(queryStr)}&limit=1&bbox=94.0,-11.0,141.0,6.0`);
       const data = await res.json();
-      if (data && data.length > 0) {
-        return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+      if (data.features && data.features.length > 0) {
+        const coords = data.features[0].geometry.coordinates;
+        return { lat: parseFloat(coords[1]), lon: parseFloat(coords[0]) };
       }
       return null;
     }
@@ -854,12 +670,12 @@
       try {
         const coordsJemput = await getCoordinates("alamatJemput", jemput);
         if (!coordsJemput) {
-          throw new Error("Pencarian alamat jemput gagal. Silakan gunakan fitur 'Pilih Titik di Peta' untuk akurasi yang lebih baik.");
+          throw new Error("Pencarian alamat jemput gagal. Mohon ketik nama daerah dengan lebih jelas lalu pilih dari daftar saran otomatis.");
         }
         
         const coordsTujuan = await getCoordinates("alamatTujuan", tujuan);
         if (!coordsTujuan) {
-           throw new Error("Pencarian alamat tujuan gagal. Silakan gunakan fitur 'Pilih Titik di Peta' untuk akurasi yang lebih baik.");
+           throw new Error("Pencarian alamat tujuan gagal. Mohon ketik nama daerah dengan lebih jelas lalu pilih dari daftar saran otomatis.");
         }
 
         const lon1 = coordsJemput.lon;
@@ -984,7 +800,6 @@
     function generateWaText(orderId, nama, noHp, jemput, tujuan, jarak, ongkos, status) {
       let template = localStorage.getItem("wa_template") || DEFAULT_WA_TEMPLATE;
       
-      // Auto-append {linkOrder} fallback if user uses an old template that doesn't have it
       if (!template.includes("{linkOrder}")) {
          template += "\n\n🔗 Cek Riwayat & Detail Pesanan Anda:\n{linkOrder}";
       }
@@ -1096,12 +911,11 @@
       checkAutoOpenOrder();
     }
     
-    // Fungsi baru untuk Auto Open Modal Detail berdasarkan parameter link order
     function checkAutoOpenOrder() {
       if (autoOpenOrderId) {
         setTimeout(() => {
           showDetailById(autoOpenOrderId);
-          autoOpenOrderId = null; // Kosongkan agar tidak ter-trigger ulang saat manual refresh tab
+          autoOpenOrderId = null;
         }, 400);
       }
     }
@@ -1251,21 +1065,22 @@
           activeContainer.innerHTML = `<p class="text-xs text-slate-400 text-center py-2">Tidak ada pesanan aktif saat ini.</p>`;
         } else {
           activeContainer.innerHTML = activeOrders.map(o => {
+            const safeId = String(o["ID Pesanan"] || "").replace(/'/g, "\\'").replace(/"/g, '&quot;');
             let st = o["Status"] || "Menunggu";
             let nextActionBtn = '';
             if (st === "Menunggu") {
-              nextActionBtn = `<button onclick="event.stopPropagation(); updateOrderStatus('${o["ID Pesanan"]}', 'Diambil')" class="bg-purple-600 hover:bg-purple-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg transition shadow"><i class="fa-solid fa-box-open mr-1"></i> Pickup</button>`;
+              nextActionBtn = `<button onclick="event.stopPropagation(); updateOrderStatus('${safeId}', 'Diambil')" class="bg-purple-600 hover:bg-purple-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg transition shadow"><i class="fa-solid fa-box-open mr-1"></i> Pickup</button>`;
             } else if (st === "Diambil") {
-              nextActionBtn = `<button onclick="event.stopPropagation(); updateOrderStatus('${o["ID Pesanan"]}', 'Dalam Pengiriman')" class="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg transition shadow"><i class="fa-solid fa-truck-fast mr-1"></i> Kirim</button>`;
+              nextActionBtn = `<button onclick="event.stopPropagation(); updateOrderStatus('${safeId}', 'Dalam Pengiriman')" class="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg transition shadow"><i class="fa-solid fa-truck-fast mr-1"></i> Kirim</button>`;
             } else if (st === "Dalam Pengiriman") {
-              nextActionBtn = `<button onclick="event.stopPropagation(); updateOrderStatus('${o["ID Pesanan"]}', 'Selesai')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg transition shadow"><i class="fa-solid fa-check mr-1"></i> Selesai</button>`;
+              nextActionBtn = `<button onclick="event.stopPropagation(); updateOrderStatus('${safeId}', 'Selesai')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg transition shadow"><i class="fa-solid fa-check mr-1"></i> Selesai</button>`;
             }
 
             const mapJemputUrl = `https://maps.google.com/?q=${encodeURIComponent(o["Alamat Jemput"])}`;
             const mapTujuanUrl = `https://maps.google.com/?q=${encodeURIComponent(o["Alamat Tujuan"])}`;
 
             return `
-              <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 shadow-sm space-y-2 cursor-pointer hover:border-indigo-300 transition" onclick='showDetailById("${o["ID Pesanan"]}")'>
+              <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 shadow-sm space-y-2 cursor-pointer hover:border-indigo-300 transition" onclick="showDetailById('${safeId}')">
                 <div class="flex justify-between items-start">
                   <div>
                     <span class="font-bold text-slate-800 text-xs block">${o["Nama Pelanggan"]} ${o._synced === false ? '<i class="fa-solid fa-cloud-arrow-up text-amber-500 ml-1" title="Belum Sinkron"></i>' : ''}</span>
@@ -1302,8 +1117,10 @@
         if (displayOrders.length === 0) {
           tableBody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-slate-400">Belum ada riwayat pesanan.</td></tr>`;
         } else {
-          tableBody.innerHTML = displayOrders.map(o => `
-            <tr class="hover:bg-slate-50 cursor-pointer border-b border-slate-100" onclick='showDetailById("${o["ID Pesanan"]}")'>
+          tableBody.innerHTML = displayOrders.map(o => {
+            const safeId = String(o["ID Pesanan"] || "").replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            return `
+            <tr class="hover:bg-slate-50 cursor-pointer border-b border-slate-100" onclick="showDetailById('${safeId}')">
               <td class="p-2.5">
                 <span class="font-bold text-slate-800 block">${o["Nama Pelanggan"]} ${o._synced === false ? '<i class="fa-solid fa-cloud-arrow-up text-amber-500 ml-1" title="Belum Sinkron"></i>' : ''}</span>
                 <span class="text-[10px] text-slate-400">${o["ID Pesanan"]}</span>
@@ -1314,7 +1131,8 @@
                 <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${getStatusBadgeClass(o["Status"])}">${o["Status"]}</span>
               </td>
             </tr>
-          `).join('');
+            `;
+          }).join('');
         }
       }
     }
@@ -1338,7 +1156,7 @@
     }
 
     function showDetail(order) {
-      const currentStatus = order["Status"] || "Menunggu";
+      const currentStatus = (order["Status"] || "Menunggu").trim();
       
       const steps = ["Menunggu", "Diambil", "Dalam Pengiriman", "Selesai"];
       let currentStepIdx = steps.indexOf(currentStatus);
@@ -1352,8 +1170,8 @@
             let colorClass = isPassed ? (isCurrent ? 'bg-indigo-600 text-white ring-4 ring-indigo-100 font-bold' : 'bg-emerald-500 text-white') : 'bg-slate-200 text-slate-400';
             let icon = idx === 0 ? 'fa-clock' : (idx === 1 ? 'fa-box-open' : (idx === 2 ? 'fa-truck-fast' : 'fa-check'));
             return `
-              <div class="flex flex-col items-center flex-1 relative cursor-pointer hover:opacity-75 transition-all group" onclick="updateOrderStatus('${order["ID Pesanan"]}', '${st}')" title="Ketuk untuk ubah status ke ${st}">
-                <div class="w-7 h-7 rounded-full flex items-center justify-center text-[10px] transition-all ${colorClass} group-hover:scale-110">
+              <div class="flex flex-col items-center flex-1 relative group">
+                <div class="w-7 h-7 rounded-full flex items-center justify-center text-[10px] transition-all ${colorClass}">
                   <i class="fa-solid ${icon}"></i>
                 </div>
                 <span class="text-[9px] mt-1 font-medium text-center ${isCurrent ? 'text-indigo-700 font-bold' : 'text-slate-500'}">${st}</span>
@@ -1394,15 +1212,26 @@
       const statusContainer = document.getElementById("modalStatusContainer");
       let statusHtml = '';
       if (!isCustomerMode) {
-        if (currentStatus === "Menunggu") {
-            statusHtml = `<button onclick="updateOrderStatus('${order["ID Pesanan"]}', 'Diambil')" class="w-full bg-purple-500 text-white py-2.5 rounded-xl text-xs font-semibold hover:bg-purple-600 transition shadow"><i class="fa-solid fa-box-open mr-1"></i> Tandai: Pesanan Diambil (Pickup)</button>`;
-        } else if (currentStatus === "Diambil") {
-            statusHtml = `<button onclick="updateOrderStatus('${order["ID Pesanan"]}', 'Dalam Pengiriman')" class="w-full bg-blue-500 text-white py-2.5 rounded-xl text-xs font-semibold hover:bg-blue-600 transition shadow"><i class="fa-solid fa-truck-fast mr-1"></i> Tandai: Dalam Pengiriman</button>`;
-        } else if (currentStatus === "Dalam Pengiriman") {
-            statusHtml = `<button onclick="updateOrderStatus('${order["ID Pesanan"]}', 'Selesai')" class="w-full bg-emerald-500 text-white py-2.5 rounded-xl text-xs font-semibold hover:bg-emerald-600 transition shadow"><i class="fa-solid fa-check-double mr-1"></i> Tandai: Selesai</button>`;
-        } else {
-            statusHtml = `<div class="text-center text-xs font-bold text-emerald-600 py-1"><i class="fa-solid fa-circle-check"></i> Pesanan Selesai</div>`;
-        }
+        const safeId = String(order["ID Pesanan"]).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        statusHtml = `
+          <div class="bg-slate-100/70 p-3 rounded-xl border border-slate-200 mt-2">
+            <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 text-center"><i class="fa-solid fa-sliders mr-1"></i> Panel Kendali Status</span>
+            <div class="grid grid-cols-2 gap-2">
+              <button onclick="updateOrderStatus('${safeId}', 'Menunggu')" class="py-2 rounded-xl text-xs font-bold transition shadow-sm flex justify-center items-center ${currentStatus === 'Menunggu' ? 'bg-amber-500 text-white ring-2 ring-amber-200' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}">
+                Menunggu
+              </button>
+              <button onclick="updateOrderStatus('${safeId}', 'Diambil')" class="py-2 rounded-xl text-xs font-bold transition shadow-sm flex justify-center items-center ${currentStatus === 'Diambil' ? 'bg-purple-500 text-white ring-2 ring-purple-200' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}">
+                Pickup
+              </button>
+              <button onclick="updateOrderStatus('${safeId}', 'Dalam Pengiriman')" class="py-2 rounded-xl text-xs font-bold transition shadow-sm flex justify-center items-center ${currentStatus === 'Dalam Pengiriman' ? 'bg-blue-500 text-white ring-2 ring-blue-200' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}">
+                Kirim
+              </button>
+              <button onclick="updateOrderStatus('${safeId}', 'Selesai')" class="py-2 rounded-xl text-xs font-bold transition shadow-sm flex justify-center items-center ${currentStatus === 'Selesai' ? 'bg-emerald-500 text-white ring-2 ring-emerald-200' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}">
+                Selesai
+              </button>
+            </div>
+          </div>
+        `;
       } else {
         statusHtml = `<div class="text-center text-[11px] text-slate-500 py-1"><i class="fa-solid fa-circle-info mr-1"></i> Status diperbarui secara real-time oleh Driver.</div>`;
       }
@@ -1427,7 +1256,7 @@
     }
 
     async function updateOrderStatus(orderId, newStatus) {
-      if (isCustomerMode) return; // Customer cannot change status
+      if (isCustomerMode) return; 
 
       const url = document.getElementById("gasUrlInput").value.trim();
       const isOnline = document.getElementById("statusText").innerText.includes("Online");
