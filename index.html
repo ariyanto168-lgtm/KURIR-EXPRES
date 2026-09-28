@@ -314,7 +314,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.62 • Powered by Ari GPM
+      v2.63 • Powered by Ari GPM
     </div>
 
   </main>
@@ -459,20 +459,16 @@
     window.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
       
-      // DIPERBAIKI: Mode Pelanggan HANYA aktif jika parameter mode=order explicitly dipanggil
+      // STRICT CHECK: Mode Pelanggan HANYA aktif jika ?mode=order ada di URL
       if (urlParams.get('mode') === 'order') {
         isCustomerMode = true;
         customerPhone = urlParams.get('phone') || "";
+      } else {
+        isCustomerMode = false;
       }
       autoOpenOrderId = urlParams.get('order') || null;
 
       const baseUrl = window.location.href.split('?')[0];
-      if (!customerPhone && isCustomerMode) {
-        customerPhone = localStorage.getItem("my_customer_phone") || "";
-      }
-
-      const defaultLink = customerPhone ? `${baseUrl}?mode=order&phone=${customerPhone}` : (baseUrl + "?mode=order");
-      document.getElementById("appLinkInput").value = defaultLink;
 
       if (isCustomerMode) {
         document.getElementById("nav-dashboard").parentElement.style.display = "none";
@@ -917,7 +913,7 @@
     }
     
     function checkAutoOpenOrder() {
-      if (autoOpenOrderId) {
+      if (autoOpenOrderId && isCustomerMode) {
         setTimeout(() => {
           showDetailById(autoOpenOrderId);
           autoOpenOrderId = null;
@@ -1270,7 +1266,7 @@
       const shareContainer = document.getElementById("modalShareContainer");
       const safeId = String(order["ID Pesanan"]).replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
-      // Pemisahan Mode: Hanya sembunyikan kendali jika mode=order (Pelanggan Mandiri). Di Mode Driver (Kurir Express), selalu tampil lengkap di semua baris.
+      // JAMINAN MODE DRIVER: Selama bukan murni mode order pelanggan, panel kendali status & tombol aksi SELALU MUNCUL di semua riwayat.
       if (!isCustomerMode) {
         statusContainer.innerHTML = `
           <div class="bg-slate-100/70 p-3 rounded-xl border border-slate-200 mt-2">
