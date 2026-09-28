@@ -301,7 +301,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.76 • Powered by Ari GPM
+      v2.77 • Powered by Ari GPM
     </div>
 
   </main>
@@ -400,7 +400,7 @@
     let autoOpenOrderId = null; 
     let typingTimer;
     let activeOrdersExpanded = true;
-    let isSaving = false; // Flag anti double-submit
+    let isSaving = false;
 
     function showToast(title, message, type = 'success') {
       const modal = document.getElementById("customToastModal");
@@ -473,7 +473,8 @@
       const savedDriverWa = localStorage.getItem("driver_wa") || "6281234567890";
       document.getElementById("driverWaInput").value = savedDriverWa;
       
-      const savedTarif = localStorage.getItem("local_tarif"] || "";
+      // PERBAIKAN TYPO DISINI (Mengubah kurung siku ']' menjadi kurung biasa ')')
+      const savedTarif = localStorage.getItem("local_tarif") || "";
       document.getElementById("localTarifInput").value = savedTarif;
 
       const savedTemplate = localStorage.getItem("wa_template") || DEFAULT_WA_TEMPLATE;
@@ -711,7 +712,7 @@
     }
 
     async function saveOrder() {
-      if (!calculatedData || isSaving) return; // Anti-double submit & anti-refresh
+      if (!calculatedData || isSaving) return;
 
       isSaving = true;
       const btn = document.getElementById("btnSimpan");
@@ -803,7 +804,6 @@
     }
 
     function handlePostSaveSuccess(orderId) {
-      // Bersihkan data kalkulasi secara instan agar anti-refresh / anti-double submit
       calculatedData = null;
       isSaving = false;
       resetForm();
