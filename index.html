@@ -301,7 +301,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.81 • Powered by Ari GPM
+      v2.82 • Powered by Ari GPM
     </div>
 
   </main>
@@ -469,13 +469,14 @@
       autoOpenOrderId = urlParams.get('order') || null;
 
       if (isCustomerMode) {
-        document.getElementById("nav-dashboard").parentElement.style.display = "none";
-        document.getElementById("nav-pengaturan").parentElement.style.display = "none";
+        // PERBAIKAN: Hanya menyembunyikan tombol, BUKAN parent-nya (seluruh menu)
+        document.getElementById("nav-dashboard").style.display = "none";
+        document.getElementById("nav-pengaturan").style.display = "none";
         if (customerPhone) {
           document.getElementById("noHp").value = customerPhone;
           document.getElementById("noHp").readOnly = true;
         }
-        // PENYEMPURNAAN MODE CUSTOMER: Jika link mengandung ID Order, langsung buka tab Riwayat & Detail
+        
         if (autoOpenOrderId) {
           switchTab('riwayat');
         } else {
@@ -523,7 +524,8 @@
 
       ['dashboard', 'pesanan', 'riwayat', 'pengaturan'].forEach(id => {
         const btn = document.getElementById('nav-' + id);
-        if (btn && btn.parentElement.style.display !== "none") {
+        // PERBAIKAN: Cek apakah tombol sendiri yang dihidden, bukan parent-nya
+        if (btn && btn.style.display !== "none") {
           if (id === tabId) {
             btn.classList.remove('text-slate-400');
             btn.classList.add('text-indigo-600');
@@ -907,7 +909,6 @@
       currentTarif = localTarif ? Number(localTarif) : 4000;
       document.getElementById("settingsTarifLabel").innerText = formatRupiah(currentTarif) + " / KM";
 
-      // HAPUS TEMPLATE SITI RAHMA. Jika kosong, biarkan kosong.
       ordersData = localOrders.filter(o => !deletedIds.includes(o["ID Pesanan"]));
       
       checkUnsyncedData(ordersData.filter(o => o._synced === false));
@@ -1173,7 +1174,6 @@
       if (order) {
         showDetail(order);
       } else {
-        // Hanya beri peringatan jika bukan dari link langsung yang masih butuh sync
         if (!autoOpenOrderId) {
           showToast("Peringatan", "Data pesanan tidak ditemukan.", "warning");
         }
