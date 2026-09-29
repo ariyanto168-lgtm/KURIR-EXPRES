@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KURIR EXPRESS — ACTIVE ORDERS FIX</title>
+  <title>KURIR EXPRESS — STRICT CS ISOLATION</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- FontAwesome for Icons -->
@@ -140,7 +140,7 @@
         <div id="batchRouteContainer" class="space-y-2.5"></div>
       </div>
 
-      <!-- Pesanan Aktif Collapsible Card (Fixed Clickable) -->
+      <!-- Pesanan Aktif Collapsible Card -->
       <div class="bg-slate-900/80 backdrop-blur-xl p-4.5 rounded-[2.5rem] shadow-xl border border-white/10">
         <div class="flex justify-between items-center cursor-pointer select-none px-1" onclick="toggleActiveOrdersCard()">
           <h3 class="text-white font-bold text-sm flex items-center space-x-2.5">
@@ -482,7 +482,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-2 text-[10px] text-slate-500 font-medium tracking-wide">
-      v3.38 (Active Orders Click Fix) • Powered by Ari GPM
+      v3.39 (Strict Customer Tab Isolation) • Powered by Ari GPM
     </div>
 
   </main>
@@ -982,10 +982,15 @@
           document.getElementById("custRegPhone").value = savedCustAcc.phone || "";
         }
 
+        // KUNCI TAB PESANAN & RIWAYAT JIKA BELUM ADA AKUN TERDAFTAR
         if (!savedCustAcc.phone && !autoOpenOrderId) {
+          document.getElementById("nav-pesanan").style.display = "none";
+          document.getElementById("nav-riwayat").style.display = "none";
           switchTab('akun');
           showToast("Registrasi Wajib", "Harap isi data akun Anda terlebih dahulu.", "warning");
         } else {
+          document.getElementById("nav-pesanan").style.display = "flex";
+          document.getElementById("nav-riwayat").style.display = "flex";
           switchTab(autoOpenOrderId ? 'riwayat' : 'pesanan');
         }
       } else {
@@ -1038,6 +1043,10 @@
 
       document.getElementById("nama").value = name;
       
+      // Buka akses tab pesanan & riwayat setelah akun tersimpan
+      document.getElementById("nav-pesanan").style.display = "flex";
+      document.getElementById("nav-riwayat").style.display = "flex";
+
       showToast("Berhasil", "Akun Berhasil Disimpan, Silakan Buat Pesanan!", "success");
       setTimeout(() => {
         switchTab('pesanan');
@@ -1326,7 +1335,6 @@
         if (document.getElementById("activeCount")) document.getElementById("activeCount").innerText = activeOrders.length;
         if (document.getElementById("batchCount")) document.getElementById("batchCount").innerText = activeOrders.length;
 
-        // RENDER ACTIVE ORDERS LIST SO THEY ARE CLICKABLE
         const activeContainer = document.getElementById("activeOrdersListContainer");
         if (activeContainer) {
           if (activeOrders.length === 0) {
