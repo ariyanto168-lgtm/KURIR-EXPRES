@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KURIR EXPRESS — SEPARATE WALLET EDITION</title>
+  <title>KURIR EXPRESS — FOCUSED DRIVER DASHBOARD</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- FontAwesome for Icons -->
@@ -48,18 +48,8 @@
   <!-- Main Content Container -->
   <main class="flex-1 max-w-md w-full mx-auto p-4 safe-bottom space-y-4">
 
-    <!-- TAB 1: DASHBOARD (Driver) -->
+    <!-- TAB 1: DASHBOARD (Driver - Fokus Order Masuk/Aktif) -->
     <section id="tab-dashboard" class="tab-content space-y-4">
-      <!-- Quick Action Card -->
-      <div class="bg-gradient-to-r from-violet-600 via-indigo-600 to-pink-500 rounded-[2.5rem] p-5 text-white shadow-xl shadow-indigo-500/20 flex items-center justify-between relative overflow-hidden">
-        <div class="relative z-10">
-          <h3 class="font-extrabold text-base mb-1">Buat Pesanan Baru</h3>
-          <p class="text-xs text-violet-100 font-medium">Hitung jarak & ongkos secepat kilat</p>
-        </div>
-        <button onclick="switchTab('pesanan')" class="relative z-10 bg-white text-indigo-600 font-bold text-xs px-4 py-3 rounded-2xl shadow-lg hover:bg-violet-50 transition active:scale-95 shrink-0 flex items-center space-x-1.5">
-          <span>Buat Kurir</span> <i class="fa-solid fa-arrow-right"></i>
-        </button>
-      </div>
 
       <!-- UNIVERSAL CLEAN BROADCAST LINK -->
       <div class="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-[2.5rem] p-4 text-white shadow-xl flex items-center justify-between">
@@ -96,7 +86,7 @@
             <div class="w-7 h-7 rounded-xl bg-violet-500/20 text-violet-400 flex items-center justify-center text-xs">
               <i class="fa-solid fa-spinner animate-spin"></i>
             </div>
-            <span>Pesanan Aktif (<span id="activeCount" class="text-pink-400">0</span>)</span>
+            <span>Pesanan Masuk & Aktif (<span id="activeCount" class="text-pink-400">0</span>)</span>
           </h3>
           <div class="flex items-center space-x-2 text-xs text-slate-400">
             <span id="activeOrdersToggleText">Tutup</span>
@@ -636,7 +626,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-2 text-[10px] text-slate-500 font-medium tracking-wide">
-      v3.57 (Separate Driver & Customer Wallet Edition) • Powered by Ari GPM
+      v3.58 (Focused Driver Dashboard Edition) • Powered by Ari GPM
     </div>
 
   </main>
