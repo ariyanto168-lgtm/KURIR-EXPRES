@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KURIR EXPRESS — UNIVERSAL SHARE & DRIVER PHOTO</title>
+  <title>KURIR EXPRESS — ANTI-CONFLICT EDITION</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- FontAwesome for Icons -->
@@ -33,7 +33,7 @@
       </div>
       <div>
         <h1 class="font-extrabold text-sm tracking-wider uppercase bg-gradient-to-r from-white to-pink-100 bg-clip-text text-transparent">Kurir Express</h1>
-        <p class="text-[10px] text-violet-200 font-medium">Universal Share & Driver Photo</p>
+        <p class="text-[10px] text-violet-200 font-medium">Anti-Conflict Edition</p>
       </div>
     </div>
     <div id="connectionStatus" class="text-[11px] bg-black/30 backdrop-blur-md px-3 py-1 rounded-full font-semibold flex items-center space-x-1.5 border border-white/10 shadow-sm">
@@ -41,20 +41,6 @@
       <span id="statusText" class="text-emerald-300">Live</span>
     </div>
   </header>
-
-  <!-- Live Floating Notification Banner -->
-  <div id="liveNotificationBanner" class="fixed top-20 left-4 right-4 z-50 transform -translate-y-24 opacity-0 transition-all duration-300 max-w-md mx-auto">
-    <div class="bg-slate-900/95 backdrop-blur-xl text-white px-4 py-3.5 rounded-3xl shadow-2xl border border-white/10 flex items-center space-x-3">
-      <div id="notifIconContainer" class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-white flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/30">
-        <i class="fa-solid fa-bell text-sm" id="notifIcon"></i>
-      </div>
-      <div class="flex-1 min-w-0">
-        <h4 id="notifTitle" class="text-xs font-bold text-white">Notifikasi</h4>
-        <p id="notifMessage" class="text-[11px] text-slate-300 truncate">Pesan sistem...</p>
-      </div>
-      <button onclick="hideLiveNotification()" class="text-slate-400 hover:text-white px-2 py-1 text-xs"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-  </div>
 
   <!-- Main Content Container -->
   <main class="flex-1 max-w-md w-full mx-auto p-4 safe-bottom space-y-4">
@@ -96,7 +82,6 @@
           </div>
         </div>
 
-        <!-- Tarikan Hari Ini Card -->
         <div class="bg-white/5 backdrop-blur-md p-3.5 rounded-3xl border border-white/5 mb-3 flex justify-between items-center relative z-10">
           <div>
             <span class="text-[10px] text-violet-300 block font-semibold uppercase">Tarikan Hari Ini</span>
@@ -127,19 +112,19 @@
         </button>
       </div>
 
-      <!-- UNIVERSAL SHARE APP BUTTON -->
+      <!-- UNIVERSAL SHARE APP BUTTON WITH CS ID -->
       <div class="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-[2.5rem] p-4 text-white shadow-xl flex items-center justify-between">
         <div class="flex items-center space-x-3">
           <div class="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center text-lg">
             <i class="fa-brands fa-whatsapp"></i>
           </div>
           <div>
-            <h4 class="font-bold text-xs">Bagikan Layanan Kurir</h4>
-            <p class="text-[10px] text-emerald-100">Kirim link pemesanan umum ke WhatsApp</p>
+            <h4 class="font-bold text-xs">Bagikan Link CS Unik</h4>
+            <p class="text-[10px] text-emerald-100">Cegah bentrok antar nomor CS</p>
           </div>
         </div>
-        <button onclick="shareGeneralApp()" class="bg-white text-emerald-700 font-extrabold text-xs px-3.5 py-2.5 rounded-2xl shadow hover:bg-emerald-50 transition active:scale-95 shrink-0">
-          <i class="fa-solid fa-share-nodes mr-1"></i> Bagikan
+        <button onclick="shareCsUniqueApp()" class="bg-white text-emerald-700 font-extrabold text-xs px-3.5 py-2.5 rounded-2xl shadow hover:bg-emerald-50 transition active:scale-95 shrink-0">
+          <i class="fa-solid fa-share-nodes mr-1"></i> Share CS Link
         </button>
       </div>
 
@@ -191,7 +176,7 @@
 
           <div>
             <label class="block text-xs font-semibold text-slate-300 mb-1">Nomor WhatsApp Pelanggan <span class="text-pink-500">*</span></label>
-            <input type="tel" id="noHp" required placeholder="Contoh: 081234567890" oninput="onPhoneInput(this.value)" class="w-full px-4 py-2.5 text-sm bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+            <input type="tel" id="noHp" required placeholder="Contoh: 081325325088" oninput="onPhoneInput(this.value)" class="w-full px-4 py-2.5 text-sm bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
           </div>
 
           <div class="grid grid-cols-2 gap-2">
@@ -389,8 +374,8 @@
             <input type="email" id="custRegEmail" required placeholder="Contoh: budi@gmail.com" class="w-full px-4 py-2.5 text-sm bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Nomor WhatsApp</label>
-            <input type="tel" id="custRegPhone" required placeholder="Contoh: 081234567890" class="w-full px-4 py-2.5 text-sm bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Nomor WhatsApp CS / Pelanggan Pengelola</label>
+            <input type="tel" id="custRegPhone" required placeholder="Contoh: 081325325088" class="w-full px-4 py-2.5 text-sm bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
           </div>
           <button type="submit" class="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:opacity-95 text-white font-bold py-3 rounded-2xl text-sm shadow-xl shadow-indigo-500/25 transition mt-2">
             Simpan Akun Pelanggan
@@ -445,6 +430,11 @@
         </div>
 
         <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">ID / Nomor CS Utama Anda (Contoh: 081325325088)</label>
+          <input type="tel" id="csIdInput" placeholder="Contoh: 081325325088" class="w-full px-4 py-2.5 text-xs bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <div>
           <label class="block text-xs font-semibold text-slate-300 mb-1">Kendaraan & Plat Nomor</label>
           <input type="text" id="driverVehicleInput" placeholder="Contoh: Honda Beat Hitam • H 1234 ABC" class="w-full px-4 py-2.5 text-xs bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
@@ -459,18 +449,9 @@
           <input type="number" id="localTarifInput" placeholder="Contoh: 3000" class="w-full px-4 py-2.5 text-xs bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
 
-        <div class="hidden"><input type="url" id="gasUrlInput"></div>
-
         <div>
           <label class="block text-xs font-semibold text-slate-300 mb-1">Template Pesan WhatsApp</label>
           <textarea id="waTemplateInput" rows="4" class="w-full px-4 py-2.5 text-xs bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"></textarea>
-        </div>
-
-        <div class="bg-white/5 p-3.5 rounded-2xl border border-white/5 text-xs text-white flex justify-between items-center">
-          <div>
-            <span class="text-slate-400 block text-[10px] uppercase font-semibold mb-0.5">Tarif Aktif Saat Ini:</span>
-            <span id="settingsTarifLabel" class="text-base font-black text-violet-400">Rp3.000 / KM</span>
-          </div>
         </div>
 
         <button onclick="saveSettings()" class="w-full bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-bold py-3 rounded-2xl text-sm shadow-xl shadow-indigo-500/25 hover:opacity-95 transition mt-2">
@@ -481,7 +462,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-2 text-[10px] text-slate-500 font-medium tracking-wide">
-      v3.22 (Universal Share & Driver Photo) • Powered by Ari GPM
+      v3.25 (Anti-Conflict CS Edition) • Powered by Ari GPM
     </div>
 
   </main>
@@ -568,7 +549,14 @@
         <h3 class="font-bold text-white text-lg">Pesanan Berhasil!</h3>
         <p class="text-xs text-slate-300 mt-1">Kirim rincian pesanan ke WhatsApp Driver sekarang.</p>
       </div>
-      <div id="customerShareBtnContainer"></div>
+      <div id="customerShareBtnContainer" class="space-y-2"></div>
+      
+      <!-- TOMBOL KEMBALI / CEK STATUS PESANAN -->
+      <button id="btnReturnToHistory" onclick="goToCustomerHistory()" class="w-full bg-violet-600/30 hover:bg-violet-600/50 text-violet-300 border border-violet-500/30 font-bold py-3 rounded-2xl text-xs transition flex items-center justify-center space-x-1.5">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>Kembali & Cek Status Pesanan Saya</span>
+      </button>
+
       <button onclick="location.reload()" class="w-full bg-white/5 hover:bg-white/10 text-slate-300 py-3 rounded-2xl text-xs font-bold transition border border-white/5">
         Tutup & Buat Baru
       </button>
@@ -601,7 +589,6 @@
 
   <!-- JavaScript Logic -->
   <script>
-    const GAS_WEB_APP_URL = "";
     const DEFAULT_WA_TEMPLATE = `Halo *{nama}*,\n\nUpdate status pesanan kurir Anda:\n- *ID:* {id}\n- *Status:* *{status}*\n\n📦 *Kategori:* {kategori}\n💳 *Pembayaran:* {pembayaran}\n📦 *Jemput:* {jemput}\n🏁 *Tujuan:* {tujuan}\n- *Jarak:* {jarak} KM\n- *Total Ongkos:* {ongkos}\n\n📞 *Driver:* {driverWa} ({driverName})\n🔗 *Lacak:* {linkOrder}`;
 
     let currentTarif = 3000;
@@ -613,6 +600,7 @@
     let typingTimer;
     let activeOrdersExpanded = true;
     let isSaving = false;
+    let lastCreatedOrderId = null;
 
     function showToast(title, message, type = 'success') {
       const modal = document.getElementById("customToastModal");
@@ -678,7 +666,6 @@
       }
     }
 
-    // Kompresi Gambar
     function compressImage(file, callback) {
       const reader = new FileReader();
       reader.readAsDataURL(file);
@@ -725,16 +712,23 @@
       }
     }
 
-    function shareGeneralApp() {
+    function shareCsUniqueApp() {
       const baseUrl = window.location.href.split('?')[0];
-      const customerOrderLink = `${baseUrl}?mode=order`;
+      const csId = localStorage.getItem("cs_id") || "081325325088";
+      const customerOrderLink = `${baseUrl}?mode=order&phone=${csId}`;
       const driverName = localStorage.getItem("driver_name") || "Ari GPM";
-      const driverWa = formatPhoneNumber(localStorage.getItem("driver_wa") || "6281234567890");
-      const text = `Halo! Ingin kirim paket cepat & aman bersama *${driverName}*?\n\nSilakan buat pesanan melalui link formulir kurir kami di bawah ini:\n🔗 ${customerOrderLink}\n\nTerima kasih!`;
+      const text = `Halo! Ingin kirim paket cepat & aman bersama *${driverName}*?\n\nSilakan buat pesanan melalui link CS kami di bawah ini:\n🔗 ${customerOrderLink}\n\nTerima kasih!`;
       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
     }
 
-    // GEOFENCING PICKUP VALIDATION
+    function goToCustomerHistory() {
+      document.getElementById("customerSuccessModal").classList.add('hidden');
+      switchTab('riwayat');
+      if (lastCreatedOrderId) {
+        setTimeout(() => showDetailById(lastCreatedOrderId), 300);
+      }
+    }
+
     function verifyPickupLocationAndUpload(orderId) {
       const order = ordersData.find(o => o["ID Pesanan"] === orderId);
       if (!order || !order.jemputLat || !order.jemputLon) {
@@ -752,7 +746,7 @@
         const driverLat = position.coords.latitude;
         const driverLon = position.coords.longitude;
 
-        const R = 6371e3; // meter
+        const R = 6371e3;
         const φ1 = driverLat * Math.PI/180;
         const φ2 = order.jemputLat * Math.PI/180;
         const Δφ = (order.jemputLat - driverLat) * Math.PI/180;
@@ -764,7 +758,6 @@
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         const distance = R * c;
 
-        // Radius 150 Meter dari titik pick up
         if (distance <= 150) {
           document.getElementById(`fileInput_${orderId}`).click();
         } else {
@@ -901,17 +894,38 @@
       customerPhone = urlParams.get('phone') || "";
       autoOpenOrderId = urlParams.get('order') || null;
 
+      // ANTI-CONFLICT SESI ISOLATION
+      if (customerPhone) {
+        const lastSavedPhone = localStorage.getItem("my_customer_phone");
+        if (lastSavedPhone && lastSavedPhone !== customerPhone) {
+          localStorage.removeItem("kurir_customer_account");
+        }
+        localStorage.setItem("my_customer_phone", customerPhone);
+      } else {
+        const storedPhone = localStorage.getItem("my_customer_phone");
+        if (storedPhone && isCustomerMode) {
+          customerPhone = storedPhone;
+        }
+      }
+
       if (isCustomerMode) {
         document.getElementById("nav-dashboard").style.display = "none";
         document.getElementById("nav-pengaturan").style.display = "none";
         document.getElementById("nav-akun").style.display = "flex";
-        if (customerPhone) { document.getElementById("noHp").value = customerPhone; document.getElementById("noHp").readOnly = true; }
+        if (customerPhone) { 
+          document.getElementById("noHp").value = customerPhone; 
+          document.getElementById("noHp").readOnly = true; 
+        }
         const savedCustAcc = JSON.parse(localStorage.getItem("kurir_customer_account") || "{}");
         if (savedCustAcc.name) {
           document.getElementById("nama").value = savedCustAcc.name;
           document.getElementById("custRegName").value = savedCustAcc.name;
           document.getElementById("custRegEmail").value = savedCustAcc.email || "";
-          if (savedCustAcc.phone) { document.getElementById("noHp").value = savedCustAcc.phone; document.getElementById("custRegPhone").value = savedCustAcc.phone; customerPhone = savedCustAcc.phone; }
+          if (savedCustAcc.phone) { 
+            document.getElementById("noHp").value = savedCustAcc.phone; 
+            document.getElementById("custRegPhone").value = savedCustAcc.phone; 
+            customerPhone = savedCustAcc.phone; 
+          }
         }
         switchTab(autoOpenOrderId ? 'riwayat' : 'pesanan');
       } else {
@@ -922,6 +936,7 @@
       }
 
       document.getElementById("driverNameInput").value = localStorage.getItem("driver_name") || "Ari GPM";
+      document.getElementById("csIdInput").value = localStorage.getItem("cs_id") || "081325325088";
       document.getElementById("driverVehicleInput").value = localStorage.getItem("driver_vehicle") || "Honda Beat Hitam • H 1234 ABC";
       document.getElementById("driverWaInput").value = localStorage.getItem("driver_wa") || "6281234567890";
       document.getElementById("localTarifInput").value = localStorage.getItem("local_tarif") || "3000";
@@ -946,6 +961,7 @@
       document.getElementById("nama").value = name;
       document.getElementById("noHp").value = phone;
       customerPhone = phone;
+      localStorage.setItem("my_customer_phone", customerPhone);
       showToast("Tersimpan", "Akun berhasil didaftarkan!", "success");
       switchTab('pesanan');
     }
@@ -1012,7 +1028,10 @@
     }
 
     function onPhoneInput(val) {
-      if (val.length >= 10) { customerPhone = val.replace(/\D/g, ''); localStorage.setItem("my_customer_phone", customerPhone); }
+      if (val.length >= 10) { 
+        customerPhone = val.replace(/\D/g, ''); 
+        localStorage.setItem("my_customer_phone", customerPhone); 
+      }
     }
 
     function switchTab(tabId) {
@@ -1146,6 +1165,8 @@
       if (!calculatedData || isSaving) return;
       isSaving = true;
       const orderId = "KURIR-" + new Date().toISOString().slice(0,10).replace(/-/g,"") + "-" + Math.floor(1000 + Math.random() * 9000);
+      lastCreatedOrderId = orderId;
+      
       const newOrder = {
         "ID Pesanan": orderId,
         "Timestamp": new Date().toISOString(),
@@ -1176,7 +1197,7 @@
 
       if (isCustomerMode) {
         const driverWa = formatPhoneNumber(localStorage.getItem("driver_wa") || "6281234567890");
-        const reportText = `*PESANAN BARU*\nKategori: ${newOrder["Kategori"]}\nPembayaran: ${newOrder["Metode Pembayaran"]}\nNama: ${newOrder["Nama Pelanggan"]}\nJemput: ${newOrder["Alamat Jemput"]}\nTujuan: ${newOrder["Alamat Tujuan"]}\nOngkos: ${formatRupiah(newOrder["Total Ongkos"])}`;
+        const reportText = `*PESANAN BARU*\nID: ${orderId}\nKategori: ${newOrder["Kategori"]}\nPembayaran: ${newOrder["Metode Pembayaran"]}\nNama: ${newOrder["Nama Pelanggan"]}\nJemput: ${newOrder["Alamat Jemput"]}\nTujuan: ${newOrder["Alamat Tujuan"]}\nOngkos: ${formatRupiah(newOrder["Total Ongkos"])}`;
         document.getElementById("customerShareBtnContainer").innerHTML = `<a href="https://wa.me/${driverWa}?text=${encodeURIComponent(reportText)}" target="_blank" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-4 rounded-2xl text-xs flex items-center justify-center space-x-2 shadow-lg"><i class="fa-brands fa-whatsapp text-base"></i><span>Kirim WA ke Driver</span></a>`;
         document.getElementById("customerSuccessModal").classList.remove('hidden');
       } else {
@@ -1586,11 +1607,12 @@
 
     function saveSettings() {
       localStorage.setItem("driver_name", document.getElementById("driverNameInput").value.trim());
+      localStorage.setItem("cs_id", document.getElementById("csIdInput").value.trim());
       localStorage.setItem("driver_vehicle", document.getElementById("driverVehicleInput").value.trim());
       localStorage.setItem("driver_wa", document.getElementById("driverWaInput").value.trim());
       localStorage.setItem("local_tarif", document.getElementById("localTarifInput").value.trim() || "3000");
       localStorage.setItem("wa_template", document.getElementById("waTemplateInput").value.trim());
-      showToast("Berhasil", "Pengaturan & Profil Driver disimpan!", "success");
+      showToast("Berhasil", "Pengaturan & ID CS disimpan!", "success");
       loadDataInstant();
     }
   </script>
