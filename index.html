@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KURIR EXPRESS — INTERACTIVE MAP PICKER SYNC</title>
+  <title>KURIR EXPRESS — DIRECT GMAPS NAVIGATION</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- FontAwesome for Icons -->
@@ -630,7 +630,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-2 text-[10px] text-slate-500 font-medium tracking-wide">
-      v3.60 (Interactive Map Picker Sync Edition) • Powered by Ari GPM
+      v3.61 (Direct Google Maps Navigation Edition) • Powered by Ari GPM
     </div>
 
   </main>
@@ -1434,11 +1434,10 @@
       showToast("Titik Ditemukan", "Koordinat rute diperbarui otomatis.", "success");
     }
 
-    // MAP PICKER INTERACTIVE LOGIC
     function openMapPicker(fieldId) {
       activePickerFieldId = fieldId;
       const el = document.getElementById(fieldId);
-      let initLat = parseFloat(el.dataset.lat) || -6.9175; // Default Center (Semarang/Jateng area or general ID)
+      let initLat = parseFloat(el.dataset.lat) || -6.9175; 
       let initLon = parseFloat(el.dataset.lon) || 110.4199;
 
       document.getElementById("mapPickerModal").classList.remove('hidden');
@@ -1883,7 +1882,10 @@
           <div class="flex flex-col space-y-0.5 pt-1">
             <span class="font-bold text-slate-400 flex items-center justify-between">
               <span>Alamat Jemput (Pickup):</span>
-              ${order.jemputLat ? `<button onclick="panMapToLocation(${order.jemputLat},${order.jemputLon}, 'Jemput')" class="text-[10px] bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 px-2 py-0.5 rounded font-bold transition flex items-center space-x-1"><i class="fa-solid fa-map-pin"></i><span>Fokus Map</span></button>` : ''}
+              <div class="flex space-x-1">
+                ${order.jemputLat ? `<button onclick="panMapToLocation(${order.jemputLat},${order.jemputLon}, 'Jemput')" class="text-[10px] bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 px-2 py-0.5 rounded font-bold transition flex items-center space-x-1"><i class="fa-solid fa-map-pin"></i><span>Fokus Map</span></button>` : ''}
+                ${order.jemputLat ? `<a href="https://www.google.com/maps/search/?api=1&query=${order.jemputLat},${order.jemputLon}" target="_blank" class="text-[10px] bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 px-2 py-0.5 rounded font-bold transition flex items-center space-x-1"><i class="fa-solid fa-diamond-turn-right"></i><span>G-Maps</span></a>` : ''}
+              </div>
             </span> 
             <span class="text-white text-[11px]">${order["Alamat Jemput"]}</span>
           </div>
@@ -1891,7 +1893,10 @@
           <div class="flex flex-col space-y-0.5 pt-1">
             <span class="font-bold text-slate-400 flex items-center justify-between">
               <span>Alamat Tujuan:</span>
-              ${order.tujuanLat ? `<button onclick="panMapToLocation(${order.tujuanLat},${order.tujuanLon}, 'Tujuan')" class="text-[10px] bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 px-2 py-0.5 rounded font-bold transition flex items-center space-x-1"><i class="fa-solid fa-map-pin"></i><span>Fokus Map</span></button>` : ''}
+              <div class="flex space-x-1">
+                ${order.tujuanLat ? `<button onclick="panMapToLocation(${order.tujuanLat},${order.tujuanLon}, 'Tujuan')" class="text-[10px] bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 px-2 py-0.5 rounded font-bold transition flex items-center space-x-1"><i class="fa-solid fa-map-pin"></i><span>Fokus Map</span></button>` : ''}
+                ${order.tujuanLat ? `<a href="https://www.google.com/maps/dir/?api=1&destination=${order.tujuanLat},${order.tujuanLon}" target="_blank" class="text-[10px] bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 px-2 py-0.5 rounded font-bold transition flex items-center space-x-1"><i class="fa-solid fa-diamond-turn-right"></i><span>Navigasi</span></a>` : ''}
+              </div>
             </span>
             <span class="text-white text-[11px]">${order["Alamat Tujuan"]}</span>
           </div>
@@ -1907,7 +1912,7 @@
           <div class="space-y-1 my-2">
             <span class="text-[10px] text-emerald-300 font-bold uppercase block flex items-center justify-between">
               <span><i class="fa-solid fa-map mr-1"></i> Peta Rute Perjalanan</span>
-              <span class="text-[9px] text-slate-400 font-normal">Ketuk tombol Fokus Map di atas untuk sinkron</span>
+              <a href="https://www.google.com/maps/dir/?api=1&origin=${order.jemputLat},${order.jemputLon}&destination=${order.tujuanLat},${order.tujuanLon}" target="_blank" class="text-[10px] bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1 rounded-xl font-bold transition shadow"><i class="fa-solid fa-location-arrow mr-1"></i> Buka Navigasi Rute Penuh</a>
             </span>
             <div id="orderLeafletMap" class="w-full h-36 rounded-2xl border border-white/10 z-0"></div>
           </div>
