@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KURIR EXPRESS — CS HISTORY FIX</title>
+  <title>KURIR EXPRESS — STATUS SYNC FIX</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- FontAwesome for Icons -->
@@ -470,7 +470,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-2 text-[10px] text-slate-500 font-medium tracking-wide">
-      v3.32 (CS History Filter Fix) • Powered by Ari GPM
+      v3.33 (Status & Photo Sync Fix) • Powered by Ari GPM
     </div>
 
   </main>
@@ -792,6 +792,10 @@
           localOrders[idx]["podPhoto"] = base64Img;
           localOrders[idx]["Status"] = "Selesai";
           localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
+          
+          // Auto update URL parameter 'data' jika sedang diakses via link resi
+          updateUrlOrderData(localOrders[idx]);
+
           loadDataInstant();
           showDetailById(orderId);
           showToast("Berhasil", "Bukti foto pengiriman disimpan & pesanan selesai!", "success");
@@ -809,6 +813,9 @@
           localOrders[idx]["podPhoto"] = base64Img;
           localOrders[idx]["Status"] = "Selesai";
           localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
+          
+          updateUrlOrderData(localOrders[idx]);
+
           loadDataInstant();
           showToast("Selesai & Tersimpan", "Foto bukti pengiriman berhasil diunggah!", "success");
         }
@@ -826,10 +833,23 @@
         }
         localOrders[idx]["Status"] = newStatus;
         localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
+        
+        updateUrlOrderData(localOrders[idx]);
+
         loadDataInstant();
         showDetailById(orderId);
         showToast("Status Diperbarui", `Pesanan kini: ${newStatus}`, "success");
       }
+    }
+
+    function updateUrlOrderData(orderObj) {
+      try {
+        const orderJsonStr = JSON.stringify(orderObj);
+        const encodedOrderData = encodeURIComponent(btoa(unescape(encodeURIComponent(orderJsonStr))));
+        const urlObj = new URL(window.location.href);
+        urlObj.searchParams.set('data', encodedOrderData);
+        window.history.replaceState({}, '', urlObj.toString());
+      } catch (e) {}
     }
 
     function openInvoiceModal(orderId) {
@@ -1382,6 +1402,8 @@
           } else if (bayar.includes('Deposit')) {
             bayarBadge = 'bg-violet-500/20 text-violet-300';
           }
+          let st = o["Status"] || "Menunggu";
+          let stBadgeColor = st === 'Selesai' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300';
           const safeId = String(o["ID Pesanan"] || "");
           return `
             <tr class="border-b border-white/5 hover:bg-white/5 cursor-pointer" onclick="showDetailById('${safeId}')">
@@ -1394,7 +1416,7 @@
                 <span class="px-2 py-0.5 rounded-md text-[9px] font-bold ${bayarBadge} inline-block">${bayar}</span>
               </td>
               <td class="p-3 font-medium text-slate-300">${o["Jarak KM"]} KM<br><span class="text-emerald-400 font-bold">${formatRupiah(cost)}</span></td>
-              <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-300">${o["Status"] || "Menunggu"}</span></td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${stBadgeColor}">${st}</span></td>
             </tr>
           `;
         }).join('');
@@ -1465,7 +1487,7 @@
         statusButtonsContainer.innerHTML = `
           <div class="bg-white/5 p-2.5 rounded-2xl border border-white/5 text-center my-2">
             <span class="text-[10px] text-slate-400 block font-semibold uppercase">Status Pesanan Saat Ini</span>
-            <span class="text-xs font-bold text-amber-300 mt-0.5 inline-block">${currentStatus}</span>
+            <span class="text-xs font-bold text-emerald-400 mt-0.5 inline-block">${currentStatus}</span>
           </div>
         `;
       }
