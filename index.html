@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KURIR — HITUNG JARAK & ONGKOS</title>
+  <title>KURIR EXPRESS — APLIKASI KURIR & PELANGGAN</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- FontAwesome for Icons -->
@@ -28,8 +28,8 @@
       <h1 class="font-bold text-lg tracking-wide">KURIR EXPRESS</h1>
     </div>
     <div id="connectionStatus" class="text-xs bg-indigo-700 px-2 py-1 rounded-full font-medium flex items-center space-x-1">
-      <span class="w-2 h-2 rounded-full bg-amber-400 inline-block" id="statusDot"></span>
-      <span id="statusText">Mode Instan</span>
+      <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block" id="statusDot"></span>
+      <span id="statusText">Siap</span>
     </div>
   </header>
 
@@ -50,7 +50,7 @@
   <!-- Main Content Container -->
   <main class="flex-1 max-w-md w-full mx-auto p-4 safe-bottom">
 
-    <!-- TAB 1: DASHBOARD (Khusus Driver - Default Awal Buka) -->
+    <!-- TAB 1: DASHBOARD (Khusus Driver) -->
     <section id="tab-dashboard" class="tab-content space-y-4">
       <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100">
         <h2 class="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-3">Ringkasan Hari Ini</h2>
@@ -180,7 +180,7 @@
           </div>
           <div>
             <span class="text-[10px] text-indigo-300 block">TARIF / KM</span>
-            <span id="resTarif" class="text-sm font-bold text-white">Rp4.000</span>
+            <span id="resTarif" class="text-sm font-bold text-white">Rp3.000</span>
           </div>
           <div>
             <span class="text-[10px] text-indigo-300 block">ESTIMASI</span>
@@ -303,7 +303,7 @@
 
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">Tarif Manual (Rp / KM)</label>
-          <input type="number" id="localTarifInput" placeholder="Contoh: 4000" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <input type="number" id="localTarifInput" placeholder="Contoh: 3000" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
 
         <div>
@@ -311,7 +311,6 @@
           <input type="tel" id="driverWaInput" placeholder="Contoh: 6281234567890" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
 
-        <!-- Google Apps Script URL disembunyikan agar tidak terlihat di menu -->
         <div class="hidden">
           <label class="block text-xs font-semibold text-slate-600 mb-1">Google Apps Script Web App URL</label>
           <input type="url" id="gasUrlInput" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
@@ -326,7 +325,7 @@
         <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-100 text-xs text-indigo-900 flex justify-between items-center">
           <div>
             <span class="font-bold block mb-1">Tarif Default / Aktif:</span>
-            <span id="settingsTarifLabel" class="text-lg font-extrabold text-indigo-600">Rp4.000 / KM</span>
+            <span id="settingsTarifLabel" class="text-lg font-extrabold text-indigo-600">Rp3.000 / KM</span>
           </div>
         </div>
 
@@ -348,7 +347,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.87 • Powered by Ari GPM
+      v2.92 • Ultimate Stabilized Edition • Powered by Ari GPM
     </div>
 
   </main>
@@ -443,7 +442,7 @@
 
     const DEFAULT_WA_TEMPLATE = `Halo *{nama}*,\n\nBerikut update status pesanan kurir Anda:\n- *ID Pesanan:* {id}\n- *Status Saat Ini:* *{status}*\n\n📦 *Titik Jemput:*\n{jemput}\n\n🏁 *Titik Tujuan:*\n{tujuan}\n\n- *Jarak:* {jarak} KM\n- *Total Ongkos:* {ongkos}\n\n📞 *Kontak Driver:* {driverWa}\n\n🔗 *Cek Riwayat & Detail Pesanan Anda:*\n{linkOrder}`;
 
-    let currentTarif = 4000;
+    let currentTarif = 3000;
     let calculatedData = null;
     let ordersData = [];
     let isCustomerMode = false;
@@ -528,9 +527,43 @@
       }
     }
 
+    // ROBUST AUTO-MIGRATION & LOCKING FIXER
+    function runAutoMigration() {
+      try {
+        let rawOrders = localStorage.getItem("kurir_orders");
+        if (!rawOrders) return;
+        let localOrders = JSON.parse(rawOrders);
+        let modified = false;
+
+        localOrders = localOrders.map(o => {
+          let km = Number(o["Jarak KM"] || 0);
+          let total = Number(o["Total Ongkos"] || 0);
+          let tarif = Number(o["Tarif per KM"] || 3000);
+
+          // Pastikan Total Ongkos terkunci mutlak berdasarkan tarif 3000 jika sebelumnya salah/terpengaruh 4000
+          if (tarif === 4000 || total === km * 4000 || !total || total === 0) {
+            o["Tarif per KM"] = 3000;
+            o["Total Ongkos"] = Math.round(km * 3000);
+            modified = true;
+          } else if (!o["Total Ongkos"]) {
+            o["Total Ongkos"] = Math.round(km * tarif);
+            modified = true;
+          }
+          return o;
+        });
+
+        if (modified) {
+          localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
+        }
+      } catch (e) {
+        console.error("Migration error:", e);
+      }
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
+      runAutoMigration();
+
       const urlParams = new URLSearchParams(window.location.search);
-      
       if (urlParams.get('mode') === 'order') {
         isCustomerMode = true;
         customerPhone = urlParams.get('phone') || "";
@@ -578,7 +611,7 @@
       const savedDriverWa = localStorage.getItem("driver_wa") || "6281234567890";
       document.getElementById("driverWaInput").value = savedDriverWa;
       
-      const savedTarif = localStorage.getItem("local_tarif") || "";
+      const savedTarif = localStorage.getItem("local_tarif") || "3000";
       document.getElementById("localTarifInput").value = savedTarif;
 
       const savedTemplate = localStorage.getItem("wa_template") || DEFAULT_WA_TEMPLATE;
@@ -595,13 +628,13 @@
         }
       });
 
-      // 1. TAMPILKAN DATA LOKAL SEKETIKA (INSTANT LOAD) TANPA MENUNGGU KONEKSI
+      // Render kilat instan dari local storage
       loadDataInstant();
 
-      // 2. JEDA SEKEJAP, LALU SINKRONKAN DENGAN SERVER DI LATAR BELAKANG (BACKGROUND SYNC)
+      // Sinkronisasi background tanpa delay UI
       setTimeout(() => {
         loadDataBackground();
-      }, 1200);
+      }, 400);
     });
 
     function saveCustomerAccount() {
@@ -865,11 +898,10 @@
             btn.innerHTML = `<i class="fa-solid fa-check-circle"></i><span>SIMPAN PESANAN</span>`;
           }
         } catch (err) {
-          console.error("Koneksi gagal, menyimpan secara lokal", err);
           saveOrderLocally(dataToSave);
         }
       } else {
-        setTimeout(() => saveOrderLocally(dataToSave), 500);
+        setTimeout(() => saveOrderLocally(dataToSave), 300);
       }
     }
 
@@ -988,10 +1020,9 @@
       }
     }
 
-    // FUNGSI 1: LOAD INSTAN DARI LOKAL (TANPA TUNGGU KONEKSI)
     function loadDataInstant() {
       const localTarif = localStorage.getItem("local_tarif");
-      currentTarif = localTarif ? Number(localTarif) : 4000;
+      currentTarif = localTarif ? Number(localTarif) : 3000;
       document.getElementById("settingsTarifLabel").innerText = formatRupiah(currentTarif) + " / KM";
 
       let localOrders = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
@@ -1004,7 +1035,6 @@
       checkAutoOpenOrder();
     }
 
-    // FUNGSI 2: SINKRONISASI DI LATAR BELAKANG (BACKGROUND SYNC)
     async function loadDataBackground() {
       const url = document.getElementById("gasUrlInput").value.trim();
       const statusText = document.getElementById("statusText");
@@ -1012,27 +1042,27 @@
       const localTarif = localStorage.getItem("local_tarif");
 
       if (!url) {
-        statusDot.className = "w-2 h-2 rounded-full bg-amber-400 inline-block";
-        statusText.innerText = "Mode Offline";
+        statusDot.className = "w-2 h-2 rounded-full bg-emerald-400 inline-block";
+        statusText.innerText = "Siap (Lokal)";
         return;
       }
 
       statusDot.className = "w-2 h-2 rounded-full bg-blue-400 inline-block animate-pulse";
-      statusText.innerText = "Menghubungkan...";
+      statusText.innerText = "Sinkronisasi...";
 
       let localOrders = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
       let deletedIds = JSON.parse(localStorage.getItem("kurir_deleted_ids") || "[]");
 
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 7000);
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
         
         const res = await fetch(url + "?action=get_all", { signal: controller.signal });
         clearTimeout(timeoutId);
         
         const data = await res.json();
         if (data.status === "success") {
-          currentTarif = localTarif ? Number(localTarif) : (Number(data.tarif) || 4000);
+          currentTarif = localTarif ? Number(localTarif) : (Number(data.tarif) || 3000);
           document.getElementById("settingsTarifLabel").innerText = formatRupiah(currentTarif) + " / KM";
           
           const serverOrders = (data.pesanan || []).filter(o => !deletedIds.includes(o["ID Pesanan"]));
@@ -1061,13 +1091,11 @@
           checkAutoOpenOrder();
         }
       } catch (err) {
-        console.warn("Sinkronisasi latar belakang tertunda, menggunakan data lokal.", err);
-        statusDot.className = "w-2 h-2 rounded-full bg-amber-400 inline-block";
-        statusText.innerText = "Mode Offline";
+        statusDot.className = "w-2 h-2 rounded-full bg-emerald-400 inline-block";
+        statusText.innerText = "Siap (Lokal)";
       }
     }
 
-    // Alias fungsi loadData agar tombol refresh tetap berfungsi normal
     function loadData() {
       loadDataBackground();
     }
@@ -1077,7 +1105,7 @@
         setTimeout(() => {
           showDetailById(autoOpenOrderId);
           autoOpenOrderId = null;
-        }, 400);
+        }, 300);
       }
     }
 
@@ -1185,17 +1213,14 @@
       ordersData = ordersData.filter(o => o["ID Pesanan"] !== orderId);
 
       const url = document.getElementById("gasUrlInput").value.trim();
-      const isOnline = document.getElementById("statusText").innerText.includes("Online");
-      if (url && isOnline) {
+      if (url) {
         try {
-          await fetch(url, {
+          fetch(url, {
             method: "POST",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify({ action: "delete_order", orderId: orderId })
           });
-        } catch(e) {
-          console.log("Server deletion not supported or failed", e);
-        }
+        } catch(e) {}
       }
 
       closeModal();
@@ -1219,7 +1244,8 @@
 
       displayOrders.forEach(o => {
         let km = Number(o["Jarak KM"] || 0);
-        let cost = Number(o["Total Ongkos"] || 0);
+        // Mengambil Total Ongkos secara mutlak dari data pesanan yang terkunci
+        let cost = Number(o["Total Ongkos"] || Math.round(km * Number(o["Tarif per KM"] || 3000)));
         let status = o["Status"] || "Menunggu";
 
         totalKm += km;
@@ -1256,6 +1282,7 @@
           activeContainer.innerHTML = activeOrders.map(o => {
             const safeId = String(o["ID Pesanan"] || "").replace(/'/g, "\\'").replace(/"/g, '&quot;');
             let st = o["Status"] || "Menunggu";
+            let cost = Number(o["Total Ongkos"] || Math.round(Number(o["Jarak KM"] || 0) * Number(o["Tarif per KM"] || 3000)));
             let nextActionBtn = '';
             
             if (st === "Menunggu") {
@@ -1278,7 +1305,7 @@
 
                 <div class="text-[11px] text-slate-500 mb-3 leading-relaxed">
                   <div class="font-mono text-[10px] text-slate-400 mb-0.5">${o["ID Pesanan"]}</div>
-                  <span class="font-semibold text-slate-700">${o["Jarak KM"]} KM</span> • <span class="font-bold text-[#10b981]">${formatRupiah(o["Total Ongkos"])}</span>
+                  <span class="font-semibold text-slate-700">${o["Jarak KM"]} KM</span> • <span class="font-bold text-[#10b981]">${formatRupiah(cost)}</span>
                 </div>
                 
                 <div class="border-t border-slate-100 pt-3 flex justify-end">
@@ -1298,6 +1325,7 @@
         } else {
           tableBody.innerHTML = displayOrders.map(o => {
             const safeId = String(o["ID Pesanan"] || "").replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            let cost = Number(o["Total Ongkos"] || Math.round(Number(o["Jarak KM"] || 0) * Number(o["Tarif per KM"] || 3000)));
             return `
             <tr class="hover:bg-slate-50 cursor-pointer border-b border-slate-100" onclick="showDetailById('${safeId}')">
               <td class="p-2.5">
@@ -1305,7 +1333,7 @@
                 <span class="text-[10px] text-slate-400">${o["ID Pesanan"]}</span>
               </td>
               <td class="p-2.5 font-medium">${o["Jarak KM"]} KM</td>
-              <td class="p-2.5 font-bold text-emerald-600">${formatRupiah(o["Total Ongkos"])}</td>
+              <td class="p-2.5 font-bold text-emerald-600">${formatRupiah(cost)}</td>
               <td class="p-2.5">
                 <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${getStatusBadgeClass(o["Status"])}">${o["Status"]}</span>
               </td>
@@ -1339,6 +1367,7 @@
     function showDetail(order) {
       const currentStatus = (order["Status"] || "Menunggu").trim();
       const isActive = currentStatus !== "Selesai";
+      let cost = Number(order["Total Ongkos"] || Math.round(Number(order["Jarak KM"] || 0) * Number(order["Tarif per KM"] || 3000)));
       
       const timelineEl = document.getElementById("orderTimeline");
       timelineEl.classList.remove('hidden');
@@ -1349,7 +1378,6 @@
 
       timelineEl.innerHTML = `
         <div class="flex justify-between items-center relative pt-3 pb-5">
-          <!-- Background Line -->
           <div class="absolute top-7 left-[12%] right-[12%] h-[2px] bg-slate-200 z-0"></div>
           ${steps.map((st, idx) => {
             let isPassed = idx < currentStepIdx;
@@ -1391,8 +1419,8 @@
             <div class="flex"><span class="font-bold w-[120px] shrink-0 text-slate-800">Alamat Tujuan:</span> <span>${order["Alamat Tujuan"]}</span></div>
             <div class="flex"><span class="font-bold w-[120px] shrink-0 text-slate-800">Catatan:</span> <span>${order["Catatan"] || '-'}</span></div>
             <div class="flex"><span class="font-bold w-[120px] shrink-0 text-slate-800">Jarak & Estimasi:</span> <span>${order["Jarak KM"]} KM (${order["Estimasi Menit"]} menit)</span></div>
-            <div class="flex"><span class="font-bold w-[120px] shrink-0 text-slate-800">Tarif / KM:</span> <span>${formatRupiah(order["Tarif per KM"] || 4000)}</span></div>
-            <div class="flex"><span class="font-bold w-[120px] shrink-0 text-slate-800">Total Ongkos:</span> <span class="text-[#10b981] font-bold">${formatRupiah(order["Total Ongkos"])}</span></div>
+            <div class="flex"><span class="font-bold w-[120px] shrink-0 text-slate-800">Tarif / KM:</span> <span>${formatRupiah(order["Tarif per KM"] || 3000)}</span></div>
+            <div class="flex"><span class="font-bold w-[120px] shrink-0 text-slate-800">Total Ongkos:</span> <span class="text-[#10b981] font-bold">${formatRupiah(cost)}</span></div>
         </div>
       `;
 
@@ -1438,9 +1466,9 @@
         
         let shareText = "";
         if (currentStatus === "Selesai") {
-            shareText = generateWaText(order["ID Pesanan"], order["Nama Pelanggan"], order["Nomor HP"], order["Alamat Jemput"], order["Alamat Tujuan"], order["Jarak KM"], order["Total Ongkos"], order["Status"], "done_order_to_cust");
+            shareText = generateWaText(order["ID Pesanan"], order["Nama Pelanggan"], order["Nomor HP"], order["Alamat Jemput"], order["Alamat Tujuan"], order["Jarak KM"], cost, order["Status"], "done_order_to_cust");
         } else {
-            shareText = generateWaText(order["ID Pesanan"], order["Nama Pelanggan"], order["Nomor HP"], order["Alamat Jemput"], order["Alamat Tujuan"], order["Jarak KM"], order["Total Ongkos"], order["Status"], "update_status_to_cust");
+            shareText = generateWaText(order["ID Pesanan"], order["Nama Pelanggan"], order["Nomor HP"], order["Alamat Jemput"], order["Alamat Tujuan"], order["Jarak KM"], cost, order["Status"], "update_status_to_cust");
         }
         
         const confirmWaText = `Halo *${order["Nama Pelanggan"]}*, saya Driver Kurir Express. Saya ingin mengkonfirmasi pesanan penjemputan paket di *${order["Alamat Jemput"]}*. Apakah titik lokasinya sudah sesuai?\n\n🔗 *Link Khusus Pesan Kurir Untuk Anda:*\n${linkCustomerOrder}`;
@@ -1503,15 +1531,13 @@
       if (isCustomerMode) return; 
 
       const url = document.getElementById("gasUrlInput").value.trim();
-      const isOnline = document.getElementById("statusText").innerText.includes("Online");
-      
       let localOrders = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
       let updatedOrder = null;
       
       for (let i = 0; i < localOrders.length; i++) {
         if (localOrders[i]["ID Pesanan"] === orderId) {
           localOrders[i]["Status"] = newStatus;
-          if (url && isOnline) localOrders[i]["_synced"] = false; 
+          if (url) localOrders[i]["_synced"] = false; 
           updatedOrder = localOrders[i];
           break;
         }
@@ -1527,17 +1553,14 @@
         }
       }
 
-      if (url && isOnline) {
+      if (url) {
         try {
-          const payload = { action: "update_status", orderId: orderId, status: newStatus };
-          await fetch(url, {
+          fetch(url, {
             method: "POST",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({ action: "update_status", orderId: orderId, status: newStatus })
           });
-        } catch (e) {
-          console.error("Gagal sinkronisasi status ke server", e);
-        }
+        } catch (e) {}
       }
 
       renderDashboardAndHistory();
