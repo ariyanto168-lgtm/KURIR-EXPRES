@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KURIR EXPRESS — THEME & HEADER FIX</title>
+  <title>KURIR EXPRESS — ACCOUNT FIX</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- FontAwesome for Icons -->
@@ -465,7 +465,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-2 text-[10px] text-slate-500 font-medium tracking-wide">
-      v3.29 (Theme & Header Fix Edition) • Powered by Ari GPM
+      v3.30 (CS Account Binding Fix) • Powered by Ari GPM
     </div>
 
   </main>
@@ -519,7 +519,7 @@
         <h3 id="toastTitle" class="font-bold text-white text-base">Informasi</h3>
         <p id="toastMessage" class="text-xs text-slate-300 mt-1">Pesan sistem...</p>
       </div>
-      <button onclick="closeCustomToast()" class="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:opacity-95 text-white font-bold py-3 rounded-2xl text-xs transition shadow-lg shadow-indigo-500/25">
+      <button onclick="closeCustomToast()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:opacity-95 text-white font-bold py-3 rounded-2xl text-xs transition shadow-lg shadow-emerald-500/25">
         OK, Mengerti
       </button>
     </div>
@@ -896,15 +896,20 @@
 
       isCustomerMode = urlParams.get('mode') === 'order';
       customerPhone = urlParams.get('phone') || "";
+      
+      // CEK JUGA DARI LOCALSTORAGE JIKA SUDAH PERNAH MENDAFTAR AKUN SEBELUMNYA
+      const savedCustAcc = JSON.parse(localStorage.getItem("kurir_customer_account") || "{}");
+      if (!customerPhone && savedCustAcc.phone) {
+        customerPhone = savedCustAcc.phone;
+      }
       currentCsId = customerPhone;
       autoOpenOrderId = urlParams.get('order') || null;
 
-      // TERAPKAN TEMA WARNA & HEADER BERBEDA BERDASARKAN MODE (DRIVER VS CS)
       const headerEl = document.getElementById("appHeader");
       const headerTitleEl = document.getElementById("headerTitle");
       const headerSubtitleEl = document.getElementById("headerSubtitle");
       
-      if (isCustomerMode) {
+      if (isCustomerMode || customerPhone) {
         // TEMA APLIKASI CS (HIJAU EMERALD / TEAL)
         headerEl.className = "bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 text-white shadow-lg sticky top-0 z-40 px-4 py-3.5 flex justify-between items-center backdrop-blur-md bg-opacity-95";
         headerTitleEl.innerText = "KURIR EXPRESS";
@@ -920,11 +925,11 @@
           noHpInput.readOnly = true;
         }
 
-        const savedCustAcc = JSON.parse(localStorage.getItem("kurir_customer_account") || "{}");
         if (savedCustAcc.name) {
           document.getElementById("nama").value = savedCustAcc.name;
           document.getElementById("custRegName").value = savedCustAcc.name;
           document.getElementById("custRegEmail").value = savedCustAcc.email || "";
+          document.getElementById("custRegPhone").value = savedCustAcc.phone || "";
         }
         switchTab(autoOpenOrderId ? 'riwayat' : 'pesanan');
       } else {
@@ -960,10 +965,29 @@
     function saveCustomerAccount() {
       const name = document.getElementById("custRegName").value.trim();
       const email = document.getElementById("custRegEmail").value.trim();
-      localStorage.setItem("kurir_customer_account", JSON.stringify({ name, email }));
+      const phone = document.getElementById("custRegPhone").value.trim();
+      
+      if (!name || !phone) {
+        showToast("Perhatian", "Nama dan Nomor WhatsApp wajib diisi.", "warning");
+        return;
+      }
+
+      // SIMPAN KE LOCALSTORAGE DAN IKAT KE VARIABEL GLOBAL
+      localStorage.setItem("kurir_customer_account", JSON.stringify({ name, email, phone }));
+      customerPhone = phone;
+      currentCsId = phone;
+
+      // OTOMATIS ISI DAN KUNCI NOMOR HP PADA FORM PESANAN
+      const noHpInput = document.getElementById("noHp");
+      noHpInput.value = phone;
+      noHpInput.readOnly = true;
+
       document.getElementById("nama").value = name;
-      showToast("Tersimpan", "Akun berhasil didaftarkan!", "success");
-      switchTab('pesanan');
+      
+      showToast("Tersimpan", "Akun & Nomor CS Berhasil Terikat!", "success");
+      setTimeout(() => {
+        switchTab('pesanan');
+      }, 500);
     }
 
     function saveFavoriteAddress() {
@@ -1156,7 +1180,7 @@
       localOrders.unshift(newOrder);
       localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
 
-      if (isCustomerMode) {
+      if (isCustomerMode || customerPhone) {
         const driverWa = formatPhoneNumber(localStorage.getItem("driver_wa") || "6281234567890");
         const reportText = `*PESANAN BARU (CS: ${calculatedData.csId})*\nID: ${orderId}\nKategori: ${newOrder["Kategori"]}\nPembayaran: ${newOrder["Metode Pembayaran"]}\nNama: ${newOrder["Nama Pelanggan"]}\nJemput: ${newOrder["Alamat Jemput"]}\nTujuan: ${newOrder["Alamat Tujuan"]}\nOngkos: ${formatRupiah(newOrder["Total Ongkos"])}`;
         document.getElementById("customerShareBtnContainer").innerHTML = `<a href="https://wa.me/${driverWa}?text=${encodeURIComponent(reportText)}" target="_blank" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-4 rounded-2xl text-xs flex items-center justify-center space-x-2 shadow-lg"><i class="fa-brands fa-whatsapp text-base"></i><span>Kirim WA ke Driver</span></a>`;
@@ -1186,7 +1210,7 @@
 
     function renderDashboardAndHistory() {
       let displayOrders = ordersData;
-      if (isCustomerMode) {
+      if (isCustomerMode || customerPhone) {
         displayOrders = ordersData.filter(o => (o["CS ID"] === currentCsId) || (o["Nomor HP"] === customerPhone));
       }
 
@@ -1232,7 +1256,7 @@
       let totalExpense = expenses.reduce((sum, item) => sum + Number(item.amount || 0), 0);
       let netProfit = totalRevenue - totalExpense;
 
-      if (document.getElementById("dashGrossRevenue") && !isCustomerMode) {
+      if (document.getElementById("dashGrossRevenue") && !isCustomerMode && !customerPhone) {
         document.getElementById("dashGrossRevenue").innerText = formatRupiah(totalRevenue);
         document.getElementById("dashTunaiRevenue").innerText = formatRupiah(totalTunai);
         document.getElementById("dashTempoRevenue").innerText = formatRupiah(totalTempo);
@@ -1244,7 +1268,7 @@
         if (document.getElementById("batchCount")) document.getElementById("batchCount").innerText = activeOrders.length;
       }
 
-      if (isCustomerMode) {
+      if (isCustomerMode || customerPhone) {
         const badge = document.getElementById("custSummaryIdBadge");
         if (badge) badge.innerText = "CS: " + (currentCsId || "Umum");
         const sumEl = document.getElementById("customerFinancialSummary");
@@ -1264,7 +1288,7 @@
       }
 
       const batchContainer = document.getElementById("batchRouteContainer");
-      if (batchContainer && !isCustomerMode) {
+      if (batchContainer && !isCustomerMode && !customerPhone) {
         let driverActiveOrders = ordersData.filter(o => (o["Status"] || "Menunggu") !== "Selesai");
         if (driverActiveOrders.length === 0) {
           batchContainer.innerHTML = `<p class="text-[11px] text-slate-500 text-center py-2">Tidak ada kloter rute aktif.</p>`;
@@ -1293,7 +1317,7 @@
       }
 
       const activeContainer = document.getElementById("activeOrdersListContainer");
-      if (activeContainer && !isCustomerMode) {
+      if (activeContainer && !isCustomerMode && !customerPhone) {
         let driverActiveOrders = ordersData.filter(o => (o["Status"] || "Menunggu") !== "Selesai");
         activeContainer.innerHTML = driverActiveOrders.length === 0 ? `<p class="text-xs text-slate-500 text-center py-2">Tidak ada pesanan aktif.</p>` : driverActiveOrders.map(o => {
           let st = o["Status"] || "Menunggu";
@@ -1393,7 +1417,8 @@
       `;
 
       const statusButtonsContainer = document.getElementById("modalStatusButtons");
-      if (!isCustomerMode) {
+      const isCustActive = isCustomerMode || customerPhone;
+      if (!isCustActive) {
         if (currentStatus === 'Selesai') {
           statusButtonsContainer.innerHTML = `
             <div class="bg-emerald-500/20 border border-emerald-500/40 p-3 rounded-2xl text-center my-2">
@@ -1489,7 +1514,7 @@
           </div>
         `;
       } else {
-        if (!isCustomerMode) {
+        if (!isCustActive) {
           podContainer.innerHTML = `
             <div class="bg-gradient-to-r from-emerald-600/25 to-teal-600/25 p-3 rounded-2xl border border-emerald-500/40 space-y-2 my-2 text-center shadow-lg">
               <span class="text-xs text-emerald-200 font-extrabold uppercase block"><i class="fa-solid fa-location-crosshairs mr-1.5 text-emerald-400"></i> Ambil Foto di Area Pick Up (Geofence)</span>
@@ -1517,7 +1542,7 @@
       const linkCustomerOrder = `${baseUrl}?mode=order&phone=${order["CS ID"] || rawPhone}&order=${order["ID Pesanan"]}&data=${encodedOrderData}`;
 
       const linkContainer = document.getElementById("modalLinkContainer");
-      if (!isCustomerMode) {
+      if (!isCustActive) {
         linkContainer.innerHTML = `
           <div class="bg-white/5 p-2.5 rounded-2xl border border-white/5 space-y-1 my-2">
             <span class="text-[10px] text-slate-400 font-bold uppercase block"><i class="fa-solid fa-link mr-1"></i> Link Resi & Lacak Pesanan (Auto-Sync Foto)</span>
@@ -1532,9 +1557,9 @@
       }
 
       const shareContainer = document.getElementById("modalShareContainer");
-      let invoiceBtnHtml = !isCustomerMode ? `<button onclick="openInvoiceModal('${order["ID Pesanan"]}')" class="w-full bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 border border-emerald-500/30 font-bold py-2.5 px-4 rounded-2xl text-xs flex items-center justify-center space-x-2 transition mb-2"><i class="fa-solid fa-receipt"></i><span>Cetak Nota / Invoice Resmi</span></button>` : '';
+      let invoiceBtnHtml = !isCustActive ? `<button onclick="openInvoiceModal('${order["ID Pesanan"]}')" class="w-full bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 border border-emerald-500/30 font-bold py-2.5 px-4 rounded-2xl text-xs flex items-center justify-center space-x-2 transition mb-2"><i class="fa-solid fa-receipt"></i><span>Cetak Nota / Invoice Resmi</span></button>` : '';
 
-      if (isCustomerMode) {
+      if (isCustActive) {
         const confirmToDriverText = `Halo Driver ${driverName}, saya ingin mengkonfirmasi pesanan dari CS ${order["CS ID"] || 'Umum'} dengan ID: *${order["ID Pesanan"]}*.\n\n🔗 Lacak: ${linkCustomerOrder}`;
         shareContainer.innerHTML = `
           <div class="mt-2 space-y-2">
