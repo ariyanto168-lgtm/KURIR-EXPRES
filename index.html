@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KURIR EXPRESS — 3-COLUMN STATUS DASHBOARD</title>
+  <title>KURIR EXPRESS — RIWAYAT & STATUS INTEGRATED</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- FontAwesome for Icons -->
@@ -25,7 +25,7 @@
 </head>
 <body id="appBody" class="min-h-screen flex flex-col antialiased selection:bg-pink-500 selection:text-white">
 
-  <!-- Top Header with Dynamic Theme Color -->
+  <!-- Top Header -->
   <header id="appHeader" class="bg-gradient-to-r from-violet-600 via-indigo-600 to-pink-600 text-white shadow-lg sticky top-0 z-40 px-4 py-3.5 flex justify-between items-center backdrop-blur-md bg-opacity-95">
     <div class="flex items-center space-x-2.5">
       <div id="headerIconBg" class="w-9 h-9 rounded-2xl bg-white/20 flex items-center justify-center backdrop-blur shadow-inner">
@@ -38,11 +38,6 @@
     </div>
     
     <div class="flex items-center space-x-2">
-      <!-- IKON INFO STATUS DI HEADER KHUSUS CUSTOMER -->
-      <button id="headerInfoBtn" onclick="toggleCustomerHeaderStatusCard()" class="hidden w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-emerald-300 items-center justify-center text-xs backdrop-blur transition shadow" title="Info Status Pengiriman">
-        <i class="fa-solid fa-circle-info"></i>
-      </button>
-
       <div id="connectionStatus" class="text-[11px] bg-black/30 backdrop-blur-md px-3 py-1 rounded-full font-semibold flex items-center space-x-1.5 border border-white/10 shadow-sm">
         <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse" id="statusDot"></span>
         <span id="statusText" class="text-emerald-300">Live</span>
@@ -52,41 +47,6 @@
 
   <!-- Main Content Container -->
   <main class="flex-1 max-w-md w-full mx-auto p-4 safe-bottom space-y-4">
-
-    <!-- CUSTOMER HEADER 3-COLUMN STATUS DASHBOARD CARD (TOGGLE TANPA REFRESH) -->
-    <div id="customerHeaderStatusCard" class="hidden bg-gradient-to-br from-emerald-950 via-slate-900 to-teal-950 border border-emerald-500/40 p-4 rounded-[2.5rem] shadow-2xl space-y-3 relative">
-      <div class="flex justify-between items-center border-b border-white/10 pb-2">
-        <h3 class="font-extrabold text-xs text-emerald-300 uppercase flex items-center space-x-2">
-          <i class="fa-solid fa-chart-pie text-emerald-400"></i>
-          <span>Dashboard Status Pengiriman Anda</span>
-        </h3>
-        <button onclick="toggleCustomerHeaderStatusCard()" class="text-slate-400 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-      
-      <!-- 3 KOLOM KARTU DASHBOARD STATUS -->
-      <div class="grid grid-cols-3 gap-2 text-center">
-        <div class="bg-white/5 p-2.5 rounded-2xl border border-amber-500/30">
-          <span class="text-[9px] text-amber-300 block font-semibold mb-0.5">PICK UP</span>
-          <p id="statColPickup" class="text-sm font-black text-amber-400">0</p>
-          <span class="text-[8px] text-slate-400 block mt-0.5">Menunggu/Ambil</span>
-        </div>
-        <div class="bg-white/5 p-2.5 rounded-2xl border border-teal-500/30">
-          <span class="text-[9px] text-teal-300 block font-semibold mb-0.5">DIJALAN</span>
-          <p id="statColTransit" class="text-sm font-black text-teal-400">0</p>
-          <span class="text-[8px] text-slate-400 block mt-0.5">Pengiriman</span>
-        </div>
-        <div class="bg-white/5 p-2.5 rounded-2xl border border-emerald-500/30">
-          <span class="text-[9px] text-emerald-300 block font-semibold mb-0.5">SAMPAI</span>
-          <p id="statColDelivered" class="text-sm font-black text-emerald-400">0</p>
-          <span class="text-[8px] text-slate-400 block mt-0.5">Selesai</span>
-        </div>
-      </div>
-
-      <div class="bg-black/30 p-2.5 rounded-2xl text-[11px] flex justify-between items-center text-slate-300">
-        <span>Akun: <strong id="hdrCardName" class="text-white">-</strong></span>
-        <span class="text-emerald-400 font-bold" id="hdrCardBalance">Saldo: Rp0</span>
-      </div>
-    </div>
 
     <!-- TAB 1: DASHBOARD (Driver) -->
     <section id="tab-dashboard" class="tab-content space-y-4">
@@ -323,29 +283,45 @@
       </div>
     </section>
 
-    <!-- TAB 3: RIWAYAT & LAPORAN -->
+    <!-- TAB 3: RIWAYAT & LAPORAN (MEMUAT KARTU 3-KOLOM STATUS DI ATAS) -->
     <section id="tab-riwayat" class="tab-content hidden space-y-4">
+      
+      <!-- 3-KOLOM KARTU DASHBOARD STATUS PENGIRIMAN DI TAB RIWAYAT -->
+      <div class="bg-gradient-to-br from-emerald-950 via-slate-900 to-teal-950 border border-emerald-500/40 p-4 rounded-[2.5rem] shadow-2xl space-y-3">
+        <div class="flex justify-between items-center border-b border-white/10 pb-2">
+          <h3 class="font-extrabold text-xs text-emerald-300 uppercase flex items-center space-x-2">
+            <i class="fa-solid fa-chart-pie text-emerald-400"></i>
+            <span>Status Pengiriman Anda</span>
+          </h3>
+          <span class="text-[10px] text-slate-400 font-mono" id="riwayatCustNameHeader">-</span>
+        </div>
+        
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="bg-white/5 p-2.5 rounded-2xl border border-amber-500/30">
+            <span class="text-[9px] text-amber-300 block font-semibold mb-0.5">PICK UP</span>
+            <p id="statColPickup" class="text-sm font-black text-amber-400">0</p>
+            <span class="text-[8px] text-slate-400 block mt-0.5">Menunggu/Ambil</span>
+          </div>
+          <div class="bg-white/5 p-2.5 rounded-2xl border border-teal-500/30">
+            <span class="text-[9px] text-teal-300 block font-semibold mb-0.5">DIJALAN</span>
+            <p id="statColTransit" class="text-sm font-black text-teal-400">0</p>
+            <span class="text-[8px] text-slate-400 block mt-0.5">Pengiriman</span>
+          </div>
+          <div class="bg-white/5 p-2.5 rounded-2xl border border-emerald-500/30">
+            <span class="text-[9px] text-emerald-300 block font-semibold mb-0.5">SAMPAI</span>
+            <p id="statColDelivered" class="text-sm font-black text-emerald-400">0</p>
+            <span class="text-[8px] text-slate-400 block mt-0.5">Selesai</span>
+          </div>
+        </div>
+      </div>
+
       <div id="customerFinancialSummary" class="hidden bg-gradient-to-br from-emerald-950 via-slate-900 to-teal-950 text-white p-5 rounded-[2.5rem] shadow-xl border border-emerald-500/30 space-y-3">
         <div class="flex justify-between items-center border-b border-white/10 pb-2">
           <h3 class="font-bold text-xs uppercase tracking-wider text-emerald-300 flex items-center space-x-2">
             <i class="fa-solid fa-wallet"></i>
-            <span>Rekap Keuangan Anda</span>
+            <span>Rekap Transaksi Anda</span>
           </h3>
           <span id="custSummaryIdBadge" class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full font-bold"></span>
-        </div>
-        <div class="grid grid-cols-3 gap-1.5 text-center mb-2">
-          <div class="bg-white/5 p-2 rounded-2xl border border-emerald-500/30">
-            <span class="text-[9px] text-emerald-300 block font-semibold">Tunai</span>
-            <span id="custTunaiSpent" class="text-xs font-black text-emerald-400">Rp0</span>
-          </div>
-          <div class="bg-white/5 p-2 rounded-2xl border border-amber-500/30">
-            <span class="text-[9px] text-amber-300 block font-semibold">Tempo</span>
-            <span id="custTempoSpent" class="text-xs font-black text-amber-400">Rp0</span>
-          </div>
-          <div class="bg-white/5 p-2 rounded-2xl border border-violet-500/30">
-            <span class="text-[9px] text-violet-300 block font-semibold">Deposit</span>
-            <span id="custDepositSpent" class="text-xs font-black text-violet-400">Rp0</span>
-          </div>
         </div>
         <div class="grid grid-cols-3 gap-2 text-center">
           <div class="bg-white/5 p-3 rounded-2xl border border-white/5">
@@ -459,7 +435,7 @@
       </div>
     </section>
 
-    <!-- TAB 5: DOMPET / DEPOSIT (Customer) -->
+    <!-- TAB 5: DOMPET / DEPOSIT (Customer) - MEMUAT SALDO & REKAP KEUANGAN -->
     <section id="tab-dompet" class="tab-content hidden space-y-4">
       <div class="bg-gradient-to-br from-violet-950 via-slate-900 to-indigo-950 p-5 rounded-[2.5rem] shadow-xl border border-violet-500/30 space-y-4">
         <div class="flex items-center space-x-3.5 border-b border-white/10 pb-4">
@@ -477,6 +453,25 @@
           <span class="text-[10px] text-violet-300 font-bold uppercase tracking-widest block">Sisa Saldo Deposit Aktif</span>
           <p id="customerWalletBalance" class="text-3xl font-black text-white tracking-tight">Rp0</p>
           <span class="text-[10px] text-slate-400 block pt-1">Otomatis terpotong saat Anda memilih pembayaran Deposit</span>
+        </div>
+
+        <!-- REKAP KEUANGAN (TUNAI, TEMPO, DEPOSIT) DI FOLDER DOMPET -->
+        <div class="bg-white/5 p-4 rounded-3xl border border-white/5 space-y-2">
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Rekap Pembayaran & Pengeluaran</span>
+          <div class="grid grid-cols-3 gap-1.5 text-center">
+            <div class="bg-black/30 p-2 rounded-2xl border border-emerald-500/30">
+              <span class="text-[9px] text-emerald-300 block font-semibold">Tunai</span>
+              <span id="walletTunaiSpent" class="text-xs font-black text-emerald-400">Rp0</span>
+            </div>
+            <div class="bg-black/30 p-2 rounded-2xl border border-amber-500/30">
+              <span class="text-[9px] text-amber-300 block font-semibold">Tempo</span>
+              <span id="walletTempoSpent" class="text-xs font-black text-amber-400">Rp0</span>
+            </div>
+            <div class="bg-black/30 p-2 rounded-2xl border border-violet-500/30">
+              <span class="text-[9px] text-violet-300 block font-semibold">Deposit</span>
+              <span id="walletDepositSpent" class="text-xs font-black text-violet-400">Rp0</span>
+            </div>
+          </div>
         </div>
 
         <div class="bg-white/5 p-4 rounded-3xl border border-white/5 space-y-3">
@@ -602,7 +597,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-2 text-[10px] text-slate-500 font-medium tracking-wide">
-      v3.52 (3-Column Status Dashboard Edition) • Powered by Ari GPM
+      v3.54 (Riwayat Status Dashboard Edition) • Powered by Ari GPM
     </div>
 
   </main>
@@ -759,62 +754,6 @@
     }
 
     function closeCustomToast() { document.getElementById("customToastModal").classList.add('hidden'); }
-
-    // FUNGSI TOGGLE KARTU 3-KOLOM STATUS DI HEADER KHUSUS CUSTOMER (TANPA REFRESH)
-    function toggleCustomerHeaderStatusCard() {
-      const card = document.getElementById("customerHeaderStatusCard");
-      if (card.classList.contains('hidden')) {
-        updateCustomerHeaderStatusContent();
-        card.classList.remove('hidden');
-        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      } else {
-        card.classList.add('hidden');
-      }
-    }
-
-    function updateCustomerHeaderStatusContent() {
-      const savedCustAcc = JSON.parse(localStorage.getItem("kurir_customer_account") || "{}");
-      document.getElementById("hdrCardName").innerText = savedCustAcc.name || "Belum Terdaftar";
-      
-      let displayOrders = ordersData;
-      const targetCs = String(currentCsId || customerPhone || savedCustAcc.phone || "").replace(/\D/g, '');
-      if (targetCs) {
-        displayOrders = ordersData.filter(o => {
-          const oCs = String(o["CS ID"] || "").replace(/\D/g, '');
-          const oHp = String(o["Nomor HP"] || "").replace(/\D/g, '');
-          return oCs === targetCs || oHp === targetCs;
-        });
-      }
-
-      let countPickup = 0;
-      let countTransit = 0;
-      let countDelivered = 0;
-      let totalDepositSpent = 0;
-
-      displayOrders.forEach(o => {
-        let st = (o["Status"] || "Menunggu").trim();
-        if (st === "Menunggu" || st === "Diambil") {
-          countPickup++;
-        } else if (st === "Dalam Pengiriman") {
-          countTransit++;
-        } else if (st === "Selesai") {
-          countDelivered++;
-        }
-
-        let cost = Number(o["Total Ongkos"] || Math.round(Number(o["Jarak KM"] || 0) * 3000));
-        let payMethod = o["Metode Pembayaran"] || "Tunai / COD";
-        if (payMethod.includes("Deposit")) totalDepositSpent += cost;
-      });
-
-      let depositsTopups = JSON.parse(localStorage.getItem("kurir_deposit_topups") || "{}");
-      let myTopup = Number(depositsTopups[targetCs] || 0);
-      let sisaSaldo = myTopup - totalDepositSpent;
-
-      document.getElementById("statColPickup").innerText = countPickup;
-      document.getElementById("statColTransit").innerText = countTransit;
-      document.getElementById("statColDelivered").innerText = countDelivered;
-      document.getElementById("hdrCardBalance").innerText = "Saldo: " + formatRupiah(sisaSaldo);
-    }
 
     function openCustomerHelpChat() {
       const driverWa = formatPhoneNumber(localStorage.getItem("driver_wa") || "6281234567890");
@@ -1166,15 +1105,13 @@
         
         document.getElementById("nav-dashboard").style.display = "none";
         document.getElementById("nav-pengaturan").style.display = "none";
-        document.getElementById("nav-dompet").style.display = "none"; 
+        document.getElementById("nav-dompet").style.display = "flex"; 
         document.getElementById("nav-akun").style.display = "flex";
         document.getElementById("nav-chat").style.display = "flex"; 
-        document.getElementById("headerInfoBtn").style.display = "flex"; 
 
         if (isRegistered) {
           document.getElementById("nav-pesanan").style.display = "flex";
           document.getElementById("nav-riwayat").style.display = "flex";
-          document.getElementById("nav-dompet").style.display = "flex"; 
           document.getElementById("registrationAlertBox").classList.add('hidden');
 
           document.getElementById("nama").value = savedCustAcc.name;
@@ -1199,7 +1136,6 @@
         document.getElementById("nav-akun").style.display = "none";
         document.getElementById("nav-dompet").style.display = "none";
         document.getElementById("nav-chat").style.display = "none"; 
-        document.getElementById("headerInfoBtn").style.display = "none"; 
         document.getElementById("nav-dashboard").style.display = "flex";
         document.getElementById("nav-pengaturan").style.display = "flex";
         document.getElementById("nav-pesanan").style.display = "flex";
@@ -1487,12 +1423,22 @@
       let totalOrders = displayOrders.length, totalKm = 0, totalRevenue = 0, activeOrders = [];
       let todayTrips = 0, todayKm = 0;
       let totalTunai = 0, totalTempo = 0, totalDeposit = 0;
+      let countPickup = 0, countTransit = 0, countDelivered = 0;
       const now = new Date();
 
       displayOrders.forEach(o => {
         let km = Number(o["Jarak KM"] || 0);
         let cost = Number(o["Total Ongkos"] || Math.round(km * 3000));
         totalKm += km; totalRevenue += cost;
+
+        let st = (o["Status"] || "Menunggu").trim();
+        if (st === "Menunggu" || st === "Diambil") {
+          countPickup++;
+        } else if (st === "Dalam Pengiriman") {
+          countTransit++;
+        } else if (st === "Selesai") {
+          countDelivered++;
+        }
 
         let payMethod = o["Metode Pembayaran"] || "Tunai / COD";
         if (payMethod.includes("Tempo")) {
@@ -1503,7 +1449,7 @@
           totalTunai += cost;
         }
 
-        if ((o["Status"] || "Menunggu") !== "Selesai") activeOrders.push(o);
+        if (st !== "Selesai") activeOrders.push(o);
 
         let isToday = false;
         if (o["Timestamp"]) {
@@ -1565,22 +1511,33 @@
       }
 
       if (isCustomerMode) {
-        const badge = document.getElementById("custSummaryIdBadge");
-        if (badge) badge.innerText = "Pelanggan: " + (currentCsId || customerPhone || "Umum");
-        const sumEl = document.getElementById("customerFinancialSummary");
-        if (sumEl) sumEl.classList.remove('hidden');
+        const savedCustAcc = JSON.parse(localStorage.getItem("kurir_customer_account") || "{}");
+        if (document.getElementById("riwayatCustNameHeader")) {
+          document.getElementById("riwayatCustNameHeader").innerText = savedCustAcc.name || "Pelanggan";
+        }
+
+        document.getElementById("statColPickup").innerText = countPickup;
+        document.getElementById("statColTransit").innerText = countTransit;
+        document.getElementById("statColDelivered").innerText = countDelivered;
+
         const cOrders = document.getElementById("custTotalOrders");
         if (cOrders) cOrders.innerText = totalOrders;
         const cKm = document.getElementById("custTotalKm");
         if (cKm) cKm.innerText = totalKm.toFixed(1) + " KM";
         const cSpent = document.getElementById("custTotalSpent");
         if (cSpent) cSpent.innerText = formatRupiah(totalRevenue);
-        const cTunai = document.getElementById("custTunaiSpent");
-        if (cTunai) cTunai.innerText = formatRupiah(totalTunai);
-        const cTempo = document.getElementById("custTempoSpent");
-        if (cTempo) cTempo.innerText = formatRupiah(totalTempo);
-        const cDeposit = document.getElementById("custDepositSpent");
-        if (cDeposit) cDeposit.innerText = formatRupiah(totalDeposit);
+
+        // Rekap di Tab Dompet
+        if (document.getElementById("walletTunaiSpent")) document.getElementById("walletTunaiSpent").innerText = formatRupiah(totalTunai);
+        if (document.getElementById("walletTempoSpent")) document.getElementById("walletTempoSpent").innerText = formatRupiah(totalTempo);
+        if (document.getElementById("walletDepositSpent")) document.getElementById("walletDepositSpent").innerText = formatRupiah(totalDeposit);
+
+        let depositsTopups = JSON.parse(localStorage.getItem("kurir_deposit_topups") || "{}");
+        let activePhoneClean = String(currentCsId || customerPhone || "").replace(/\D/g, '');
+        let myTopup = Number(depositsTopups[activePhoneClean] || 0);
+        let sisaSaldo = myTopup - totalDeposit;
+        const walletEl = document.getElementById("customerWalletBalance");
+        if (walletEl) walletEl.innerText = formatRupiah(sisaSaldo);
       }
 
       const tableBody = document.getElementById("historyTableBody");
