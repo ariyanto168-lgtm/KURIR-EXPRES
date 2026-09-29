@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KURIR EXPRESS — CLEAN BROADCAST ORDER LINK</title>
+  <title>KURIR EXPRESS — AUTO DEPOSIT & DYNAMIC NAV</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- FontAwesome for Icons -->
@@ -480,6 +480,29 @@
           <span>Pengaturan Driver & Profil</span>
         </h2>
 
+        <!-- KELOLA SALDO DEPOSIT PELANGGAN (UNTUK DRIVER) -->
+        <div class="bg-gradient-to-r from-emerald-600/20 to-teal-600/20 p-4 rounded-3xl border border-emerald-500/40 space-y-3">
+          <h3 class="font-bold text-emerald-300 text-xs uppercase tracking-wider flex items-center space-x-2">
+            <i class="fa-solid fa-wallet"></i>
+            <span>Kelola Saldo Deposit Pelanggan</span>
+          </h3>
+          <p class="text-[10px] text-slate-300 leading-relaxed">Masukkan nomor WhatsApp pelanggan yang sudah transfer untuk mengisi saldo deposit mereka secara otomatis:</p>
+          
+          <div class="space-y-2.5">
+            <div>
+              <label class="block text-[10px] font-semibold text-slate-300 mb-1">No. WhatsApp Pelanggan</label>
+              <input type="tel" id="adminTopupPhone" placeholder="Contoh: 081325325088" class="w-full px-3 py-2 text-xs bg-slate-800 border border-white/10 rounded-xl text-white font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            </div>
+            <div>
+              <label class="block text-[10px] font-semibold text-slate-300 mb-1">Nominal Top-Up (Rp)</label>
+              <input type="number" id="adminTopupAmount" placeholder="Contoh: 50000" class="w-full px-3 py-2 text-xs bg-slate-800 border border-white/10 rounded-xl text-white font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            </div>
+            <button onclick="adminExecuteTopup()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs transition shadow">
+              <i class="fa-solid fa-check mr-1"></i> Tambah Saldo Pelanggan Sekarang
+            </button>
+          </div>
+        </div>
+
         <!-- FOTO AKUN / PROFIL DRIVER -->
         <div class="bg-white/5 p-4 rounded-3xl border border-white/5 text-center space-y-3">
           <span class="text-xs font-semibold text-slate-300 block">Foto Profil Driver (Dilihat Customer)</span>
@@ -536,7 +559,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-2 text-[10px] text-slate-500 font-medium tracking-wide">
-      v3.48 (Broadcast Link Registration Reset Edition) • Powered by Ari GPM
+      v3.49 (Auto-Deposit & Dynamic Nav Edition) • Powered by Ari GPM
     </div>
 
   </main>
@@ -690,6 +713,24 @@
 
     function closeCustomToast() { document.getElementById("customToastModal").classList.add('hidden'); }
 
+    // FUNGSI ADMIN/DRIVER UNTUK ISI SALDO DEPOSIT PELANGGAN SECARA OTOMATIS
+    function adminExecuteTopup() {
+      const phoneInput = document.getElementById("adminTopupPhone").value.replace(/\D/g, '');
+      const amountInput = Number(document.getElementById("adminTopupAmount").value);
+      if (!phoneInput || !amountInput || amountInput <= 0) {
+        showToast("Perhatian", "Masukkan nomor WA pelanggan dan nominal top-up yang valid.", "warning");
+        return;
+      }
+      let depositsTopups = JSON.parse(localStorage.getItem("kurir_deposit_topups") || "{}");
+      let currentTopup = Number(depositsTopups[phoneInput] || 0);
+      depositsTopups[phoneInput] = currentTopup + amountInput;
+      localStorage.setItem("kurir_deposit_topups", JSON.stringify(depositsTopups));
+
+      document.getElementById("adminTopupPhone").value = "";
+      document.getElementById("adminTopupAmount").value = "";
+      showToast("Berhasil", `Top-up sebesar ${formatRupiah(amountInput)} untuk nomor ${phoneInput} berhasil disimpan!`, "success");
+    }
+
     function openExpenseModal() {
       renderExpenseList();
       document.getElementById("expenseModal").classList.remove('hidden');
@@ -791,7 +832,6 @@
       }
     }
 
-    // FUNGSI SHARE BROADCAST URL DENGAN PARAMETER PEMBERSIH CACHE (broadcast=1)
     function shareCleanBroadcastLink() {
       const cleanUrl = window.location.href.split('?')[0];
       const broadcastUrl = cleanUrl + "?broadcast=1";
@@ -964,7 +1004,6 @@
     window.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
       
-      // Jika mendeteksi parameter broadcast=1, hapus cache akun pelanggan sebelumnya agar bersih total untuk pelanggan baru
       if (urlParams.has('broadcast')) {
         localStorage.removeItem("kurir_customer_account");
         window.history.replaceState({}, '', window.location.pathname);
@@ -1016,12 +1055,13 @@
         
         document.getElementById("nav-dashboard").style.display = "none";
         document.getElementById("nav-pengaturan").style.display = "none";
-        document.getElementById("nav-dompet").style.display = "flex";
+        document.getElementById("nav-dompet").style.display = "none"; // Sembunyikan dompet sampai terdaftar
         document.getElementById("nav-akun").style.display = "flex";
 
         if (isRegistered) {
           document.getElementById("nav-pesanan").style.display = "flex";
           document.getElementById("nav-riwayat").style.display = "flex";
+          document.getElementById("nav-dompet").style.display = "flex"; // Tampilkan dompet jika sudah terdaftar
           document.getElementById("registrationAlertBox").classList.add('hidden');
 
           document.getElementById("nama").value = savedCustAcc.name;
@@ -1091,6 +1131,7 @@
       
       document.getElementById("nav-pesanan").style.display = "flex";
       document.getElementById("nav-riwayat").style.display = "flex";
+      document.getElementById("nav-dompet").style.display = "flex"; // Munculkan dompet setelah registrasi berhasil
       document.getElementById("registrationAlertBox").classList.add('hidden');
 
       showToast("Berhasil", "Akun Berhasil Disimpan, Silakan Buat Pesanan!", "success");
@@ -1427,7 +1468,8 @@
         if (cDeposit) cDeposit.innerText = formatRupiah(totalDeposit);
 
         let depositsTopups = JSON.parse(localStorage.getItem("kurir_deposit_topups") || "{}");
-        let myTopup = Number(depositsTopups[currentCsId || customerPhone] || 0);
+        let activePhoneClean = String(currentCsId || customerPhone || "").replace(/\D/g, '');
+        let myTopup = Number(depositsTopups[activePhoneClean] || 0);
         let sisaSaldo = myTopup - totalDeposit;
         const walletEl = document.getElementById("customerWalletBalance");
         if (walletEl) walletEl.innerText = formatRupiah(sisaSaldo);
