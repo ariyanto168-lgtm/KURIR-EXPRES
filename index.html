@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KURIR EXPRESS — STATUS SYNC FIX</title>
+  <title>KURIR EXPRESS — LINK ROUTING FIX</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- FontAwesome for Icons -->
@@ -470,7 +470,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-2 text-[10px] text-slate-500 font-medium tracking-wide">
-      v3.33 (Status & Photo Sync Fix) • Powered by Ari GPM
+      v3.34 (Link Routing Fix) • Powered by Ari GPM
     </div>
 
   </main>
@@ -793,7 +793,6 @@
           localOrders[idx]["Status"] = "Selesai";
           localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
           
-          // Auto update URL parameter 'data' jika sedang diakses via link resi
           updateUrlOrderData(localOrders[idx]);
 
           loadDataInstant();
@@ -929,12 +928,16 @@
       const phoneParam = urlParams.get('phone');
       const savedCustAcc = JSON.parse(localStorage.getItem("kurir_customer_account") || "{}");
 
+      // JIKA ADA PARAMETER role=driver ATAU TIDAK ADA PARAMETER MODE ORDER, MAKA PAKSA MASUK MODE DRIVER
       if (roleParam === 'driver') {
         isCustomerMode = false;
         customerPhone = "";
-      } else if (modeParam === 'order' || phoneParam || savedCustAcc.phone) {
+      } else if (modeParam === 'order' || phoneParam) {
         isCustomerMode = true;
-        customerPhone = phoneParam || savedCustAcc.phone || "";
+        customerPhone = phoneParam || "";
+      } else if (savedCustAcc.phone && !urlParams.has('order')) {
+        isCustomerMode = true;
+        customerPhone = savedCustAcc.phone;
       } else {
         isCustomerMode = false;
         customerPhone = "";
@@ -993,7 +996,9 @@
       renderSavedAddresses();
 
       if (autoOpenOrderId) {
-        setTimeout(() => showDetailById(autoOpenOrderId), 350);
+        setTimeout(() => {
+          showDetailById(autoOpenOrderId);
+        }, 350);
       }
     });
 
