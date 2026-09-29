@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KURIR EXPRESS — ANTI-CONFLICT EDITION</title>
+  <title>KURIR EXPRESS — DRIVER SYNC EDITION</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- FontAwesome for Icons -->
@@ -33,7 +33,7 @@
       </div>
       <div>
         <h1 class="font-extrabold text-sm tracking-wider uppercase bg-gradient-to-r from-white to-pink-100 bg-clip-text text-transparent">Kurir Express</h1>
-        <p class="text-[10px] text-violet-200 font-medium">Anti-Conflict Edition</p>
+        <p class="text-[10px] text-violet-200 font-medium">Driver Sync Edition</p>
       </div>
     </div>
     <div id="connectionStatus" class="text-[11px] bg-black/30 backdrop-blur-md px-3 py-1 rounded-full font-semibold flex items-center space-x-1.5 border border-white/10 shadow-sm">
@@ -175,7 +175,7 @@
           </div>
 
           <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Nomor WhatsApp Pelanggan <span class="text-pink-500">*</span></label>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Nomor WhatsApp Pelanggan / CS <span class="text-pink-500">*</span></label>
             <input type="tel" id="noHp" required placeholder="Contoh: 081325325088" oninput="onPhoneInput(this.value)" class="w-full px-4 py-2.5 text-sm bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
           </div>
 
@@ -374,7 +374,7 @@
             <input type="email" id="custRegEmail" required placeholder="Contoh: budi@gmail.com" class="w-full px-4 py-2.5 text-sm bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Nomor WhatsApp CS / Pelanggan Pengelola</label>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Nomor WhatsApp CS / Pengelola</label>
             <input type="tel" id="custRegPhone" required placeholder="Contoh: 081325325088" class="w-full px-4 py-2.5 text-sm bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
           </div>
           <button type="submit" class="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:opacity-95 text-white font-bold py-3 rounded-2xl text-sm shadow-xl shadow-indigo-500/25 transition mt-2">
@@ -462,7 +462,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-2 text-[10px] text-slate-500 font-medium tracking-wide">
-      v3.25 (Anti-Conflict CS Edition) • Powered by Ari GPM
+      v3.26 (Driver & CS Order Sync Fix) • Powered by Ari GPM
     </div>
 
   </main>
@@ -601,6 +601,7 @@
     let activeOrdersExpanded = true;
     let isSaving = false;
     let lastCreatedOrderId = null;
+    let currentCsId = "";
 
     function showToast(title, message, type = 'success') {
       const modal = document.getElementById("customToastModal");
@@ -892,21 +893,8 @@
 
       isCustomerMode = urlParams.get('mode') === 'order';
       customerPhone = urlParams.get('phone') || "";
+      currentCsId = customerPhone;
       autoOpenOrderId = urlParams.get('order') || null;
-
-      // ANTI-CONFLICT SESI ISOLATION
-      if (customerPhone) {
-        const lastSavedPhone = localStorage.getItem("my_customer_phone");
-        if (lastSavedPhone && lastSavedPhone !== customerPhone) {
-          localStorage.removeItem("kurir_customer_account");
-        }
-        localStorage.setItem("my_customer_phone", customerPhone);
-      } else {
-        const storedPhone = localStorage.getItem("my_customer_phone");
-        if (storedPhone && isCustomerMode) {
-          customerPhone = storedPhone;
-        }
-      }
 
       if (isCustomerMode) {
         document.getElementById("nav-dashboard").style.display = "none";
@@ -921,11 +909,6 @@
           document.getElementById("nama").value = savedCustAcc.name;
           document.getElementById("custRegName").value = savedCustAcc.name;
           document.getElementById("custRegEmail").value = savedCustAcc.email || "";
-          if (savedCustAcc.phone) { 
-            document.getElementById("noHp").value = savedCustAcc.phone; 
-            document.getElementById("custRegPhone").value = savedCustAcc.phone; 
-            customerPhone = savedCustAcc.phone; 
-          }
         }
         switchTab(autoOpenOrderId ? 'riwayat' : 'pesanan');
       } else {
@@ -959,9 +942,6 @@
       const phone = document.getElementById("custRegPhone").value.trim().replace(/\D/g, '');
       localStorage.setItem("kurir_customer_account", JSON.stringify({ name, email, phone }));
       document.getElementById("nama").value = name;
-      document.getElementById("noHp").value = phone;
-      customerPhone = phone;
-      localStorage.setItem("my_customer_phone", customerPhone);
       showToast("Tersimpan", "Akun berhasil didaftarkan!", "success");
       switchTab('pesanan');
     }
@@ -995,44 +975,7 @@
       showToast("Dipilih", "Alamat dimasukkan ke form.", "success");
     }
 
-    function renderSavedAddresses() {
-      let saved = JSON.parse(localStorage.getItem("kurir_saved_addresses") || "[]");
-      const container = document.getElementById("savedAddressesContainer");
-      
-      if (saved.length === 0) {
-        container.innerHTML = `<p class="text-[11px] text-slate-500 text-center py-2">Belum ada alamat tersimpan.</p>`;
-      } else {
-        container.innerHTML = saved.map((item, idx) => `
-          <div class="bg-white/5 p-3 rounded-2xl border border-white/5 flex items-center justify-between text-xs">
-            <div class="min-w-0 pr-2">
-              <span class="font-bold text-violet-300 block truncate">${item.label}</span>
-              <span class="text-[11px] text-slate-400 block truncate">${item.address}</span>
-            </div>
-            <div class="flex items-center space-x-1.5 shrink-0">
-              <button onclick="useSavedAddress('alamatJemput', '${item.address.replace(/'/g, "\\'")}')" class="px-2 py-1 bg-violet-600/30 text-violet-300 hover:bg-violet-600/50 rounded-xl font-bold text-[10px]" title="Jadikan Jemput">Jemput</button>
-              <button onclick="useSavedAddress('alamatTujuan', '${item.address.replace(/'/g, "\\'")}')" class="px-2 py-1 bg-indigo-600/30 text-indigo-300 hover:bg-indigo-600/50 rounded-xl font-bold text-[10px]" title="Jadikan Tujuan">Tujuan</button>
-              <button onclick="deleteFavoriteAddress(${idx})" class="p-1 text-red-400 hover:text-red-300 text-xs"><i class="fa-solid fa-trash"></i></button>
-            </div>
-          </div>
-        `).join('');
-      }
-
-      const qJemput = document.getElementById("quickJemputPicker");
-      const qTujuan = document.getElementById("quickTujuanPicker");
-      if (saved.length > 0) {
-        const pills = saved.map(item => `<button type="button" onclick="document.getElementById('alamatJemput').value='${item.address.replace(/'/g, "\\'")}'" class="text-[9px] bg-violet-500/20 text-violet-300 px-2 py-0.5 rounded-lg border border-violet-500/30 font-semibold truncate max-w-[100px]">${item.label}</button>`).join('');
-        const pillsTujuan = saved.map(item => `<button type="button" onclick="document.getElementById('alamatTujuan').value='${item.address.replace(/'/g, "\\'")}'" class="text-[9px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-lg border border-indigo-500/30 font-semibold truncate max-w-[100px]">${item.label}</button>`).join('');
-        if (qJemput) qJemput.innerHTML = pills;
-        if (qTujuan) qTujuan.innerHTML = pillsTujuan;
-      }
-    }
-
-    function onPhoneInput(val) {
-      if (val.length >= 10) { 
-        customerPhone = val.replace(/\D/g, ''); 
-        localStorage.setItem("my_customer_phone", customerPhone); 
-      }
-    }
+    function onPhoneInput(val) {}
 
     function switchTab(tabId) {
       if (isCustomerMode && ['pesanan', 'riwayat', 'akun'].indexOf(tabId) === -1) return;
@@ -1115,8 +1058,6 @@
       if (!nama || !noHp || !jemput || !tujuan) {
         showToast("Belum Lengkap", "Harap isi semua kolom wajib.", "warning"); return;
       }
-      customerPhone = noHp.replace(/\D/g, '');
-      localStorage.setItem("my_customer_phone", customerPhone);
 
       const btn = document.querySelector("button[onclick='calculateDistance()']");
       const orig = btn.innerHTML; btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Memproses Rute...`;
@@ -1138,7 +1079,7 @@
         let totalOngkos = Math.round(jarakKm * currentTarif);
 
         calculatedData = { 
-          nama, noHp: customerPhone, kategori, pembayaran, 
+          nama, noHp: noHp.replace(/\D/g, ''), csId: currentCsId || "Umum", kategori, pembayaran, 
           alamatJemput: jemput, alamatTujuan: tujuan, 
           jemputLat: c1.lat, jemputLon: c1.lon, 
           tujuanLat: c2.lat, tujuanLon: c2.lon,
@@ -1161,7 +1102,7 @@
       }
     }
 
-    async function saveOrder() {
+    function saveOrder() {
       if (!calculatedData || isSaving) return;
       isSaving = true;
       const orderId = "KURIR-" + new Date().toISOString().slice(0,10).replace(/-/g,"") + "-" + Math.floor(1000 + Math.random() * 9000);
@@ -1173,6 +1114,7 @@
         "Tanggal": new Date().toLocaleString("id-ID"),
         "Nama Pelanggan": calculatedData.nama,
         "Nomor HP": calculatedData.noHp,
+        "CS ID": calculatedData.csId,
         "Kategori": calculatedData.kategori,
         "Metode Pembayaran": calculatedData.pembayaran,
         "Alamat Jemput": calculatedData.alamatJemput,
@@ -1191,17 +1133,18 @@
         "_synced": false
       };
 
+      // SIMPAN KE DATABASE GLOBAL DRIVER (KURIR_ORDERS)
       let localOrders = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
       localOrders.unshift(newOrder);
       localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
 
       if (isCustomerMode) {
         const driverWa = formatPhoneNumber(localStorage.getItem("driver_wa") || "6281234567890");
-        const reportText = `*PESANAN BARU*\nID: ${orderId}\nKategori: ${newOrder["Kategori"]}\nPembayaran: ${newOrder["Metode Pembayaran"]}\nNama: ${newOrder["Nama Pelanggan"]}\nJemput: ${newOrder["Alamat Jemput"]}\nTujuan: ${newOrder["Alamat Tujuan"]}\nOngkos: ${formatRupiah(newOrder["Total Ongkos"])}`;
+        const reportText = `*PESANAN BARU (CS: ${calculatedData.csId})*\nID: ${orderId}\nKategori: ${newOrder["Kategori"]}\nPembayaran: ${newOrder["Metode Pembayaran"]}\nNama: ${newOrder["Nama Pelanggan"]}\nJemput: ${newOrder["Alamat Jemput"]}\nTujuan: ${newOrder["Alamat Tujuan"]}\nOngkos: ${formatRupiah(newOrder["Total Ongkos"])}`;
         document.getElementById("customerShareBtnContainer").innerHTML = `<a href="https://wa.me/${driverWa}?text=${encodeURIComponent(reportText)}" target="_blank" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-4 rounded-2xl text-xs flex items-center justify-center space-x-2 shadow-lg"><i class="fa-brands fa-whatsapp text-base"></i><span>Kirim WA ke Driver</span></a>`;
         document.getElementById("customerSuccessModal").classList.remove('hidden');
       } else {
-        showToast("Sukses", "Pesanan tersimpan!", "success");
+        showToast("Sukses", "Pesanan tersimpan ke Dashboard Driver!", "success");
         loadDataInstant();
         switchTab('riwayat');
       }
@@ -1222,7 +1165,12 @@
     function loadData() { loadDataInstant(); }
 
     function renderDashboardAndHistory() {
-      let displayOrders = isCustomerMode && customerPhone ? ordersData.filter(o => (o["Nomor HP"] || "").includes(customerPhone)) : ordersData;
+      // Jika mode customer dengan CS tertentu, tampilkan pesanan yang dibuat melalui CS tersebut atau nomor HP terkait
+      let displayOrders = ordersData;
+      if (isCustomerMode) {
+        displayOrders = ordersData.filter(o => (o["CS ID"] === currentCsId) || (o["Nomor HP"] === customerPhone));
+      }
+
       let totalOrders = displayOrders.length, totalKm = 0, totalRevenue = 0, activeOrders = [];
       let todayTrips = 0, todayKm = 0;
       let totalTunai = 0, totalTempo = 0, totalDeposit = 0;
@@ -1279,7 +1227,7 @@
 
       if (isCustomerMode) {
         const badge = document.getElementById("custSummaryIdBadge");
-        if (badge) badge.innerText = "No: " + customerPhone;
+        if (badge) badge.innerText = "CS: " + (currentCsId || "Umum");
         const sumEl = document.getElementById("customerFinancialSummary");
         if (sumEl) sumEl.classList.remove('hidden');
         const cOrders = document.getElementById("custTotalOrders");
@@ -1298,10 +1246,11 @@
 
       const batchContainer = document.getElementById("batchRouteContainer");
       if (batchContainer && !isCustomerMode) {
-        if (activeOrders.length === 0) {
+        let driverActiveOrders = ordersData.filter(o => (o["Status"] || "Menunggu") !== "Selesai");
+        if (driverActiveOrders.length === 0) {
           batchContainer.innerHTML = `<p class="text-[11px] text-slate-500 text-center py-2">Tidak ada kloter rute aktif.</p>`;
         } else {
-          batchContainer.innerHTML = activeOrders.map((o, idx) => {
+          batchContainer.innerHTML = driverActiveOrders.map((o, idx) => {
             const safeId = String(o["ID Pesanan"] || "");
             let st = o["Status"] || "Menunggu";
             return `
@@ -1309,7 +1258,7 @@
                 <div class="flex items-center space-x-2.5 min-w-0">
                   <div class="w-6 h-6 rounded-xl bg-violet-600 text-white font-bold flex items-center justify-center text-[10px] shrink-0">${idx + 1}</div>
                   <div class="min-w-0 pr-2">
-                    <span class="font-bold text-white block truncate">${o["Nama Pelanggan"]}</span>
+                    <span class="font-bold text-white block truncate">${o["Nama Pelanggan"]} (CS: ${o["CS ID"] || 'Umum'})</span>
                     <span class="text-[10px] text-slate-400 block truncate">Jemput: ${o["Alamat Jemput"]}</span>
                     <span class="text-[10px] text-violet-300 block truncate">Tujuan: ${o["Alamat Tujuan"]}</span>
                   </div>
@@ -1326,7 +1275,8 @@
 
       const activeContainer = document.getElementById("activeOrdersListContainer");
       if (activeContainer && !isCustomerMode) {
-        activeContainer.innerHTML = activeOrders.length === 0 ? `<p class="text-xs text-slate-500 text-center py-2">Tidak ada pesanan aktif.</p>` : activeOrders.map(o => {
+        let driverActiveOrders = ordersData.filter(o => (o["Status"] || "Menunggu") !== "Selesai");
+        activeContainer.innerHTML = driverActiveOrders.length === 0 ? `<p class="text-xs text-slate-500 text-center py-2">Tidak ada pesanan aktif.</p>` : driverActiveOrders.map(o => {
           let st = o["Status"] || "Menunggu";
           let kat = o["Kategori"] || "Paket Umum";
           let bayar = o["Metode Pembayaran"] || "Tunai / COD";
@@ -1341,7 +1291,7 @@
           return `
             <div class="bg-white/5 p-3.5 rounded-2xl border border-white/5 flex flex-col space-y-2 cursor-pointer hover:bg-white/10 transition" onclick="showDetailById('${safeId}')">
               <div class="flex justify-between items-center">
-                <span class="font-bold text-white text-xs">${o["Nama Pelanggan"]}</span>
+                <span class="font-bold text-white text-xs">${o["Nama Pelanggan"]} <span class="text-[9px] bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded ml-1">CS: ${o["CS ID"] || 'Umum'}</span></span>
                 <span class="px-2 py-0.5 rounded-lg text-[9px] font-bold ${bayarBadge}">${bayar}</span>
               </div>
               <div class="text-[11px] text-slate-400 flex justify-between items-center">
@@ -1377,7 +1327,7 @@
           return `
             <tr class="border-b border-white/5 hover:bg-white/5 cursor-pointer" onclick="showDetailById('${safeId}')">
               <td class="p-3">
-                <span class="font-bold text-white block">${o["Nama Pelanggan"]}</span>
+                <span class="font-bold text-white block">${o["Nama Pelanggan"]} <span class="text-[8px] bg-indigo-500/20 text-indigo-300 px-1 rounded">CS: ${o["CS ID"] || 'Umum'}</span></span>
                 <span class="text-[10px] text-slate-400">${o["ID Pesanan"]}</span>
               </td>
               <td class="p-3">
@@ -1465,6 +1415,7 @@
       content.innerHTML = `
         <div class="space-y-1.5 text-xs text-slate-300 border-t border-b border-white/10 py-2.5">
           <div class="flex justify-between"><span class="font-bold text-slate-400">ID Pesanan:</span> <span class="font-mono text-white">${order["ID Pesanan"]}</span></div>
+          <div class="flex justify-between"><span class="font-bold text-slate-400">CS Pengelola:</span> <span class="text-indigo-300 font-bold">${order["CS ID"] || 'Umum'}</span></div>
           <div class="flex justify-between"><span class="font-bold text-slate-400">Tanggal:</span> <span class="text-white">${order["Tanggal"] || order["Timestamp"]}</span></div>
           <div class="flex justify-between"><span class="font-bold text-slate-400">Pelanggan:</span> <span class="text-white">${order["Nama Pelanggan"]}</span></div>
           <div class="flex justify-between"><span class="font-bold text-slate-400">Kategori:</span> <span class="text-violet-300 font-bold">${order["Kategori"] || 'Paket Umum'}</span></div>
@@ -1544,7 +1495,7 @@
       const rawPhone = (order["Nomor HP"] || "").replace(/\D/g, '');
       const orderJsonStr = JSON.stringify(order);
       const encodedOrderData = encodeURIComponent(btoa(unescape(encodeURIComponent(orderJsonStr))));
-      const linkCustomerOrder = `${baseUrl}?mode=order&phone=${rawPhone}&order=${order["ID Pesanan"]}&data=${encodedOrderData}`;
+      const linkCustomerOrder = `${baseUrl}?mode=order&phone=${order["CS ID"] || rawPhone}&order=${order["ID Pesanan"]}&data=${encodedOrderData}`;
 
       const linkContainer = document.getElementById("modalLinkContainer");
       if (!isCustomerMode) {
@@ -1565,7 +1516,7 @@
       let invoiceBtnHtml = !isCustomerMode ? `<button onclick="openInvoiceModal('${order["ID Pesanan"]}')" class="w-full bg-violet-600/30 hover:bg-violet-600/50 text-violet-300 border border-violet-500/30 font-bold py-2.5 px-4 rounded-2xl text-xs flex items-center justify-center space-x-2 transition mb-2"><i class="fa-solid fa-receipt"></i><span>Cetak Nota / Invoice Resmi</span></button>` : '';
 
       if (isCustomerMode) {
-        const confirmToDriverText = `Halo Driver ${driverName}, saya ingin mengkonfirmasi pesanan saya dengan ID: *${order["ID Pesanan"]}*.\n\n🔗 Lacak: ${linkCustomerOrder}`;
+        const confirmToDriverText = `Halo Driver ${driverName}, saya ingin mengkonfirmasi pesanan dari CS ${order["CS ID"] || 'Umum'} dengan ID: *${order["ID Pesanan"]}*.\n\n🔗 Lacak: ${linkCustomerOrder}`;
         shareContainer.innerHTML = `
           <div class="mt-2 space-y-2">
             ${invoiceBtnHtml}
