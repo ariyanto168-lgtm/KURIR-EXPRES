@@ -301,7 +301,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.82 • Powered by Ari GPM
+      v2.83 • Powered by Ari GPM
     </div>
 
   </main>
@@ -357,11 +357,11 @@
       </div>
       <div>
         <h3 class="font-bold text-slate-800 text-lg">Pesanan Berhasil!</h3>
-        <p class="text-xs text-slate-500 mt-1">Silakan kirimkan laporan rincian pesanan ini ke WhatsApp Driver agar segera diproses.</p>
+        <p class="text-xs text-slate-500 mt-1">Silakan klik tombol di bawah untuk langsung mengirimkan rincian pesanan ini ke WhatsApp Driver kami.</p>
       </div>
       <div id="customerShareBtnContainer"></div>
       <button onclick="location.reload()" class="w-full bg-slate-100 text-slate-700 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-200 transition">
-        Tutup
+        Tutup & Buat Pesanan Baru
       </button>
     </div>
   </div>
@@ -469,7 +469,6 @@
       autoOpenOrderId = urlParams.get('order') || null;
 
       if (isCustomerMode) {
-        // PERBAIKAN: Hanya menyembunyikan tombol, BUKAN parent-nya (seluruh menu)
         document.getElementById("nav-dashboard").style.display = "none";
         document.getElementById("nav-pengaturan").style.display = "none";
         if (customerPhone) {
@@ -524,7 +523,6 @@
 
       ['dashboard', 'pesanan', 'riwayat', 'pengaturan'].forEach(id => {
         const btn = document.getElementById('nav-' + id);
-        // PERBAIKAN: Cek apakah tombol sendiri yang dihidden, bukan parent-nya
         if (btn && btn.style.display !== "none") {
           if (id === tabId) {
             btn.classList.remove('text-slate-400');
@@ -736,17 +734,18 @@
       btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Menyimpan...`;
 
       const url = document.getElementById("gasUrlInput").value.trim();
+      const dataToSave = { ...calculatedData }; // Mengunci data agar tidak hilang
 
       if (url) {
         try {
           const response = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify(calculatedData)
+            body: JSON.stringify(dataToSave)
           });
           const result = await response.json();
           if (result.status === "success") {
-            handlePostSaveSuccess(result.orderId);
+            handlePostSaveSuccess(result.orderId, dataToSave);
           } else {
             showToast("Gagal Menyimpan", result.message || "Unknown error", "warning");
             isSaving = false;
@@ -755,28 +754,28 @@
           }
         } catch (err) {
           console.error("Koneksi gagal, menyimpan secara lokal", err);
-          saveOrderLocally();
+          saveOrderLocally(dataToSave);
         }
       } else {
-        setTimeout(() => saveOrderLocally(), 500);
+        setTimeout(() => saveOrderLocally(dataToSave), 500);
       }
     }
 
-    function saveOrderLocally() {
+    function saveOrderLocally(dataToSave) {
       const orderId = "KURIR-" + new Date().toISOString().slice(0,10).replace(/-/g,"") + "-" + Math.floor(1000 + Math.random() * 9000);
       const newOrder = {
         "ID Pesanan": orderId,
         "Timestamp": new Date().toISOString(),
         "Tanggal": new Date().toLocaleString("id-ID"),
-        "Nama Pelanggan": calculatedData.nama,
-        "Nomor HP": calculatedData.noHp,
-        "Alamat Jemput": calculatedData.alamatJemput,
-        "Alamat Tujuan": calculatedData.alamatTujuan,
-        "Catatan": calculatedData.catatan,
-        "Jarak KM": calculatedData.jarak,
-        "Estimasi Menit": calculatedData.estimasiMenit,
-        "Tarif per KM": calculatedData.tarif,
-        "Total Ongkos": calculatedData.totalOngkos,
+        "Nama Pelanggan": dataToSave.nama,
+        "Nomor HP": dataToSave.noHp,
+        "Alamat Jemput": dataToSave.alamatJemput,
+        "Alamat Tujuan": dataToSave.alamatTujuan,
+        "Catatan": dataToSave.catatan,
+        "Jarak KM": dataToSave.jarak,
+        "Estimasi Menit": dataToSave.estimasiMenit,
+        "Tarif per KM": dataToSave.tarif,
+        "Total Ongkos": dataToSave.totalOngkos,
         "Status": "Menunggu",
         "_synced": false
       };
@@ -785,10 +784,24 @@
       localOrders.unshift(newOrder);
       localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
 
-      handlePostSaveSuccess(orderId);
+      handlePostSaveSuccess(orderId, dataToSave);
     }
 
-    function generateWaText(orderId, nama, noHp, jemput, tujuan, jarak, ongkos, status) {
+    // Fungsi canggih untuk membedakan WA ke Driver (internal) dan WA ke Customer
+    function generateWaText(orderId, nama, noHp, jemput, tujuan, jarak, ongkos, status, recipientType = 'customer') {
+      const baseUrl = window.location.href.split('?')[0];
+      const jemputLink = `https://maps.google.com/?q=${encodeURIComponent(jemput)}`;
+      const tujuanLink = `https://maps.google.com/?q=${encodeURIComponent(tujuan)}`;
+      const driverWaNum = formatPhoneNumber(localStorage.getItem("driver_wa") || "6281234567890");
+      const custWaNum = formatPhoneNumber(noHp);
+
+      // KHUSUS FORMAT WA DARI CUSTOMER UNTUK DRIVER
+      if (recipientType === 'driver') {
+         const linkOrderDriver = `${baseUrl}?order=${orderId}`;
+         return `*PESANAN BARU MASUK (VIA WEB)*\n\nHalo Driver, ada pesanan masuk dari *${nama}*.\n\n📦 *Jemput:*\n${jemput}\n📍 Map: ${jemputLink}\n\n🏁 *Tujuan:*\n${tujuan}\n📍 Map: ${tujuanLink}\n\n- *Jarak:* ${jarak} KM\n- *Ongkos:* ${formatRupiah(ongkos)}\n\n📞 *Hubungi Customer (WA):*\nwa.me/${custWaNum}\n\n🔗 *Buka & Proses Pesanan Ini di Aplikasi Driver:*\n${linkOrderDriver}`;
+      }
+
+      // FORMAT WA UNTUK CUSTOMER
       let template = localStorage.getItem("wa_template") || DEFAULT_WA_TEMPLATE;
       
       if (!template.includes("{linkOrder}")) {
@@ -798,11 +811,8 @@
          template += "\n📞 Kontak Driver: {driverWa}";
       }
 
-      const baseUrl = window.location.href.split('?')[0];
-      const linkOrder = noHp ? `${baseUrl}?mode=order&phone=${noHp}&order=${orderId}` : (baseUrl + `?mode=order&order=${orderId}`);
-      const jemputLink = `https://maps.google.com/?q=${encodeURIComponent(jemput)}`;
-      const tujuanLink = `https://maps.google.com/?q=${encodeURIComponent(tujuan)}`;
-      const driverWaNum = formatPhoneNumber(localStorage.getItem("driver_wa") || "6281234567890");
+      const rawPhone = (noHp || "").replace(/\D/g, '');
+      const linkOrderCust = `${baseUrl}?mode=order&phone=${rawPhone}&order=${orderId}`;
 
       return template
         .replace(/{nama}/g, nama)
@@ -815,23 +825,20 @@
         .replace(/{jarak}/g, jarak)
         .replace(/{ongkos}/g, formatRupiah(ongkos))
         .replace(/{status}/g, status)
-        .replace(/{linkOrder}/g, linkOrder)
+        .replace(/{linkOrder}/g, linkOrderCust)
         .replace(/{driverWa}/g, driverWaNum);
     }
 
-    function handlePostSaveSuccess(orderId) {
-      calculatedData = null;
-      isSaving = false;
-      resetForm();
-
+    function handlePostSaveSuccess(orderId, savedData) {
       if (isCustomerMode) {
         const driverWa = formatPhoneNumber(localStorage.getItem("driver_wa") || "6281234567890");
-        const reportText = generateWaText(orderId, document.getElementById("nama").value, customerPhone, "Alamat Jemput", "Alamat Tujuan", 0, 0, "Menunggu");
+        // Meneruskan data valid ke dalam template WA Driver
+        const reportText = generateWaText(orderId, savedData.nama, savedData.noHp, savedData.alamatJemput, savedData.alamatTujuan, savedData.jarak, savedData.totalOngkos, "Menunggu", "driver");
 
         document.getElementById("customerShareBtnContainer").innerHTML = `
           <a href="https://wa.me/${driverWa}?text=${encodeURIComponent(reportText)}" target="_blank" class="w-full bg-[#10b981] hover:bg-emerald-600 text-white font-bold py-3 px-4 rounded-xl text-sm flex items-center justify-center space-x-2 transition shadow-md">
             <i class="fa-brands fa-whatsapp text-lg"></i>
-            <span>Kirim Pesanan ke WhatsApp Driver</span>
+            <span>Kirim Notifikasi ke WhatsApp Driver</span>
           </a>
         `;
         document.getElementById("customerSuccessModal").classList.remove('hidden');
@@ -840,6 +847,11 @@
         loadData();
         switchTab('riwayat');
       }
+      
+      // Mengosongkan data HANYA setelah fungsi di atas selesai berjalan
+      calculatedData = null;
+      isSaving = false;
+      resetForm();
     }
 
     function resetForm() {
@@ -853,7 +865,6 @@
       document.getElementById("alamatTujuan").dataset.lon = "";
       
       document.getElementById("resultCard").classList.add('hidden');
-      calculatedData = null;
       isSaving = false;
       const btn = document.getElementById("btnSimpan");
       if (btn) {
@@ -1191,7 +1202,6 @@
       let currentStepIdx = steps.indexOf(currentStatus);
       if (currentStepIdx === -1) currentStepIdx = 0;
 
-      // Desain Timeline Presisi
       timelineEl.innerHTML = `
         <div class="flex justify-between items-center relative pt-3 pb-5">
           <!-- Background Line -->
@@ -1280,17 +1290,15 @@
 
       if (!isCustomerMode) {
         const customerWa = formatPhoneNumber(order['Nomor HP']);
-        const shareText = generateWaText(order["ID Pesanan"], order["Nama Pelanggan"], order["Nomor HP"], order["Alamat Jemput"], order["Alamat Tujuan"], order["Jarak KM"], order["Total Ongkos"], order["Status"]);
         
-        const confirmWaText = `Halo *{nama}*, saya Driver Kurir Express. Saya ingin mengkonfirmasi pesanan penjemputan paket di *{jemput}*. Apakah titik lokasinya sudah sesuai?\n\n🔗 *Link Khusus Pesan Kurir Untuk Anda:*\n{linkOrder}`
-          .replace(/{nama}/g, order["Nama Pelanggan"])
-          .replace(/{jemput}/g, order["Alamat Jemput"])
-          .replace(/{linkOrder}/g, linkCustomerOrder);
+        // Memakai fungsi baru dengan flag "customer" (karena ini WA dari Driver ke Customer)
+        const shareText = generateWaText(order["ID Pesanan"], order["Nama Pelanggan"], order["Nomor HP"], order["Alamat Jemput"], order["Alamat Tujuan"], order["Jarak KM"], order["Total Ongkos"], order["Status"], "customer");
+        
+        const confirmWaText = `Halo *${order["Nama Pelanggan"]}*, saya Driver Kurir Express. Saya ingin mengkonfirmasi pesanan penjemputan paket di *${order["Alamat Jemput"]}*. Apakah titik lokasinya sudah sesuai?\n\n🔗 *Link Khusus Pesan Kurir Untuk Anda:*\n${linkCustomerOrder}`;
 
-        const waButtonLabel = currentStatus === "Selesai" ? "Kirim Resi Selesai (WA)" : `Kirim Status (${currentStatus}) WA`;
+        const waButtonLabel = currentStatus === "Selesai" ? "Kirim WA (Paket Selesai)" : `Kirim Status WA (${currentStatus})`;
 
         shareContainer.innerHTML = `
-          <!-- KOLOM LINK KHUSUS CUSTOMER (UNTUK DRIVER) -->
           <div class="mb-4">
             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5"><i class="fa-solid fa-link"></i> Link Resi & Lacak Pesanan</label>
             <div class="bg-slate-50 border border-slate-200 rounded-xl p-1.5 pl-3 flex items-center justify-between">
@@ -1306,12 +1314,13 @@
             <span class="${statusColor} font-bold text-[15px]">Pesanan ${currentStatus}</span>
           </div>
           
-          <div class="grid grid-cols-2 gap-3 mb-1">
-            <a href="https://wa.me/${customerWa}?text=${encodeURIComponent(confirmWaText)}" target="_blank" class="bg-white border border-emerald-200 text-emerald-600 hover:bg-emerald-50 font-bold py-3 px-2 rounded-2xl text-[12px] flex items-center justify-center space-x-1.5 transition shadow-sm">
+          <div class="flex flex-col gap-2 mb-1">
+            ${currentStatus === "Menunggu" ? `
+            <a href="https://wa.me/${customerWa}?text=${encodeURIComponent(confirmWaText)}" target="_blank" class="bg-white border border-emerald-200 text-emerald-600 hover:bg-emerald-50 font-bold py-3 px-2 rounded-2xl text-[12px] flex items-center justify-center space-x-1.5 transition shadow-sm w-full">
               <i class="fa-brands fa-whatsapp text-[15px]"></i>
-              <span>Chat Konfirmasi</span>
-            </a>
-            <a href="https://wa.me/${customerWa}?text=${encodeURIComponent(shareText)}" target="_blank" class="bg-[#10b981] border border-[#10b981] hover:bg-emerald-600 text-white font-bold py-3 px-2 rounded-2xl text-[12px] flex items-center justify-center space-x-1.5 transition shadow-sm">
+              <span>Chat Konfirmasi Jemput</span>
+            </a>` : ""}
+            <a href="https://wa.me/${customerWa}?text=${encodeURIComponent(shareText)}" target="_blank" class="bg-[#10b981] border border-[#10b981] hover:bg-emerald-600 text-white font-bold py-3 px-2 rounded-2xl text-[12px] flex items-center justify-center space-x-1.5 transition shadow-sm w-full">
               <i class="fa-brands fa-whatsapp text-[15px]"></i>
               <span>${waButtonLabel}</span>
             </a>
@@ -1321,7 +1330,7 @@
         `;
       } else {
         const driverWaNum = formatPhoneNumber(localStorage.getItem("driver_wa") || "6281234567890");
-        const confirmToDriverText = `Halo Driver, saya ingin mengkonfirmasi pesanan saya dengan ID: *{id}*.`.replace(/{id}/g, order["ID Pesanan"]);
+        const confirmToDriverText = `Halo Driver, saya ingin mengkonfirmasi pesanan saya dengan ID: *${order["ID Pesanan"]}*.`;
         
         shareContainer.innerHTML = `
           <div class="flex items-center justify-center space-x-2 mb-4 pt-1">
@@ -1331,7 +1340,7 @@
           
           <a href="https://wa.me/${driverWaNum}?text=${encodeURIComponent(confirmToDriverText)}" target="_blank" class="w-full bg-[#10b981] hover:bg-emerald-600 text-white font-bold py-3 px-4 rounded-2xl text-[13px] flex items-center justify-center space-x-2 transition shadow-md mb-3">
             <i class="fa-brands fa-whatsapp text-lg"></i>
-            <span>Chat Konfirmasi Driver</span>
+            <span>Chat Konfirmasi ke Driver</span>
           </a>
           
           <div class="text-center text-[11px] text-slate-500 py-1.5 bg-slate-50 rounded-xl"><i class="fa-solid fa-circle-info mr-1"></i> Status diperbarui secara real-time oleh Driver.</div>
