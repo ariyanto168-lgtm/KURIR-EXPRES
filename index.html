@@ -3,155 +3,201 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KURIR EXPRESS — APLIKASI KURIR & PELANGGAN</title>
+  <title>KURIR EXPRESS — ULTIMATE MASTERPIECE EDITION</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- FontAwesome for Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Leaflet CSS for Interactive Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     body {
-      background-color: #f8fafc;
-      color: #1e293b;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
     .safe-bottom {
-      padding-bottom: 85px;
+      padding-bottom: 90px;
     }
   </style>
 </head>
-<body class="bg-slate-50 min-h-screen flex flex-col antialiased">
+<body class="min-h-screen flex flex-col antialiased selection:bg-pink-500 selection:text-white">
 
-  <!-- Top Header -->
-  <header class="bg-indigo-600 text-white shadow-md sticky top-0 z-40 px-4 py-3 flex justify-between items-center">
-    <div class="flex items-center space-x-2">
-      <i class="fa-solid fa-motorcycle text-xl"></i>
-      <h1 class="font-bold text-lg tracking-wide">KURIR EXPRESS</h1>
+  <!-- Top Header with Gen-Z Gradient -->
+  <header class="bg-gradient-to-r from-violet-600 via-indigo-600 to-pink-600 text-white shadow-lg sticky top-0 z-40 px-4 py-3.5 flex justify-between items-center backdrop-blur-md bg-opacity-95">
+    <div class="flex items-center space-x-2.5">
+      <div class="w-9 h-9 rounded-2xl bg-white/20 flex items-center justify-center backdrop-blur shadow-inner">
+        <i class="fa-solid fa-bolt text-amber-300 text-base"></i>
+      </div>
+      <div>
+        <h1 class="font-extrabold text-sm tracking-wider uppercase bg-gradient-to-r from-white to-pink-100 bg-clip-text text-transparent">Kurir Express</h1>
+        <p class="text-[10px] text-violet-200 font-medium">Ultimate Masterpiece Edition</p>
+      </div>
     </div>
-    <div id="connectionStatus" class="text-xs bg-indigo-700 px-2 py-1 rounded-full font-medium flex items-center space-x-1">
-      <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block" id="statusDot"></span>
-      <span id="statusText">Siap</span>
+    <div id="connectionStatus" class="text-[11px] bg-black/30 backdrop-blur-md px-3 py-1 rounded-full font-semibold flex items-center space-x-1.5 border border-white/10 shadow-sm">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse" id="statusDot"></span>
+      <span id="statusText" class="text-emerald-300">Live</span>
     </div>
   </header>
 
   <!-- Live Floating Notification Banner -->
-  <div id="liveNotificationBanner" class="fixed top-16 left-4 right-4 z-50 transform -translate-y-20 opacity-0 transition-all duration-300 max-w-md mx-auto">
-    <div class="bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl border border-slate-700 flex items-center space-x-3">
-      <div id="notifIconContainer" class="w-9 h-9 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+  <div id="liveNotificationBanner" class="fixed top-20 left-4 right-4 z-50 transform -translate-y-24 opacity-0 transition-all duration-300 max-w-md mx-auto">
+    <div class="bg-slate-900/95 backdrop-blur-xl text-white px-4 py-3.5 rounded-3xl shadow-2xl border border-white/10 flex items-center space-x-3">
+      <div id="notifIconContainer" class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-white flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/30">
         <i class="fa-solid fa-bell text-sm" id="notifIcon"></i>
       </div>
       <div class="flex-1 min-w-0">
-        <h4 id="notifTitle" class="text-xs font-bold text-slate-200">Notifikasi Pesanan</h4>
-        <p id="notifMessage" class="text-[11px] text-slate-400 truncate">Pesan notifikasi...</p>
+        <h4 id="notifTitle" class="text-xs font-bold text-white">Notifikasi</h4>
+        <p id="notifMessage" class="text-[11px] text-slate-300 truncate">Pesan sistem...</p>
       </div>
-      <button onclick="hideLiveNotification()" class="text-slate-400 hover:text-white px-1 text-xs"><i class="fa-solid fa-xmark"></i></button>
+      <button onclick="hideLiveNotification()" class="text-slate-400 hover:text-white px-2 py-1 text-xs"><i class="fa-solid fa-xmark"></i></button>
     </div>
   </div>
 
   <!-- Main Content Container -->
-  <main class="flex-1 max-w-md w-full mx-auto p-4 safe-bottom">
+  <main class="flex-1 max-w-md w-full mx-auto p-4 safe-bottom space-y-4">
 
-    <!-- TAB 1: DASHBOARD (Khusus Driver) -->
+    <!-- TAB 1: DASHBOARD (Driver) -->
     <section id="tab-dashboard" class="tab-content space-y-4">
-      <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100">
-        <h2 class="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-3">Ringkasan Hari Ini</h2>
-        <div class="grid grid-cols-2 gap-3">
-          <div class="bg-indigo-50 p-3 rounded-2xl border border-indigo-100">
-            <div class="flex items-center space-x-2 text-indigo-600 mb-1">
-              <i class="fa-solid fa-box text-sm"></i>
-              <span class="text-xs font-medium">Pesanan Hari Ini</span>
-            </div>
-            <p id="dashOrdersCount" class="text-2xl font-bold text-indigo-900">0</p>
+      <div class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-5 rounded-[2.5rem] shadow-xl border border-white/10 relative overflow-hidden">
+        <div class="absolute -right-10 -top-10 w-40 h-40 bg-pink-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -left-10 -bottom-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        
+        <div class="flex justify-between items-center mb-4 relative z-10">
+          <h2 class="text-slate-400 text-[11px] font-bold uppercase tracking-widest">Keuangan & Laba Bersih</h2>
+          <span class="text-[10px] bg-violet-500/20 text-violet-300 px-2.5 py-1 rounded-full font-semibold border border-violet-500/30">Real-Time</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 relative z-10 mb-3">
+          <div class="bg-white/5 backdrop-blur-md p-3.5 rounded-3xl border border-white/5">
+            <span class="text-[10px] text-slate-400 block font-semibold mb-0.5">PENDAPATAN KOTOR</span>
+            <p id="dashGrossRevenue" class="text-lg font-black text-white tracking-tight">Rp0</p>
           </div>
-          <div class="bg-emerald-50 p-3 rounded-2xl border border-emerald-100">
-            <div class="flex items-center space-x-2 text-emerald-600 mb-1">
-              <i class="fa-solid fa-route text-sm"></i>
-              <span class="text-xs font-medium">Total KM</span>
-            </div>
-            <p id="dashTotalKm" class="text-2xl font-bold text-emerald-900">0 KM</p>
+          <div class="bg-white/5 backdrop-blur-md p-3.5 rounded-3xl border border-white/5">
+            <span class="text-[10px] text-slate-400 block font-semibold mb-0.5">TOTAL PENGELUARAN</span>
+            <p id="dashTotalExpense" class="text-lg font-black text-pink-400 tracking-tight">Rp0</p>
           </div>
-          <div class="bg-amber-50 p-3 rounded-2xl border border-amber-100 col-span-2">
-            <div class="flex items-center space-x-2 text-amber-600 mb-1">
-              <i class="fa-solid fa-wallet text-sm"></i>
-              <span class="text-xs font-medium">Total Pendapatan</span>
-            </div>
-            <p id="dashTotalRevenue" class="text-2xl font-bold text-amber-900">Rp0</p>
+        </div>
+
+        <div class="bg-gradient-to-r from-emerald-600/20 to-teal-600/20 backdrop-blur-md p-4 rounded-3xl border border-emerald-500/30 relative z-10">
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-[11px] text-emerald-300 font-semibold uppercase">Laba Bersih Riil</span>
+            <button onclick="openExpenseModal()" class="text-[10px] bg-emerald-500 text-slate-950 font-bold px-2.5 py-1 rounded-xl shadow hover:bg-emerald-400 transition"><i class="fa-solid fa-plus mr-1"></i> Catat Biaya</button>
           </div>
+          <p id="dashNetProfit" class="text-3xl font-black text-emerald-400 tracking-tight">Rp0</p>
         </div>
       </div>
 
       <!-- Quick Action Card -->
-      <div class="bg-gradient-to-r from-indigo-500 to-violet-600 rounded-3xl p-5 text-white shadow-sm flex items-center justify-between">
-        <div>
-          <h3 class="font-bold text-base mb-1">Buat Pesanan Baru</h3>
-          <p class="text-xs text-indigo-100">Hitung jarak & ongkos instan</p>
+      <div class="bg-gradient-to-r from-violet-600 via-indigo-600 to-pink-500 rounded-[2.5rem] p-5 text-white shadow-xl shadow-indigo-500/20 flex items-center justify-between relative overflow-hidden">
+        <div class="relative z-10">
+          <h3 class="font-extrabold text-base mb-1">Buat Pesanan Baru</h3>
+          <p class="text-xs text-violet-100 font-medium">Hitung jarak & ongkos secepat kilat</p>
         </div>
-        <button onclick="switchTab('pesanan')" class="bg-white text-indigo-600 font-semibold text-xs px-4 py-2.5 rounded-xl shadow hover:bg-indigo-50 transition active:scale-95">
-          Buat Kurir <i class="fa-solid fa-arrow-right ml-1"></i>
+        <button onclick="switchTab('pesanan')" class="relative z-10 bg-white text-indigo-600 font-bold text-xs px-4 py-3 rounded-2xl shadow-lg hover:bg-violet-50 transition active:scale-95 shrink-0 flex items-center space-x-1.5">
+          <span>Buat Kurir</span> <i class="fa-solid fa-arrow-right"></i>
         </button>
       </div>
 
+      <!-- MULTI-DROP BATCH ROUTE CARD -->
+      <div class="bg-gradient-to-br from-violet-950 via-slate-900 to-indigo-950 p-5 rounded-[2.5rem] shadow-xl border border-violet-500/30 space-y-3">
+        <div class="flex justify-between items-center border-b border-white/10 pb-2">
+          <h3 class="font-bold text-xs uppercase tracking-wider text-violet-300 flex items-center space-x-2">
+            <i class="fa-solid fa-layer-group text-pink-400"></i>
+            <span>Rute Kloter Multi-Drop (<span id="batchCount">0</span> Paket)</span>
+          </h3>
+          <span class="text-[10px] bg-pink-500/20 text-pink-300 px-2.5 py-0.5 rounded-full font-bold">Bertingkat</span>
+        </div>
+        <div id="batchRouteContainer" class="space-y-2.5"></div>
+      </div>
+
       <!-- Pesanan Aktif Collapsible Card -->
-      <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100">
+      <div class="bg-slate-900/80 backdrop-blur-xl p-4.5 rounded-[2.5rem] shadow-xl border border-white/10">
         <div class="flex justify-between items-center cursor-pointer select-none px-1" onclick="toggleActiveOrdersCard()">
-          <h3 class="text-slate-800 font-bold text-sm flex items-center space-x-2">
-            <i class="fa-solid fa-spinner text-indigo-600"></i>
-            <span>Pesanan Aktif (<span id="activeCount">0</span>)</span>
+          <h3 class="text-white font-bold text-sm flex items-center space-x-2.5">
+            <div class="w-7 h-7 rounded-xl bg-violet-500/20 text-violet-400 flex items-center justify-center text-xs">
+              <i class="fa-solid fa-spinner animate-spin"></i>
+            </div>
+            <span>Pesanan Aktif (<span id="activeCount" class="text-pink-400">0</span>)</span>
           </h3>
           <div class="flex items-center space-x-2 text-xs text-slate-400">
             <span id="activeOrdersToggleText">Tutup</span>
             <i id="activeOrdersChevron" class="fa-solid fa-chevron-up transition-transform duration-200"></i>
           </div>
         </div>
-        <div id="activeOrdersListContainer" class="mt-3 pt-2 border-t border-slate-100">
-          <!-- Rendered dynamically -->
-        </div>
+        <div id="activeOrdersListContainer" class="mt-3 pt-3 border-t border-white/5 space-y-3"></div>
       </div>
     </section>
 
     <!-- TAB 2: FORM / PESANAN -->
     <section id="tab-pesanan" class="tab-content hidden space-y-4">
-      <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100">
-        <h2 class="font-bold text-slate-800 text-base mb-3 flex items-center space-x-2">
-          <i class="fa-solid fa-map-location-dot text-indigo-600"></i>
-          <span>Form Pengiriman & Perhitungan</span>
+      <div class="bg-slate-900/80 backdrop-blur-xl p-5 rounded-[2.5rem] shadow-xl border border-white/10">
+        <h2 class="font-bold text-white text-base mb-4 flex items-center space-x-2.5">
+          <div class="w-8 h-8 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-sm">
+            <i class="fa-solid fa-map-location-dot"></i>
+          </div>
+          <span>Form Pengiriman Pintar</span>
         </h2>
 
-        <form id="orderForm" onsubmit="event.preventDefault();" class="space-y-3">
+        <form id="orderForm" onsubmit="event.preventDefault();" class="space-y-3.5">
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Pelanggan <span class="text-red-500">*</span></label>
-            <input type="text" id="nama" required placeholder="Contoh: Budi Santoso" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Nama Pelanggan <span class="text-pink-500">*</span></label>
+            <input type="text" id="nama" required placeholder="Contoh: Budi Santoso" class="w-full px-4 py-2.5 text-sm bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
           </div>
 
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor WhatsApp Pelanggan <span class="text-red-500">*</span></label>
-            <input type="tel" id="noHp" required placeholder="Contoh: 081234567890" oninput="onPhoneInput(this.value)" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Nomor WhatsApp Pelanggan <span class="text-pink-500">*</span></label>
+            <input type="tel" id="noHp" required placeholder="Contoh: 081234567890" oninput="onPhoneInput(this.value)" class="w-full px-4 py-2.5 text-sm bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Kategori Barang</label>
+              <select id="kategoriBarang" class="w-full px-3 py-2.5 text-xs bg-slate-800/80 border border-white/10 rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="Paket Umum">📦 Paket Umum</option>
+                <option value="Dokumen">📄 Dokumen</option>
+                <option value="Makanan">🍜 Makanan</option>
+                <option value="Fragile">⚠️ Fragile</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Metode Pembayaran</label>
+              <select id="metodePembayaran" class="w-full px-3 py-2.5 text-xs bg-slate-800/80 border border-white/10 rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="Tunai / COD">💵 Tunai / COD</option>
+                <option value="Transfer">💳 Transfer / QRIS</option>
+                <option value="Tempo / Tunda">⏳ Tempo / Tunda</option>
+              </select>
+            </div>
           </div>
 
           <!-- Alamat Jemput -->
           <div class="relative">
             <div class="flex justify-between items-center mb-1">
-              <label class="block text-xs font-semibold text-slate-600">Alamat Jemput <span class="text-red-500">*</span></label>
+              <label class="block text-xs font-semibold text-slate-300">Alamat Jemput <span class="text-pink-500">*</span></label>
+              <div id="quickJemputPicker" class="flex flex-wrap gap-1"></div>
             </div>
-            <textarea id="alamatJemput" data-lat="" data-lon="" rows="2" required placeholder="Ketik area/jalan/kota (otomatis dicari)" oninput="handleAddressInput('alamatJemput', 'saranJemput')" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
-            <div id="saranJemput" class="absolute z-30 left-0 right-0 bg-white border border-slate-200 rounded-lg shadow-xl hidden flex-col divide-y divide-slate-100 max-h-48 overflow-y-auto text-xs mt-1"></div>
+            <textarea id="alamatJemput" data-lat="" data-lon="" rows="2" required placeholder="Ketik area/jalan/kota (otomatis dicari)" oninput="handleAddressInput('alamatJemput', 'saranJemput')" class="w-full px-4 py-2.5 text-sm bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition resize-none"></textarea>
+            <div id="saranJemput" class="absolute z-30 left-0 right-0 bg-slate-900 border border-white/10 rounded-2xl shadow-2xl hidden flex-col divide-y divide-white/5 max-h-48 overflow-y-auto text-xs mt-1"></div>
           </div>
 
           <!-- Alamat Tujuan -->
           <div class="relative">
             <div class="flex justify-between items-center mb-1">
-              <label class="block text-xs font-semibold text-slate-600">Alamat Tujuan <span class="text-red-500">*</span></label>
+              <label class="block text-xs font-semibold text-slate-300">Alamat Tujuan <span class="text-pink-500">*</span></label>
+              <div id="quickTujuanPicker" class="flex flex-wrap gap-1"></div>
             </div>
-            <textarea id="alamatTujuan" data-lat="" data-lon="" rows="2" required placeholder="Ketik area/jalan/kota (otomatis dicari)" oninput="handleAddressInput('alamatTujuan', 'saranTujuan')" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
-            <div id="saranTujuan" class="absolute z-30 left-0 right-0 bg-white border border-slate-200 rounded-lg shadow-xl hidden flex-col divide-y divide-slate-100 max-h-48 overflow-y-auto text-xs mt-1"></div>
+            <textarea id="alamatTujuan" data-lat="" data-lon="" rows="2" required placeholder="Ketik area/jalan/kota (otomatis dicari)" oninput="handleAddressInput('alamatTujuan', 'saranTujuan')" class="w-full px-4 py-2.5 text-sm bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition resize-none"></textarea>
+            <div id="saranTujuan" class="absolute z-30 left-0 right-0 bg-slate-900 border border-white/10 rounded-2xl shadow-2xl hidden flex-col divide-y divide-white/5 max-h-48 overflow-y-auto text-xs mt-1"></div>
           </div>
 
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Catatan (Opsional)</label>
-            <input type="text" id="catatan" placeholder="Contoh: Barang fragile / depan toko warna hijau" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Catatan Tambahan (Opsional)</label>
+            <input type="text" id="catatan" placeholder="Contoh: Titik di depan pagar warna hijau" class="w-full px-4 py-2.5 text-sm bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
           </div>
 
-          <!-- Tombol Hitung Jarak -->
-          <button type="button" onclick="calculateDistance()" class="w-full bg-slate-800 text-white font-semibold py-2.5 rounded-xl text-sm shadow hover:bg-slate-900 transition flex items-center justify-center space-x-2 mt-2">
+          <button type="button" onclick="calculateDistance()" class="w-full bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-bold py-3 rounded-2xl text-sm shadow-lg shadow-indigo-500/25 hover:opacity-95 transition flex items-center justify-center space-x-2 mt-2">
             <i class="fa-solid fa-calculator"></i>
             <span>HITUNG JARAK PRESISI</span>
           </button>
@@ -159,84 +205,89 @@
       </div>
 
       <!-- Hasil Perhitungan Card -->
-      <div id="resultCard" class="bg-indigo-900 text-white p-4 rounded-3xl shadow-lg space-y-3 hidden">
-        <h3 class="text-xs uppercase tracking-wider text-indigo-300 font-semibold border-b border-indigo-800 pb-2">Rincian Rute & Ongkos</h3>
+      <div id="resultCard" class="bg-gradient-to-br from-indigo-950 via-slate-900 to-violet-950 text-white p-5 rounded-[2.5rem] shadow-2xl border border-indigo-500/30 space-y-4 hidden">
+        <h3 class="text-xs uppercase tracking-wider text-indigo-300 font-bold border-b border-white/10 pb-2 flex items-center justify-between">
+          <span>Rincian Rute & Ongkos</span>
+          <span class="text-emerald-400 font-mono text-[10px] bg-emerald-500/20 px-2 py-0.5 rounded-full">Akurat</span>
+        </h3>
         
         <div class="grid grid-cols-2 gap-2 text-xs">
-          <div>
-            <span class="text-indigo-300 block">Titik Jemput:</span>
-            <span id="resJemput" class="font-medium truncate block"></span>
+          <div class="bg-white/5 p-3 rounded-2xl border border-white/5">
+            <span class="text-indigo-300 block text-[10px] uppercase font-semibold mb-0.5">Jemput:</span>
+            <span id="resJemput" class="font-medium text-slate-200 truncate block"></span>
           </div>
-          <div>
-            <span class="text-indigo-300 block">Titik Tujuan:</span>
-            <span id="resTujuan" class="font-medium truncate block"></span>
-          </div>
-        </div>
-
-        <div class="bg-indigo-950/60 p-3 rounded-xl border border-indigo-800/60 grid grid-cols-3 text-center">
-          <div>
-            <span class="text-[10px] text-indigo-300 block">JARAK</span>
-            <span id="resJarak" class="text-lg font-bold text-white">0 KM</span>
-          </div>
-          <div>
-            <span class="text-[10px] text-indigo-300 block">TARIF / KM</span>
-            <span id="resTarif" class="text-sm font-bold text-white">Rp3.000</span>
-          </div>
-          <div>
-            <span class="text-[10px] text-indigo-300 block">ESTIMASI</span>
-            <span id="resEstimasi" class="text-sm font-bold text-white">0 mnt</span>
+          <div class="bg-white/5 p-3 rounded-2xl border border-white/5">
+            <span class="text-indigo-300 block text-[10px] uppercase font-semibold mb-0.5">Tujuan:</span>
+            <span id="resTujuan" class="font-medium text-slate-200 truncate block"></span>
           </div>
         </div>
 
-        <div class="text-center bg-indigo-800/80 p-3 rounded-xl">
-          <span class="text-xs text-indigo-300 uppercase block mb-0.5">Total Ongkos</span>
-          <span id="resOngkos" class="text-2xl font-extrabold text-emerald-400">Rp0</span>
+        <div class="bg-black/40 p-3.5 rounded-2xl border border-white/5 grid grid-cols-3 text-center">
+          <div>
+            <span class="text-[10px] text-slate-400 block font-semibold">JARAK</span>
+            <span id="resJarak" class="text-base font-extrabold text-white">0 KM</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-400 block font-semibold">TARIF / KM</span>
+            <span id="resTarif" class="text-xs font-extrabold text-violet-300">Rp3.000</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-400 block font-semibold">ESTIMASI</span>
+            <span id="resEstimasi" class="text-xs font-extrabold text-white">0 mnt</span>
+          </div>
         </div>
 
-        <button id="btnSimpan" onclick="saveOrder()" class="w-full bg-emerald-500 text-white font-bold py-3 rounded-xl text-sm shadow-md hover:bg-emerald-600 transition flex items-center justify-center space-x-2">
-          <i class="fa-solid fa-check-circle"></i>
+        <div class="text-center bg-gradient-to-r from-emerald-600/20 to-teal-600/20 p-4 rounded-2xl border border-emerald-500/30">
+          <span class="text-[11px] text-emerald-300 font-semibold uppercase block mb-1">Total Ongkos Dikunci</span>
+          <span id="resOngkos" class="text-3xl font-black text-emerald-400">Rp0</span>
+        </div>
+
+        <button id="btnSimpan" onclick="saveOrder()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-extrabold py-3.5 rounded-2xl text-sm shadow-xl shadow-emerald-500/30 hover:opacity-95 transition flex items-center justify-center space-x-2">
+          <i class="fa-solid fa-check-circle text-base"></i>
           <span>SIMPAN PESANAN</span>
         </button>
       </div>
     </section>
 
-    <!-- TAB 3: RIWAYAT & LAPORAN KEUANGAN -->
+    <!-- TAB 3: RIWAYAT & LAPORAN -->
     <section id="tab-riwayat" class="tab-content hidden space-y-4">
-      <div id="customerFinancialSummary" class="hidden bg-gradient-to-br from-emerald-600 to-teal-700 text-white p-4 rounded-3xl shadow-sm space-y-3">
-        <div class="flex justify-between items-center border-b border-emerald-500 pb-2">
-          <h3 class="font-bold text-xs uppercase tracking-wider flex items-center space-x-2">
+      <div id="customerFinancialSummary" class="hidden bg-gradient-to-br from-emerald-950 via-slate-900 to-teal-950 text-white p-5 rounded-[2.5rem] shadow-xl border border-emerald-500/30 space-y-3">
+        <div class="flex justify-between items-center border-b border-white/10 pb-2">
+          <h3 class="font-bold text-xs uppercase tracking-wider text-emerald-300 flex items-center space-x-2">
             <i class="fa-solid fa-wallet"></i>
-            <span>Rekap Keuangan & Pesanan Saya</span>
+            <span>Rekap Keuangan Anda</span>
           </h3>
-          <span id="custSummaryIdBadge" class="text-[10px] bg-emerald-800 px-2 py-0.5 rounded-full font-medium"></span>
+          <span id="custSummaryIdBadge" class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full font-bold"></span>
         </div>
         <div class="grid grid-cols-3 gap-2 text-center">
-          <div class="bg-emerald-800/50 p-2.5 rounded-xl border border-emerald-500/30">
-            <span class="text-[10px] text-emerald-200 block">Total Order</span>
-            <span id="custTotalOrders" class="text-base font-bold">0</span>
+          <div class="bg-white/5 p-3 rounded-2xl border border-white/5">
+            <span class="text-[10px] text-slate-400 block font-semibold">Total Order</span>
+            <span id="custTotalOrders" class="text-base font-black text-white">0</span>
           </div>
-          <div class="bg-emerald-800/50 p-2.5 rounded-xl border border-emerald-500/30">
-            <span class="text-[10px] text-emerald-200 block">Total Jarak</span>
-            <span id="custTotalKm" class="text-base font-bold">0 KM</span>
+          <div class="bg-white/5 p-3 rounded-2xl border border-white/5">
+            <span class="text-[10px] text-slate-400 block font-semibold">Total KM</span>
+            <span id="custTotalKm" class="text-base font-black text-white">0 KM</span>
           </div>
-          <div class="bg-emerald-800/50 p-2.5 rounded-xl border border-emerald-500/30">
-            <span class="text-[10px] text-emerald-200 block">Total Biaya</span>
-            <span id="custTotalSpent" class="text-sm font-bold text-amber-300">Rp0</span>
+          <div class="bg-white/5 p-3 rounded-2xl border border-white/5">
+            <span class="text-[10px] text-slate-400 block font-semibold">Total Biaya</span>
+            <span id="custTotalSpent" class="text-xs font-black text-amber-300">Rp0</span>
           </div>
         </div>
       </div>
 
-      <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100">
-        <div class="flex justify-between items-center mb-3">
-          <h2 id="historyTitle" class="font-bold text-slate-800 text-sm flex items-center space-x-2">
-            <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i>
+      <div class="bg-slate-900/80 backdrop-blur-xl p-5 rounded-[2.5rem] shadow-xl border border-white/10">
+        <div class="flex justify-between items-center mb-4">
+          <h2 id="historyTitle" class="font-bold text-white text-sm flex items-center space-x-2.5">
+            <div class="w-7 h-7 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-xs">
+              <i class="fa-solid fa-clock-rotate-left"></i>
+            </div>
             <span>Riwayat Pesanan</span>
           </h2>
-          <div class="flex items-center space-x-1.5">
-            <button onclick="clearAllHistory()" class="text-[10px] bg-red-50 hover:bg-red-100 text-red-600 px-2.5 py-1.5 rounded-lg transition font-semibold" title="Bersihkan Semua Riwayat Lokal">
+          <div class="flex items-center space-x-2">
+            <button onclick="clearAllHistory()" class="text-[10px] bg-red-500/10 hover:bg-red-500/20 text-red-400 px-3 py-2 rounded-xl transition font-semibold border border-red-500/20" title="Hapus Riwayat">
               <i class="fa-solid fa-trash"></i>
             </button>
-            <button onclick="loadData()" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-lg transition font-semibold">
+            <button onclick="loadData()" class="text-[10px] bg-white/5 hover:bg-white/10 text-slate-300 px-3 py-2 rounded-xl transition font-semibold border border-white/5">
               <i class="fa-solid fa-rotate mr-1"></i> Refresh
             </button>
           </div>
@@ -245,202 +296,242 @@
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs">
             <thead>
-              <tr class="bg-slate-100 text-slate-600 uppercase font-semibold">
-                <th class="p-2.5 rounded-l-lg">ID / Nama</th>
-                <th class="p-2.5">Jarak</th>
-                <th class="p-2.5">Ongkos</th>
-                <th class="p-2.5 rounded-r-lg">Status</th>
+              <tr class="bg-white/5 text-slate-400 uppercase font-semibold text-[10px]">
+                <th class="p-3 rounded-l-2xl">ID / Nama</th>
+                <th class="p-3">Info & Pembayaran</th>
+                <th class="p-3">Jarak & Ongkos</th>
+                <th class="p-3 rounded-r-2xl">Status</th>
               </tr>
             </thead>
-            <tbody id="historyTableBody" class="divide-y divide-slate-100">
-              <!-- Rendered dynamically -->
-            </tbody>
+            <tbody id="historyTableBody" class="divide-y divide-white/5"></tbody>
           </table>
         </div>
       </div>
     </section>
 
-    <!-- TAB 4: AKUN / REGISTRASI (Khusus Customer) -->
+    <!-- TAB 4: AKUN & BUKU ALAMAT FAVORIT (Customer) -->
     <section id="tab-akun" class="tab-content hidden space-y-4">
-      <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 space-y-4">
-        <div class="flex items-center space-x-3 border-b border-slate-100 pb-3">
-          <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xl font-bold">
+      <div class="bg-slate-900/80 backdrop-blur-xl p-5 rounded-[2.5rem] shadow-xl border border-white/10 space-y-4">
+        <div class="flex items-center space-x-3.5 border-b border-white/10 pb-4">
+          <div class="w-14 h-14 bg-gradient-to-tr from-violet-600 to-indigo-600 text-white rounded-3xl flex items-center justify-center text-xl font-black shadow-lg shadow-indigo-500/30">
             <i class="fa-solid fa-user"></i>
           </div>
           <div>
-            <h2 class="font-bold text-slate-800 text-base">Akun Pelanggan Saya</h2>
-            <p class="text-xs text-slate-400">Registrasi akun email untuk pesanan otomatis</p>
+            <h2 class="font-bold text-white text-base">Akun Pelanggan</h2>
+            <p class="text-xs text-slate-400">Identitas otomatis pemesanan</p>
           </div>
         </div>
 
-        <form id="customerAccountForm" onsubmit="event.preventDefault(); saveCustomerAccount();" class="space-y-3">
+        <form id="customerAccountForm" onsubmit="event.preventDefault(); saveCustomerAccount();" class="space-y-3.5">
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Lengkap</label>
-            <input type="text" id="custRegName" required placeholder="Contoh: Budi Santoso" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Nama Lengkap</label>
+            <input type="text" id="custRegName" required placeholder="Contoh: Budi Santoso" class="w-full px-4 py-2.5 text-sm bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Alamat Email</label>
-            <input type="email" id="custRegEmail" required placeholder="Contoh: budi@gmail.com" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Alamat Email</label>
+            <input type="email" id="custRegEmail" required placeholder="Contoh: budi@gmail.com" class="w-full px-4 py-2.5 text-sm bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor WhatsApp</label>
-            <input type="tel" id="custRegPhone" required placeholder="Contoh: 081234567890" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Nomor WhatsApp</label>
+            <input type="tel" id="custRegPhone" required placeholder="Contoh: 081234567890" class="w-full px-4 py-2.5 text-sm bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
           </div>
-          <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-xl text-sm shadow transition mt-2">
-            Simpan & Daftarkan Akun
+          <button type="submit" class="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:opacity-95 text-white font-bold py-3 rounded-2xl text-sm shadow-xl shadow-indigo-500/25 transition mt-2">
+            Simpan Akun Pelanggan
           </button>
         </form>
+
+        <!-- Buku Alamat Favorit Section -->
+        <div class="pt-4 border-t border-white/10 space-y-3">
+          <h3 class="font-bold text-white text-xs uppercase tracking-wider flex items-center space-x-2">
+            <i class="fa-solid fa-bookmark text-violet-400"></i>
+            <span>Buku Alamat Favorit Saya</span>
+          </h3>
+          <div class="space-y-2.5">
+            <input type="text" id="favLabel" placeholder="Label Alamat (Contoh: Rumah / Toko Cabang)" class="w-full px-4 py-2 text-xs bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500">
+            <textarea id="favAddress" rows="2" placeholder="Ketik detail alamat lengkap..." class="w-full px-4 py-2 text-xs bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"></textarea>
+            <button onclick="saveFavoriteAddress()" class="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-2.5 rounded-2xl text-xs transition border border-white/10">
+              <i class="fa-solid fa-plus mr-1"></i> Tambah ke Alamat Favorit
+            </button>
+          </div>
+          <div id="savedAddressesContainer" class="space-y-2 mt-3"></div>
+        </div>
+
       </div>
     </section>
 
-    <!-- TAB 5: PENGATURAN (Khusus Driver) -->
+    <!-- TAB 5: PENGATURAN (Driver & Profil) -->
     <section id="tab-pengaturan" class="tab-content hidden space-y-4">
-      <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 space-y-4">
-        <h2 class="font-bold text-slate-800 text-base flex items-center space-x-2">
-          <i class="fa-solid fa-gear text-indigo-600"></i>
-          <span>Pengaturan App & Tarif</span>
+      <div class="bg-slate-900/80 backdrop-blur-xl p-5 rounded-[2.5rem] shadow-xl border border-white/10 space-y-4">
+        <h2 class="font-bold text-white text-base flex items-center space-x-2.5">
+          <div class="w-8 h-8 rounded-2xl bg-violet-500/20 text-violet-400 flex items-center justify-center text-sm">
+            <i class="fa-solid fa-gear"></i>
+          </div>
+          <span>Pengaturan Driver & App</span>
         </h2>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Tarif Manual (Rp / KM)</label>
-          <input type="number" id="localTarifInput" placeholder="Contoh: 3000" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Nama Kurir / Driver</label>
+          <input type="text" id="driverNameInput" placeholder="Contoh: Ari GPM" class="w-full px-4 py-2.5 text-xs bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor WhatsApp Driver / Kurir</label>
-          <input type="tel" id="driverWaInput" placeholder="Contoh: 6281234567890" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
-        </div>
-
-        <div class="hidden">
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Google Apps Script Web App URL</label>
-          <input type="url" id="gasUrlInput" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Kendaraan & Plat Nomor</label>
+          <input type="text" id="driverVehicleInput" placeholder="Contoh: Honda Beat Hitam • H 1234 ABC" class="w-full px-4 py-2.5 text-xs bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Template Pesan WhatsApp Konfirmasi Akhir</label>
-          <textarea id="waTemplateInput" rows="5" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Ketik template pesan WhatsApp..."></textarea>
-          <p class="text-[10px] text-slate-400 mt-1">Kata Kunci: <code>{nama}</code>, <code>{id}</code>, <code>{jemput}</code>, <code>{tujuan}</code>, <code>{jarak}</code>, <code>{ongkos}</code>, <code>{status}</code>, <code>{linkOrder}</code>, <code>{driverWa}</code></p>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Nomor WhatsApp Driver</label>
+          <input type="tel" id="driverWaInput" placeholder="Contoh: 6281234567890" class="w-full px-4 py-2.5 text-xs bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
 
-        <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-100 text-xs text-indigo-900 flex justify-between items-center">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Tarif Manual (Rp / KM)</label>
+          <input type="number" id="localTarifInput" placeholder="Contoh: 3000" class="w-full px-4 py-2.5 text-xs bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <div class="hidden"><input type="url" id="gasUrlInput"></div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Template Pesan WhatsApp</label>
+          <textarea id="waTemplateInput" rows="4" class="w-full px-4 py-2.5 text-xs bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"></textarea>
+        </div>
+
+        <div class="bg-white/5 p-3.5 rounded-2xl border border-white/5 text-xs text-white flex justify-between items-center">
           <div>
-            <span class="font-bold block mb-1">Tarif Default / Aktif:</span>
-            <span id="settingsTarifLabel" class="text-lg font-extrabold text-indigo-600">Rp3.000 / KM</span>
+            <span class="text-slate-400 block text-[10px] uppercase font-semibold mb-0.5">Tarif Aktif Saat Ini:</span>
+            <span id="settingsTarifLabel" class="text-base font-black text-violet-400">Rp3.000 / KM</span>
           </div>
         </div>
 
-        <div id="syncContainer" class="hidden flex justify-between items-center pt-3 border-t border-slate-100">
-          <div>
-            <span class="font-bold text-slate-800 block text-xs">Data Belum Sinkron</span>
-            <span id="unsyncedCount" class="text-[10px] text-amber-600 font-semibold">0 pesanan lokal</span>
-          </div>
-          <button id="btnSyncOffline" onclick="syncOfflineData()" class="bg-amber-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-amber-600 shadow-sm transition">
-            <i class="fa-solid fa-cloud-arrow-up mr-1"></i> Sinkronkan
-          </button>
-        </div>
-
-        <button onclick="saveSettings()" class="w-full bg-indigo-600 text-white font-semibold py-2.5 rounded-xl text-sm shadow hover:bg-indigo-700 transition mt-2">
-          Simpan Konfigurasi
+        <button onclick="saveSettings()" class="w-full bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-bold py-3 rounded-2xl text-sm shadow-xl shadow-indigo-500/25 hover:opacity-95 transition mt-2">
+          Simpan Konfigurasi & Profil
         </button>
       </div>
     </section>
 
     <!-- Version Footer -->
-    <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.92 • Ultimate Stabilized Edition • Powered by Ari GPM
+    <div class="text-center py-2 text-[10px] text-slate-500 font-medium tracking-wide">
+      v3.9 (Ultimate Masterpiece Edition) • Powered by Ari GPM
     </div>
 
   </main>
 
-  <!-- CUSTOM ELEGANT TOAST / NOTIFICATION MODAL -->
-  <div id="customToastModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-xs rounded-2xl p-5 shadow-2xl text-center space-y-3 transform transition-all scale-100">
-      <div id="toastIconContainer" class="w-12 h-12 rounded-full flex items-center justify-center mx-auto text-xl font-bold bg-indigo-100 text-indigo-600">
+  <!-- EXPENSE MODAL -->
+  <div id="expenseModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-white/10 w-full max-w-sm rounded-[2.5rem] p-6 shadow-2xl space-y-4">
+      <div class="flex justify-between items-center border-b pb-3 border-white/10">
+        <h3 class="font-bold text-white text-base">Catat Pengeluaran Operasional</h3>
+        <button onclick="closeExpenseModal()" class="text-slate-400 hover:text-white text-xl leading-none"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Keterangan Biaya</label>
+          <input type="text" id="expDesc" placeholder="Contoh: Bensin Pertalite / Parkir" class="w-full px-4 py-2.5 text-xs bg-slate-800 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Nominal (Rp)</label>
+          <input type="number" id="expAmount" placeholder="Contoh: 15000" class="w-full px-4 py-2.5 text-xs bg-slate-800 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500">
+        </div>
+        <button onclick="saveExpense()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold py-3 rounded-2xl text-xs shadow-lg shadow-emerald-500/30 transition">
+          Simpan Pengeluaran
+        </button>
+      </div>
+      <div id="expenseListContainer" class="space-y-1.5 max-h-36 overflow-y-auto pt-2 border-t border-white/5 text-xs"></div>
+    </div>
+  </div>
+
+  <!-- INVOICE / E-RECEIPT MODAL -->
+  <div id="invoiceModal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-white/10 w-full max-w-sm rounded-[2.5rem] p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-3 border-white/10">
+        <h3 class="font-bold text-white text-base">Nota Digital (Invoice)</h3>
+        <button onclick="closeInvoiceModal()" class="text-slate-400 hover:text-white text-xl leading-none"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="invoiceContent" class="bg-white text-slate-900 p-5 rounded-3xl shadow-xl space-y-3 font-sans text-xs"></div>
+      <div class="flex space-x-2">
+        <button onclick="window.print()" class="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:opacity-95 text-white font-bold py-3 rounded-2xl text-xs transition shadow-lg shadow-indigo-500/25">Cetak / Simpan Nota</button>
+        <button onclick="closeInvoiceModal()" class="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-3 rounded-2xl text-xs transition border border-white/10">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOM TOAST MODAL -->
+  <div id="customToastModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-white/10 w-full max-w-xs rounded-[2.5rem] p-6 shadow-2xl text-center space-y-4">
+      <div id="toastIconContainer" class="w-14 h-14 rounded-3xl flex items-center justify-center mx-auto text-xl font-bold bg-indigo-500/20 text-indigo-400 shadow-inner">
         <i id="toastIcon" class="fa-solid fa-bell"></i>
       </div>
       <div>
-        <h3 id="toastTitle" class="font-bold text-slate-800 text-sm">Informasi</h3>
-        <p id="toastMessage" class="text-xs text-slate-500 mt-1">Pesan notifikasi...</p>
+        <h3 id="toastTitle" class="font-bold text-white text-base">Informasi</h3>
+        <p id="toastMessage" class="text-xs text-slate-300 mt-1">Pesan sistem...</p>
       </div>
-      <button onclick="closeCustomToast()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-xl text-xs transition shadow">
+      <button onclick="closeCustomToast()" class="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:opacity-95 text-white font-bold py-3 rounded-2xl text-xs transition shadow-lg shadow-indigo-500/25">
         OK, Mengerti
       </button>
     </div>
   </div>
 
   <!-- Detail Modal -->
-  <div id="detailModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl space-y-0 relative">
-      <div class="flex justify-between items-center border-b pb-3 mb-2 border-slate-100">
-        <h3 id="modalHeaderTitle" class="font-bold text-slate-800 text-base tracking-tight">Status & Alur Pengiriman</h3>
-        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-xl leading-none transition-colors"><i class="fa-solid fa-xmark"></i></button>
+  <div id="detailModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-white/10 w-full max-w-sm rounded-[2.5rem] p-6 shadow-2xl space-y-3 relative max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-3 border-white/10">
+        <h3 id="modalHeaderTitle" class="font-bold text-white text-base">Detail Pesanan</h3>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-white text-xl leading-none"><i class="fa-solid fa-xmark"></i></button>
       </div>
-
-      <!-- VISUAL TIMELINE PROGRESS STATUS -->
-      <div id="orderTimeline" class="mb-2 hidden relative">
-        <!-- Rendered dynamically -->
-      </div>
-
-      <div id="modalContent" class="mb-2">
-        <!-- Details populated here -->
-      </div>
-      
-      <div id="modalMapNavContainer">
-        <!-- Map buttons dynamically -->
-      </div>
-      
-      <div id="modalShareContainer">
-        <!-- Share & Status indicator dynamically -->
-      </div>
+      <div id="driverProfileCardContainer"></div>
+      <div id="orderTimeline" class="hidden"></div>
+      <div id="modalContent"></div>
+      <div id="modalMapNavContainer"></div>
+      <div id="modalPodContainer"></div>
+      <div id="modalShareContainer"></div>
     </div>
   </div>
 
-  <!-- Customer Success Report Modal -->
-  <div id="customerSuccessModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl space-y-4 text-center">
-      <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
+  <!-- Customer Success Modal -->
+  <div id="customerSuccessModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-white/10 w-full max-w-sm rounded-[2.5rem] p-6 shadow-2xl space-y-4 text-center">
+      <div class="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-3xl flex items-center justify-center mx-auto text-2xl font-bold shadow-inner">
         <i class="fa-solid fa-check"></i>
       </div>
       <div>
-        <h3 class="font-bold text-slate-800 text-lg">Pesanan Berhasil!</h3>
-        <p class="text-xs text-slate-500 mt-1">Silakan klik tombol di bawah untuk langsung mengirimkan rincian pesanan ini ke WhatsApp Driver kami.</p>
+        <h3 class="font-bold text-white text-lg">Pesanan Berhasil!</h3>
+        <p class="text-xs text-slate-300 mt-1">Kirim rincian pesanan ke WhatsApp Driver sekarang.</p>
       </div>
       <div id="customerShareBtnContainer"></div>
-      <button onclick="location.reload()" class="w-full bg-slate-100 text-slate-700 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-200 transition">
-        Tutup & Buat Pesanan Baru
+      <button onclick="location.reload()" class="w-full bg-white/5 hover:bg-white/10 text-slate-300 py-3 rounded-2xl text-xs font-bold transition border border-white/5">
+        Tutup & Buat Baru
       </button>
     </div>
   </div>
 
   <!-- Bottom Navigation Bar -->
-  <nav id="bottomNav" class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-40 max-w-md mx-auto flex justify-around py-2 px-1 shadow-lg">
-    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center text-indigo-600 space-y-0.5 px-3 py-1 rounded-xl transition">
-      <i class="fa-solid fa-chart-pie text-lg"></i>
-      <span class="text-[10px] font-semibold">Dashboard</span>
+  <nav id="bottomNav" class="fixed bottom-3 left-4 right-4 bg-slate-900/90 backdrop-blur-xl border border-white/10 z-40 max-w-md mx-auto flex justify-around py-2.5 px-2 rounded-full shadow-2xl">
+    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center text-violet-400 space-y-0.5 px-3 py-1 rounded-2xl transition">
+      <i class="fa-solid fa-chart-pie text-base"></i>
+      <span class="text-[9px] font-bold">Dashboard</span>
     </button>
-    <button onclick="switchTab('pesanan')" id="nav-pesanan" class="flex flex-col items-center text-slate-400 space-y-0.5 px-3 py-1 rounded-xl transition">
-      <i class="fa-solid fa-motorcycle text-lg"></i>
-      <span class="text-[10px] font-semibold">Pesanan</span>
+    <button onclick="switchTab('pesanan')" id="nav-pesanan" class="flex flex-col items-center text-slate-400 space-y-0.5 px-3 py-1 rounded-2xl transition">
+      <i class="fa-solid fa-motorcycle text-base"></i>
+      <span class="text-[9px] font-bold">Pesanan</span>
     </button>
-    <button onclick="switchTab('riwayat')" id="nav-riwayat" class="flex flex-col items-center text-slate-400 space-y-0.5 px-3 py-1 rounded-xl transition">
-      <i class="fa-solid fa-clock-rotate-left text-lg"></i>
-      <span class="text-[10px] font-semibold">Riwayat</span>
+    <button onclick="switchTab('riwayat')" id="nav-riwayat" class="flex flex-col items-center text-slate-400 space-y-0.5 px-3 py-1 rounded-2xl transition">
+      <i class="fa-solid fa-clock-rotate-left text-base"></i>
+      <span class="text-[9px] font-bold">Riwayat</span>
     </button>
-    <button onclick="switchTab('akun')" id="nav-akun" class="flex flex-col items-center text-slate-400 space-y-0.5 px-3 py-1 rounded-xl transition">
-      <i class="fa-solid fa-user text-lg"></i>
-      <span class="text-[10px] font-semibold">Akun</span>
+    <button onclick="switchTab('akun')" id="nav-akun" class="flex flex-col items-center text-slate-400 space-y-0.5 px-3 py-1 rounded-2xl transition">
+      <i class="fa-solid fa-user text-base"></i>
+      <span class="text-[9px] font-bold">Akun</span>
     </button>
-    <button onclick="switchTab('pengaturan')" id="nav-pengaturan" class="flex flex-col items-center text-slate-400 space-y-0.5 px-3 py-1 rounded-xl transition">
-      <i class="fa-solid fa-gear text-lg"></i>
-      <span class="text-[10px] font-semibold">Pengaturan</span>
+    <button onclick="switchTab('pengaturan')" id="nav-pengaturan" class="flex flex-col items-center text-slate-400 space-y-0.5 px-3 py-1 rounded-2xl transition">
+      <i class="fa-solid fa-gear text-base"></i>
+      <span class="text-[9px] font-bold">Setting</span>
     </button>
   </nav>
 
-  <!-- JavaScript Application Logic -->
+  <!-- JavaScript Logic -->
   <script>
     const GAS_WEB_APP_URL = "";
-
-    const DEFAULT_WA_TEMPLATE = `Halo *{nama}*,\n\nBerikut update status pesanan kurir Anda:\n- *ID Pesanan:* {id}\n- *Status Saat Ini:* *{status}*\n\n📦 *Titik Jemput:*\n{jemput}\n\n🏁 *Titik Tujuan:*\n{tujuan}\n\n- *Jarak:* {jarak} KM\n- *Total Ongkos:* {ongkos}\n\n📞 *Kontak Driver:* {driverWa}\n\n🔗 *Cek Riwayat & Detail Pesanan Anda:*\n{linkOrder}`;
+    const DEFAULT_WA_TEMPLATE = `Halo *{nama}*,\n\nUpdate status pesanan kurir Anda:\n- *ID:* {id}\n- *Status:* *{status}*\n\n📦 *Kategori:* {kategori}\n💳 *Pembayaran:* {pembayaran}\n📦 *Jemput:* {jemput}\n🏁 *Tujuan:* {tujuan}\n- *Jarak:* {jarak} KM\n- *Total Ongkos:* {ongkos}\n\n📞 *Driver:* {driverWa} ({driverName})\n🔗 *Lacak:* {linkOrder}`;
 
     let currentTarif = 3000;
     let calculatedData = null;
@@ -451,63 +542,131 @@
     let typingTimer;
     let activeOrdersExpanded = true;
     let isSaving = false;
-    let lastKnownStatuses = {};
 
     function showToast(title, message, type = 'success') {
       const modal = document.getElementById("customToastModal");
-      const titleEl = document.getElementById("toastTitle");
-      const msgEl = document.getElementById("toastMessage");
-      const iconContainer = document.getElementById("toastIconContainer");
-      const iconEl = document.getElementById("toastIcon");
-
-      titleEl.innerText = title;
-      msgEl.innerText = message;
-
-      if (type === 'success') {
-        iconContainer.className = "w-12 h-12 rounded-full flex items-center justify-center mx-auto text-xl font-bold bg-emerald-100 text-emerald-600";
-        iconEl.className = "fa-solid fa-circle-check";
-      } else if (type === 'warning') {
-        iconContainer.className = "w-12 h-12 rounded-full flex items-center justify-center mx-auto text-xl font-bold bg-amber-100 text-amber-600";
-        iconEl.className = "fa-solid fa-triangle-exclamation";
-      } else {
-        iconContainer.className = "w-12 h-12 rounded-full flex items-center justify-center mx-auto text-xl font-bold bg-indigo-100 text-indigo-600";
-        iconEl.className = "fa-solid fa-bell";
-      }
-
+      document.getElementById("toastTitle").innerText = title;
+      document.getElementById("toastMessage").innerText = message;
       modal.classList.remove('hidden');
     }
 
-    function closeCustomToast() {
-      document.getElementById("customToastModal").classList.add('hidden');
+    function closeCustomToast() { document.getElementById("customToastModal").classList.add('hidden'); }
+
+    function openExpenseModal() {
+      renderExpenseList();
+      document.getElementById("expenseModal").classList.remove('hidden');
     }
 
-    function showLiveNotification(title, message, type = 'success') {
-      const banner = document.getElementById("liveNotificationBanner");
-      document.getElementById("notifTitle").innerText = title;
-      document.getElementById("notifMessage").innerText = message;
-      
-      banner.classList.remove("-translate-y-20", "opacity-0");
-      banner.classList.add("translate-y-0", "opacity-100");
-
-      setTimeout(() => {
-        hideLiveNotification();
-      }, 5000);
+    function closeExpenseModal() {
+      document.getElementById("expenseModal").classList.add('hidden');
     }
 
-    function hideLiveNotification() {
-      const banner = document.getElementById("liveNotificationBanner");
-      banner.classList.remove("translate-y-0", "opacity-100");
-      banner.classList.add("-translate-y-20", "opacity-0");
-    }
-
-    function copyToClipboard(text) {
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(text).then(() => {
-          showToast("Tersalin", "Link resi/order berhasil disalin!", "success");
-        }).catch(err => {
-          showToast("Gagal", "Gagal menyalin link.", "warning");
-        });
+    function saveExpense() {
+      const desc = document.getElementById("expDesc").value.trim();
+      const amount = Number(document.getElementById("expAmount").value);
+      if (!desc || !amount || amount <= 0) {
+        showToast("Perhatian", "Keterangan dan nominal wajib diisi.", "warning");
+        return;
       }
+      let expenses = JSON.parse(localStorage.getItem("kurir_expenses") || "[]");
+      expenses.unshift({ desc, amount, date: new Date().toLocaleDateString("id-ID") });
+      localStorage.setItem("kurir_expenses", JSON.stringify(expenses));
+      document.getElementById("expDesc").value = "";
+      document.getElementById("expAmount").value = "";
+      renderExpenseList();
+      renderDashboardAndHistory();
+      showToast("Tersimpan", "Pengeluaran dicatat.", "success");
+    }
+
+    function deleteExpense(index) {
+      let expenses = JSON.parse(localStorage.getItem("kurir_expenses") || "[]");
+      expenses.splice(index, 1);
+      localStorage.setItem("kurir_expenses", JSON.stringify(expenses));
+      renderExpenseList();
+      renderDashboardAndHistory();
+    }
+
+    function renderExpenseList() {
+      let expenses = JSON.parse(localStorage.getItem("kurir_expenses") || "[]");
+      const container = document.getElementById("expenseListContainer");
+      if (expenses.length === 0) {
+        container.innerHTML = `<p class="text-slate-500 text-center py-2">Belum ada pengeluaran hari ini.</p>`;
+      } else {
+        container.innerHTML = expenses.map((item, idx) => `
+          <div class="bg-white/5 p-2.5 rounded-xl flex items-center justify-between">
+            <div>
+              <span class="font-bold text-white block">${item.desc}</span>
+              <span class="text-[10px] text-slate-400">${item.date}</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span class="font-bold text-pink-400">${formatRupiah(item.amount)}</span>
+              <button onclick="deleteExpense(${idx})" class="text-red-400 hover:text-red-300"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    function handlePodUpload(event, orderId) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64Img = e.target.result;
+        let localOrders = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
+        const idx = localOrders.findIndex(o => o["ID Pesanan"] === orderId);
+        if (idx !== -1) {
+          localOrders[idx]["podPhoto"] = base64Img;
+          localOrders[idx]["Status"] = "Selesai";
+          localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
+          loadDataInstant();
+          showDetailById(orderId);
+          showToast("Berhasil", "Bukti foto pengiriman disimpan & pesanan selesai!", "success");
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function openInvoiceModal(orderId) {
+      const order = ordersData.find(o => o["ID Pesanan"] === orderId);
+      if (!order) return;
+      let cost = Number(order["Total Ongkos"] || Math.round(Number(order["Jarak KM"] || 0) * 3000));
+      const driverName = localStorage.getItem("driver_name") || "Ari GPM";
+      const driverVehicle = localStorage.getItem("driver_vehicle") || "Honda Beat • H 1234 ABC";
+
+      const content = document.getElementById("invoiceContent");
+      content.innerHTML = `
+        <div class="text-center border-b pb-3 border-slate-200">
+          <h2 class="font-extrabold text-sm uppercase tracking-wider text-violet-700">KURIR EXPRESS</h2>
+          <p class="text-[10px] text-slate-500">Official Digital Invoice & Receipt</p>
+        </div>
+        <div class="space-y-1 py-1 text-slate-700">
+          <div class="flex justify-between"><span class="font-semibold">ID Transaksi:</span> <span class="font-mono font-bold">${order["ID Pesanan"]}</span></div>
+          <div class="flex justify-between"><span class="font-semibold">Tanggal:</span> <span>${order["Tanggal"] || order["Timestamp"]}</span></div>
+          <div class="flex justify-between"><span class="font-semibold">Pelanggan:</span> <span class="font-bold">${order["Nama Pelanggan"]} (${order["Nomor HP"]})</span></div>
+          <div class="flex justify-between"><span class="font-semibold">Kurir:</span> <span>${driverName} (${driverVehicle})</span></div>
+        </div>
+        <div class="border-t border-b border-slate-200 py-2 space-y-1 text-slate-700">
+          <div class="flex justify-between"><span class="font-semibold">Kategori:</span> <span>${order["Kategori"] || 'Paket Umum'}</span></div>
+          <div class="flex justify-between"><span class="font-semibold">Pembayaran:</span> <span class="font-bold text-indigo-600">${order["Metode Pembayaran"] || 'Tunai / COD'}</span></div>
+          <div><span class="font-semibold block">Alamat Jemput:</span> <span class="text-slate-600 block text-[10px]">${order["Alamat Jemput"]}</span></div>
+          <div><span class="font-semibold block">Alamat Tujuan:</span> <span class="text-slate-600 block text-[10px]">${order["Alamat Tujuan"]}</span></div>
+          <div class="flex justify-between pt-1"><span class="font-semibold">Jarak Tempuh:</span> <span>${order["Jarak KM"]} KM</span></div>
+        </div>
+        <div class="flex justify-between items-center pt-2 font-bold text-slate-900 text-sm">
+          <span>TOTAL BIAYA:</span>
+          <span class="text-emerald-600">${formatRupiah(cost)}</span>
+        </div>
+        <div class="text-center pt-3 border-t border-dashed border-slate-200">
+          <span class="inline-block bg-emerald-100 text-emerald-800 font-bold px-3 py-1 rounded-full text-[10px] uppercase">LUNAS / SELESAI</span>
+          <p class="text-[9px] text-slate-400 mt-2">Terima kasih telah menggunakan layanan Kurir Express.</p>
+        </div>
+      `;
+      document.getElementById("invoiceModal").classList.remove('hidden');
+    }
+
+    function closeInvoiceModal() {
+      document.getElementById("invoiceModal").classList.add('hidden');
     }
 
     function toggleActiveOrdersCard() {
@@ -515,90 +674,32 @@
       const container = document.getElementById("activeOrdersListContainer");
       const chevron = document.getElementById("activeOrdersChevron");
       const toggleText = document.getElementById("activeOrdersToggleText");
-      
       if (activeOrdersExpanded) {
-        container.classList.remove('hidden');
-        chevron.classList.remove('rotate-180');
-        toggleText.innerText = 'Tutup';
+        container.classList.remove('hidden'); chevron.classList.remove('rotate-180'); toggleText.innerText = 'Tutup';
       } else {
-        container.classList.add('hidden');
-        chevron.classList.add('rotate-180');
-        toggleText.innerText = 'Buka';
-      }
-    }
-
-    // ROBUST AUTO-MIGRATION & LOCKING FIXER
-    function runAutoMigration() {
-      try {
-        let rawOrders = localStorage.getItem("kurir_orders");
-        if (!rawOrders) return;
-        let localOrders = JSON.parse(rawOrders);
-        let modified = false;
-
-        localOrders = localOrders.map(o => {
-          let km = Number(o["Jarak KM"] || 0);
-          let total = Number(o["Total Ongkos"] || 0);
-          let tarif = Number(o["Tarif per KM"] || 3000);
-
-          // Pastikan Total Ongkos terkunci mutlak berdasarkan tarif 3000 jika sebelumnya salah/terpengaruh 4000
-          if (tarif === 4000 || total === km * 4000 || !total || total === 0) {
-            o["Tarif per KM"] = 3000;
-            o["Total Ongkos"] = Math.round(km * 3000);
-            modified = true;
-          } else if (!o["Total Ongkos"]) {
-            o["Total Ongkos"] = Math.round(km * tarif);
-            modified = true;
-          }
-          return o;
-        });
-
-        if (modified) {
-          localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
-        }
-      } catch (e) {
-        console.error("Migration error:", e);
+        container.classList.add('hidden'); chevron.classList.add('rotate-180'); toggleText.innerText = 'Buka';
       }
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      runAutoMigration();
-
       const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('mode') === 'order') {
-        isCustomerMode = true;
-        customerPhone = urlParams.get('phone') || "";
-      } else {
-        isCustomerMode = false;
-      }
+      isCustomerMode = urlParams.get('mode') === 'order';
+      customerPhone = urlParams.get('phone') || "";
       autoOpenOrderId = urlParams.get('order') || null;
 
       if (isCustomerMode) {
         document.getElementById("nav-dashboard").style.display = "none";
         document.getElementById("nav-pengaturan").style.display = "none";
         document.getElementById("nav-akun").style.display = "flex";
-        
-        if (customerPhone) {
-          document.getElementById("noHp").value = customerPhone;
-          document.getElementById("noHp").readOnly = true;
-        }
-
+        if (customerPhone) { document.getElementById("noHp").value = customerPhone; document.getElementById("noHp").readOnly = true; }
         const savedCustAcc = JSON.parse(localStorage.getItem("kurir_customer_account") || "{}");
         if (savedCustAcc.name) {
           document.getElementById("nama").value = savedCustAcc.name;
           document.getElementById("custRegName").value = savedCustAcc.name;
           document.getElementById("custRegEmail").value = savedCustAcc.email || "";
-          if (savedCustAcc.phone) {
-            document.getElementById("noHp").value = savedCustAcc.phone;
-            document.getElementById("custRegPhone").value = savedCustAcc.phone;
-            customerPhone = savedCustAcc.phone;
-          }
+          if (savedCustAcc.phone) { document.getElementById("noHp").value = savedCustAcc.phone; document.getElementById("custRegPhone").value = savedCustAcc.phone; customerPhone = savedCustAcc.phone; }
         }
-        
-        if (autoOpenOrderId) {
-          switchTab('riwayat');
-        } else {
-          switchTab('pesanan');
-        }
+        switchTab(autoOpenOrderId ? 'riwayat' : 'pesanan');
       } else {
         document.getElementById("nav-akun").style.display = "none";
         document.getElementById("nav-dashboard").style.display = "flex";
@@ -606,63 +707,99 @@
         switchTab('dashboard'); 
       }
 
-      const savedUrl = localStorage.getItem("gas_url") || GAS_WEB_APP_URL;
-      document.getElementById("gasUrlInput").value = savedUrl;
-      const savedDriverWa = localStorage.getItem("driver_wa") || "6281234567890";
-      document.getElementById("driverWaInput").value = savedDriverWa;
-      
-      const savedTarif = localStorage.getItem("local_tarif") || "3000";
-      document.getElementById("localTarifInput").value = savedTarif;
+      document.getElementById("driverNameInput").value = localStorage.getItem("driver_name") || "Ari GPM";
+      document.getElementById("driverVehicleInput").value = localStorage.getItem("driver_vehicle") || "Honda Beat Hitam • H 1234 ABC";
+      document.getElementById("driverWaInput").value = localStorage.getItem("driver_wa") || "6281234567890";
+      document.getElementById("localTarifInput").value = localStorage.getItem("local_tarif") || "3000";
+      document.getElementById("waTemplateInput").value = localStorage.getItem("wa_template") || DEFAULT_WA_TEMPLATE;
 
-      const savedTemplate = localStorage.getItem("wa_template") || DEFAULT_WA_TEMPLATE;
-      document.getElementById("waTemplateInput").value = savedTemplate;
-      
-      document.addEventListener('click', function(e) {
-        if (!e.target.closest('#saranJemput') && !e.target.closest('#alamatJemput')) {
-          document.getElementById('saranJemput').classList.add('hidden');
-          document.getElementById('saranJemput').classList.remove('flex');
-        }
-        if (!e.target.closest('#saranTujuan') && !e.target.closest('#alamatTujuan')) {
-          document.getElementById('saranTujuan').classList.add('hidden');
-          document.getElementById('saranTujuan').classList.remove('flex');
-        }
-      });
-
-      // Render kilat instan dari local storage
       loadDataInstant();
+      renderSavedAddresses();
 
-      // Sinkronisasi background tanpa delay UI
-      setTimeout(() => {
-        loadDataBackground();
-      }, 400);
+      if (autoOpenOrderId) {
+        setTimeout(() => showDetailById(autoOpenOrderId), 350);
+      }
     });
 
     function saveCustomerAccount() {
       const name = document.getElementById("custRegName").value.trim();
       const email = document.getElementById("custRegEmail").value.trim();
       const phone = document.getElementById("custRegPhone").value.trim().replace(/\D/g, '');
-
-      const accData = { name, email, phone };
-      localStorage.setItem("kurir_customer_account", JSON.stringify(accData));
-      
+      localStorage.setItem("kurir_customer_account", JSON.stringify({ name, email, phone }));
       document.getElementById("nama").value = name;
       document.getElementById("noHp").value = phone;
       customerPhone = phone;
-
-      showToast("Akun Tersimpan", "Registrasi akun berhasil! Data Anda terhubung ke form pemesanan.", "success");
+      showToast("Tersimpan", "Akun berhasil didaftarkan!", "success");
       switchTab('pesanan');
     }
 
-    function onPhoneInput(val) {
-      if (val.length >= 10) {
-        customerPhone = val.replace(/\D/g, '');
-        localStorage.setItem("my_customer_phone", customerPhone);
+    function saveFavoriteAddress() {
+      const label = document.getElementById("favLabel").value.trim();
+      const address = document.getElementById("favAddress").value.trim();
+      if (!label || !address) {
+        showToast("Perhatian", "Label dan detail alamat wajib diisi.", "warning");
+        return;
+      }
+      let saved = JSON.parse(localStorage.getItem("kurir_saved_addresses") || "[]");
+      saved.push({ label, address });
+      localStorage.setItem("kurir_saved_addresses", JSON.stringify(saved));
+      document.getElementById("favLabel").value = "";
+      document.getElementById("favAddress").value = "";
+      renderSavedAddresses();
+      showToast("Tersimpan", "Alamat favorit berhasil disimpan!", "success");
+    }
+
+    function deleteFavoriteAddress(index) {
+      let saved = JSON.parse(localStorage.getItem("kurir_saved_addresses") || "[]");
+      saved.splice(index, 1);
+      localStorage.setItem("kurir_saved_addresses", JSON.stringify(saved));
+      renderSavedAddresses();
+    }
+
+    function useSavedAddress(fieldId, address) {
+      document.getElementById(fieldId).value = address;
+      switchTab('pesanan');
+      showToast("Dipilih", "Alamat dimasukkan ke form.", "success");
+    }
+
+    function renderSavedAddresses() {
+      let saved = JSON.parse(localStorage.getItem("kurir_saved_addresses") || "[]");
+      const container = document.getElementById("savedAddressesContainer");
+      
+      if (saved.length === 0) {
+        container.innerHTML = `<p class="text-[11px] text-slate-500 text-center py-2">Belum ada alamat tersimpan.</p>`;
+      } else {
+        container.innerHTML = saved.map((item, idx) => `
+          <div class="bg-white/5 p-3 rounded-2xl border border-white/5 flex items-center justify-between text-xs">
+            <div class="min-w-0 pr-2">
+              <span class="font-bold text-violet-300 block truncate">${item.label}</span>
+              <span class="text-[11px] text-slate-400 block truncate">${item.address}</span>
+            </div>
+            <div class="flex items-center space-x-1.5 shrink-0">
+              <button onclick="useSavedAddress('alamatJemput', '${item.address.replace(/'/g, "\\'")}')" class="px-2 py-1 bg-violet-600/30 text-violet-300 hover:bg-violet-600/50 rounded-xl font-bold text-[10px]" title="Jadikan Jemput">Jemput</button>
+              <button onclick="useSavedAddress('alamatTujuan', '${item.address.replace(/'/g, "\\'")}')" class="px-2 py-1 bg-indigo-600/30 text-indigo-300 hover:bg-indigo-600/50 rounded-xl font-bold text-[10px]" title="Jadikan Tujuan">Tujuan</button>
+              <button onclick="deleteFavoriteAddress(${idx})" class="p-1 text-red-400 hover:text-red-300 text-xs"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      const qJemput = document.getElementById("quickJemputPicker");
+      const qTujuan = document.getElementById("quickTujuanPicker");
+      if (saved.length > 0) {
+        const pills = saved.map(item => `<button type="button" onclick="document.getElementById('alamatJemput').value='${item.address.replace(/'/g, "\\'")}'" class="text-[9px] bg-violet-500/20 text-violet-300 px-2 py-0.5 rounded-lg border border-violet-500/30 font-semibold truncate max-w-[100px]">${item.label}</button>`).join('');
+        const pillsTujuan = saved.map(item => `<button type="button" onclick="document.getElementById('alamatTujuan').value='${item.address.replace(/'/g, "\\'")}'" class="text-[9px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-lg border border-indigo-500/30 font-semibold truncate max-w-[100px]">${item.label}</button>`).join('');
+        if (qJemput) qJemput.innerHTML = pills;
+        if (qTujuan) qTujuan.innerHTML = pillsTujuan;
       }
     }
 
-    function switchTab(tabId) {
-      if (isCustomerMode && tabId !== 'pesanan' && tabId !== 'riwayat' && tabId !== 'akun') return;
+    function onPhoneInput(val) {
+      if (val.length >= 10) { customerPhone = val.replace(/\D/g, ''); localStorage.setItem("my_customer_phone", customerPhone); }
+    }
 
+    function switchTab(tabId) {
+      if (isCustomerMode && ['pesanan', 'riwayat', 'akun'].indexOf(tabId) === -1) return;
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
       document.getElementById('tab-' + tabId).classList.remove('hidden');
 
@@ -670,112 +807,63 @@
         const btn = document.getElementById('nav-' + id);
         if (btn && btn.style.display !== "none") {
           if (id === tabId) {
-            btn.classList.remove('text-slate-400');
-            btn.classList.add('text-indigo-600');
+            btn.classList.remove('text-slate-400'); btn.classList.add('text-violet-400', 'bg-white/5');
           } else {
-            btn.classList.remove('text-indigo-600');
-            btn.classList.add('text-slate-400');
+            btn.classList.remove('text-violet-400', 'bg-white/5'); btn.classList.add('text-slate-400');
           }
         }
       });
       window.scrollTo(0, 0);
     }
 
-    function formatRupiah(num) {
-      return "Rp" + Number(num).toLocaleString("id-ID");
-    }
-
+    function formatRupiah(num) { return "Rp" + Number(num).toLocaleString("id-ID"); }
     function formatPhoneNumber(num) {
       if (!num) return "";
-      let formatted = num.replace(/\D/g, '');
-      if (formatted.startsWith('0')) {
-        formatted = '62' + formatted.substring(1);
-      }
-      return formatted;
+      let f = num.replace(/\D/g, '');
+      return f.startsWith('0') ? '62' + f.substring(1) : f;
     }
 
     function handleAddressInput(inputId, saranId) {
       clearTimeout(typingTimer);
       const query = document.getElementById(inputId).value.trim();
       const saranDiv = document.getElementById(saranId);
-      
       document.getElementById(inputId).dataset.lat = "";
       document.getElementById(inputId).dataset.lon = "";
-
-      if (query.length < 3) {
-        saranDiv.classList.add('hidden');
-        saranDiv.classList.remove('flex');
-        return;
-      }
+      if (query.length < 3) { saranDiv.classList.add('hidden'); saranDiv.classList.remove('flex'); return; }
 
       typingTimer = setTimeout(async () => {
-        saranDiv.innerHTML = `<div class="p-2.5 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin"></i> Mencari lokasi...</div>`;
-        saranDiv.classList.remove('hidden');
-        saranDiv.classList.add('flex');
-
+        saranDiv.innerHTML = `<div class="p-3 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin"></i> Mencari...</div>`;
+        saranDiv.classList.remove('hidden'); saranDiv.classList.add('flex');
         try {
           const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5&bbox=94.0,-11.0,141.0,6.0`);
           const data = await res.json();
-          
           if (!data.features || data.features.length === 0) {
-            saranDiv.innerHTML = `<div class="p-2.5 text-center text-amber-600">Lokasi tidak ditemukan. Coba ketik nama daerah/kecamatan.</div>`;
+            saranDiv.innerHTML = `<div class="p-3 text-center text-amber-400">Tidak ditemukan.</div>`;
           } else {
-            let html = '';
-            data.features.forEach(f => {
+            saranDiv.innerHTML = data.features.map(f => {
               const p = f.properties;
               const coords = f.geometry.coordinates;
-              
-              let rawParts = [p.name, p.street, p.district, p.city, p.state];
-              let uniqueParts = [...new Set(rawParts.filter(Boolean))];
-              let displayName = uniqueParts.join(', ');
-              
-              html += `
-                <div class="p-2.5 hover:bg-indigo-50 cursor-pointer text-slate-700 truncate" onclick="pilihLokasi('${inputId}', '${saranId}', '${displayName.replace(/'/g, "\\'")}', ${coords[1]}, ${coords[0]})">
-                  <i class="fa-solid fa-location-dot text-indigo-500 mr-1.5"></i> ${displayName}
-                </div>
-              `;
-            });
-            saranDiv.innerHTML = html;
+              const displayName = [...new Set([p.name, p.street, p.district, p.city, p.state].filter(Boolean))].join(', ');
+              return `<div class="p-3 hover:bg-white/5 cursor-pointer text-slate-200 truncate" onclick="pilihLokasi('${inputId}', '${saranId}', '${displayName.replace(/'/g, "\\'")}', ${coords[1]}, ${coords[0]})"><i class="fa-solid fa-location-dot text-violet-400 mr-2"></i>${displayName}</div>`;
+            }).join('');
           }
-        } catch (err) {
-          saranDiv.classList.add('hidden');
-        }
+        } catch (e) { saranDiv.classList.add('hidden'); }
       }, 400);
     }
 
     function pilihLokasi(inputId, saranId, namaLokasi, lat, lon) {
-      const inputEl = document.getElementById(inputId);
-      inputEl.value = namaLokasi;
-      inputEl.dataset.lat = lat;
-      inputEl.dataset.lon = lon;
-      const saranDiv = document.getElementById(saranId);
-      saranDiv.classList.add('hidden');
-      saranDiv.classList.remove('flex');
-    }
-
-    function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
-      const R = 6371;
-      const dLat = (lat2 - lat1) * (Math.PI / 180);
-      const dLon = (lon2 - lon1) * (Math.PI / 180);
-      const a = 
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * 
-        Math.sin(dLon / 2) * Math.sin(dLon / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return Number((R * c * 1.3).toFixed(1));
+      const el = document.getElementById(inputId);
+      el.value = namaLokasi; el.dataset.lat = lat; el.dataset.lon = lon;
+      document.getElementById(saranId).classList.add('hidden'); document.getElementById(saranId).classList.remove('flex');
     }
 
     async function getCoordinates(inputId, queryStr) {
       const el = document.getElementById(inputId);
-      if (el.dataset.lat && el.dataset.lon) {
-        return { lat: parseFloat(el.dataset.lat), lon: parseFloat(el.dataset.lon) };
-      }
-      
+      if (el.dataset.lat && el.dataset.lon) return { lat: parseFloat(el.dataset.lat), lon: parseFloat(el.dataset.lon) };
       const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(queryStr)}&limit=1&bbox=94.0,-11.0,141.0,6.0`);
       const data = await res.json();
       if (data.features && data.features.length > 0) {
-        const coords = data.features[0].geometry.coordinates;
-        return { lat: parseFloat(coords[1]), lon: parseFloat(coords[0]) };
+        return { lat: parseFloat(data.features[0].geometry.coordinates[1]), lon: parseFloat(data.features[0].geometry.coordinates[0]) };
       }
       return null;
     }
@@ -785,70 +873,41 @@
       const tujuan = document.getElementById("alamatTujuan").value.trim();
       const nama = document.getElementById("nama").value.trim();
       const noHp = document.getElementById("noHp").value.trim();
+      const kategori = document.getElementById("kategoriBarang").value;
+      const pembayaran = document.getElementById("metodePembayaran").value;
 
       if (!nama || !noHp || !jemput || !tujuan) {
-        showToast("Form Belum Lengkap", "Harap isi Nama, Nomor WhatsApp, Alamat Jemput, dan Alamat Tujuan terlebih dahulu.", "warning");
-        return;
+        showToast("Belum Lengkap", "Harap isi semua kolom wajib.", "warning"); return;
       }
-
       customerPhone = noHp.replace(/\D/g, '');
       localStorage.setItem("my_customer_phone", customerPhone);
 
       const btn = document.querySelector("button[onclick='calculateDistance()']");
-      const originalHtml = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Memproses Jarak...`;
+      const orig = btn.innerHTML; btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Memproses Rute...`;
 
       try {
-        const coordsJemput = await getCoordinates("alamatJemput", jemput);
-        if (!coordsJemput) {
-          throw new Error("Pencarian alamat jemput gagal. Mohon ketik nama daerah dengan lebih jelas lalu pilih dari daftar saran otomatis.");
-        }
-        
-        const coordsTujuan = await getCoordinates("alamatTujuan", tujuan);
-        if (!coordsTujuan) {
-           throw new Error("Pencarian alamat tujuan gagal. Mohon ketik nama daerah dengan lebih jelas lalu pilih dari daftar saran otomatis.");
-        }
+        const c1 = await getCoordinates("alamatJemput", jemput);
+        const c2 = await getCoordinates("alamatTujuan", tujuan);
+        if (!c1 || !c2) throw new Error("Alamat tidak valid.");
 
-        const lon1 = coordsJemput.lon;
-        const lat1 = coordsJemput.lat;
-        const lon2 = coordsTujuan.lon;
-        const lat2 = coordsTujuan.lat;
-
-        let jarakKm = 0;
-        let estimasiMnt = 0;
-
+        let jarakKm = 3.5, estimasiMnt = 10;
         try {
-          const resRoute = await fetch(`https://router.project-osrm.org/route/v1/driving/${lon1},${lat1};${lon2},${lat2}?overview=false`);
-          const dataRoute = await resRoute.json();
-
-          if (dataRoute.code === "Ok" && dataRoute.routes && dataRoute.routes.length > 0) {
-            const route = dataRoute.routes[0];
-            jarakKm = Number((route.distance / 1000).toFixed(1));
-            estimasiMnt = Math.round(route.duration / 60);
-          } else {
-            throw new Error("OSRM fallback");
-          }
-        } catch (routingErr) {
-          jarakKm = calculateHaversineDistance(lat1, lon1, lat2, lon2);
-          estimasiMnt = Math.round(jarakKm * 3);
-        }
+          const resRoute = await fetch(`https://router.project-osrm.org/route/v1/driving/${c1.lon},${c1.lat};${c2.lon},${c2.lat}?overview=false`);
+          const dRoute = await resRoute.json();
+          jarakKm = Number((dRoute.routes[0].distance / 1000).toFixed(1));
+          estimasiMnt = Math.round(dRoute.routes[0].duration / 60);
+        } catch (e) {}
 
         if (jarakKm < 0.5) jarakKm = 0.5;
-        if (estimasiMnt < 3) estimasiMnt = 3;
-
         let totalOngkos = Math.round(jarakKm * currentTarif);
 
-        calculatedData = {
-          nama: nama,
-          noHp: customerPhone,
-          alamatJemput: jemput,
-          alamatTujuan: tujuan,
-          catatan: document.getElementById("catatan").value.trim(),
-          jarak: jarakKm,
-          estimasiMenit: estimasiMnt,
-          tarif: currentTarif,
-          totalOngkos: totalOngkos
+        calculatedData = { 
+          nama, noHp: customerPhone, kategori, pembayaran, 
+          alamatJemput: jemput, alamatTujuan: tujuan, 
+          jemputLat: c1.lat, jemputLon: c1.lon, 
+          tujuanLat: c2.lat, tujuanLon: c2.lon,
+          catatan: document.getElementById("catatan").value.trim(), 
+          jarak: jarakKm, estimasiMenit: estimasiMnt, tarif: currentTarif, totalOngkos 
         };
 
         document.getElementById("resJemput").innerText = jemput;
@@ -857,70 +916,40 @@
         document.getElementById("resTarif").innerText = formatRupiah(currentTarif) + "/KM";
         document.getElementById("resEstimasi").innerText = estimasiMnt + " mnt";
         document.getElementById("resOngkos").innerText = formatRupiah(totalOngkos);
-        
         document.getElementById("resultCard").classList.remove('hidden');
         document.getElementById("resultCard").scrollIntoView({ behavior: 'smooth' });
-
       } catch (err) {
-        console.error("Routing error:", err);
-        showToast("Alamat Tidak Ditemukan", err.message, "warning");
+        showToast("Error", err.message, "warning");
       } finally {
-        btn.disabled = false;
-        btn.innerHTML = originalHtml;
+        btn.disabled = false; btn.innerHTML = orig;
       }
     }
 
     async function saveOrder() {
       if (!calculatedData || isSaving) return;
-
       isSaving = true;
-      const btn = document.getElementById("btnSimpan");
-      btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Menyimpan...`;
-
-      const url = document.getElementById("gasUrlInput").value.trim();
-      const dataToSave = { ...calculatedData };
-
-      if (url) {
-        try {
-          const response = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify(dataToSave)
-          });
-          const result = await response.json();
-          if (result.status === "success") {
-            handlePostSaveSuccess(result.orderId, dataToSave);
-          } else {
-            showToast("Gagal Menyimpan", result.message || "Unknown error", "warning");
-            isSaving = false;
-            btn.disabled = false;
-            btn.innerHTML = `<i class="fa-solid fa-check-circle"></i><span>SIMPAN PESANAN</span>`;
-          }
-        } catch (err) {
-          saveOrderLocally(dataToSave);
-        }
-      } else {
-        setTimeout(() => saveOrderLocally(dataToSave), 300);
-      }
-    }
-
-    function saveOrderLocally(dataToSave) {
       const orderId = "KURIR-" + new Date().toISOString().slice(0,10).replace(/-/g,"") + "-" + Math.floor(1000 + Math.random() * 9000);
       const newOrder = {
         "ID Pesanan": orderId,
         "Timestamp": new Date().toISOString(),
         "Tanggal": new Date().toLocaleString("id-ID"),
-        "Nama Pelanggan": dataToSave.nama,
-        "Nomor HP": dataToSave.noHp,
-        "Alamat Jemput": dataToSave.alamatJemput,
-        "Alamat Tujuan": dataToSave.alamatTujuan,
-        "Catatan": dataToSave.catatan,
-        "Jarak KM": dataToSave.jarak,
-        "Estimasi Menit": dataToSave.estimasiMenit,
-        "Tarif per KM": dataToSave.tarif,
-        "Total Ongkos": dataToSave.totalOngkos,
+        "Nama Pelanggan": calculatedData.nama,
+        "Nomor HP": calculatedData.noHp,
+        "Kategori": calculatedData.kategori,
+        "Metode Pembayaran": calculatedData.pembayaran,
+        "Alamat Jemput": calculatedData.alamatJemput,
+        "Alamat Tujuan": calculatedData.alamatTujuan,
+        "jemputLat": calculatedData.jemputLat,
+        "jemputLon": calculatedData.jemputLon,
+        "tujuanLat": calculatedData.tujuanLat,
+        "tujuanLon": calculatedData.tujuanLon,
+        "Catatan": calculatedData.catatan,
+        "Jarak KM": calculatedData.jarak,
+        "Estimasi Menit": calculatedData.estimasiMenit,
+        "Tarif per KM": calculatedData.tarif,
+        "Total Ongkos": calculatedData.totalOngkos,
         "Status": "Menunggu",
+        "podPhoto": null,
         "_synced": false
       };
 
@@ -928,667 +957,299 @@
       localOrders.unshift(newOrder);
       localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
 
-      handlePostSaveSuccess(orderId, dataToSave);
-    }
-
-    function generateWaText(orderId, nama, noHp, jemput, tujuan, jarak, ongkos, status, actionType = 'update_status_to_cust') {
-      const baseUrl = window.location.href.split('?')[0];
-      const jemputLink = `https://maps.google.com/?q=${encodeURIComponent(jemput)}`;
-      const tujuanLink = `https://maps.google.com/?q=${encodeURIComponent(tujuan)}`;
-      const driverWaNum = formatPhoneNumber(localStorage.getItem("driver_wa") || "6281234567890");
-      const custWaNum = formatPhoneNumber(noHp);
-
-      const rawPhone = (noHp || "").replace(/\D/g, '');
-      const linkOrderCust = `${baseUrl}?mode=order&phone=${rawPhone}&order=${orderId}`;
-      const linkOrderDriver = `${baseUrl}?order=${orderId}`;
-
-      if (actionType === 'new_order_to_driver') {
-         return `*PESANAN BARU MASUK (VIA WEB)*\n\nHalo Driver, ada pesanan masuk dari *${nama}*.\n\n📦 *Jemput:*\n${jemput}\n📍 Map: ${jemputLink}\n\n🏁 *Tujuan:*\n${tujuan}\n📍 Map: ${tujuanLink}\n\n- *Jarak:* ${jarak} KM\n- *Ongkos:* ${formatRupiah(ongkos)}\n\n📞 *Hubungi Customer (WA):*\nwa.me/${custWaNum}\n\n🔗 *Buka & Proses Pesanan Ini di Aplikasi Driver:*\n${linkOrderDriver}`;
-      }
-
-      if (actionType === 'done_order_to_cust') {
-         return `Halo *${nama}*,\n\nPaket/Pesanan Anda dengan ID *${orderId}* telah *SELESAI* dikirimkan. ✅\n\n📦 *Titik Jemput:*\n${jemput}\n\n🏁 *Titik Tujuan:*\n${tujuan}\n\n- *Total Ongkos:* ${formatRupiah(ongkos)}\n\nTerima kasih telah menggunakan layanan Kurir Express!\n\n🔗 *Cek Nota & Riwayat Pesanan:*\n${linkOrderCust}`;
-      }
-
-      if (actionType === 'update_status_to_cust') {
-          let template = localStorage.getItem("wa_template") || DEFAULT_WA_TEMPLATE;
-          
-          if (!template.includes("{linkOrder}")) {
-             template += "\n\n🔗 Cek Riwayat & Detail Pesanan Anda:\n{linkOrder}";
-          }
-          if (!template.includes("{driverWa}")) {
-             template += "\n📞 Kontak Driver: {driverWa}";
-          }
-
-          return template
-            .replace(/{nama}/g, nama)
-            .replace(/{id}/g, orderId)
-            .replace(/{noHp}/g, noHp)
-            .replace(/{jemput}/g, jemput)
-            .replace(/{tujuan}/g, tujuan)
-            .replace(/{mapJemput}/g, jemputLink)
-            .replace(/{mapTujuan}/g, tujuanLink)
-            .replace(/{jarak}/g, jarak)
-            .replace(/{ongkos}/g, formatRupiah(ongkos))
-            .replace(/{status}/g, status)
-            .replace(/{linkOrder}/g, linkOrderCust)
-            .replace(/{driverWa}/g, driverWaNum);
-      }
-      
-      return "";
-    }
-
-    function handlePostSaveSuccess(orderId, savedData) {
       if (isCustomerMode) {
         const driverWa = formatPhoneNumber(localStorage.getItem("driver_wa") || "6281234567890");
-        const reportText = generateWaText(orderId, savedData.nama, savedData.noHp, savedData.alamatJemput, savedData.alamatTujuan, savedData.jarak, savedData.totalOngkos, "Menunggu", "new_order_to_driver");
-
-        document.getElementById("customerShareBtnContainer").innerHTML = `
-          <a href="https://wa.me/${driverWa}?text=${encodeURIComponent(reportText)}" target="_blank" class="w-full bg-[#10b981] hover:bg-emerald-600 text-white font-bold py-3 px-4 rounded-xl text-sm flex items-center justify-center space-x-2 transition shadow-md">
-            <i class="fa-brands fa-whatsapp text-lg"></i>
-            <span>Kirim Notifikasi ke WhatsApp Driver</span>
-          </a>
-        `;
+        const reportText = `*PESANAN BARU*\nKategori: ${newOrder["Kategori"]}\nPembayaran: ${newOrder["Metode Pembayaran"]}\nNama: ${newOrder["Nama Pelanggan"]}\nJemput: ${newOrder["Alamat Jemput"]}\nTujuan: ${newOrder["Alamat Tujuan"]}\nOngkos: ${formatRupiah(newOrder["Total Ongkos"])}`;
+        document.getElementById("customerShareBtnContainer").innerHTML = `<a href="https://wa.me/${driverWa}?text=${encodeURIComponent(reportText)}" target="_blank" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-4 rounded-2xl text-xs flex items-center justify-center space-x-2 shadow-lg"><i class="fa-brands fa-whatsapp text-base"></i><span>Kirim WA ke Driver</span></a>`;
         document.getElementById("customerSuccessModal").classList.remove('hidden');
       } else {
-        showToast("Sukses", "Pesanan berhasil disimpan! ID: " + orderId, "success");
-        loadDataBackground();
+        showToast("Sukses", "Pesanan tersimpan!", "success");
+        loadDataInstant();
         switchTab('riwayat');
       }
-      
-      calculatedData = null;
-      isSaving = false;
-      resetForm();
-    }
-
-    function resetForm() {
+      calculatedData = null; isSaving = false;
       document.getElementById("orderForm").reset();
-      if (isCustomerMode && customerPhone) {
-        document.getElementById("noHp").value = customerPhone;
-      }
-      document.getElementById("alamatJemput").dataset.lat = "";
-      document.getElementById("alamatJemput").dataset.lon = "";
-      document.getElementById("alamatTujuan").dataset.lat = "";
-      document.getElementById("alamatTujuan").dataset.lon = "";
-      
       document.getElementById("resultCard").classList.add('hidden');
-      isSaving = false;
-      const btn = document.getElementById("btnSimpan");
-      if (btn) {
-        btn.disabled = false;
-        btn.innerHTML = `<i class="fa-solid fa-check-circle"></i><span>SIMPAN PESANAN</span>`;
-      }
     }
 
     function loadDataInstant() {
-      const localTarif = localStorage.getItem("local_tarif");
-      currentTarif = localTarif ? Number(localTarif) : 3000;
+      currentTarif = Number(localStorage.getItem("local_tarif") || 3000);
       document.getElementById("settingsTarifLabel").innerText = formatRupiah(currentTarif) + " / KM";
-
       let localOrders = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
       let deletedIds = JSON.parse(localStorage.getItem("kurir_deleted_ids") || "[]");
-
       ordersData = localOrders.filter(o => !deletedIds.includes(o["ID Pesanan"]));
-      
-      checkUnsyncedData(ordersData.filter(o => o._synced === false));
-      renderDashboardAndHistory();
-      checkAutoOpenOrder();
-    }
-
-    async function loadDataBackground() {
-      const url = document.getElementById("gasUrlInput").value.trim();
-      const statusText = document.getElementById("statusText");
-      const statusDot = document.getElementById("statusDot");
-      const localTarif = localStorage.getItem("local_tarif");
-
-      if (!url) {
-        statusDot.className = "w-2 h-2 rounded-full bg-emerald-400 inline-block";
-        statusText.innerText = "Siap (Lokal)";
-        return;
-      }
-
-      statusDot.className = "w-2 h-2 rounded-full bg-blue-400 inline-block animate-pulse";
-      statusText.innerText = "Sinkronisasi...";
-
-      let localOrders = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
-      let deletedIds = JSON.parse(localStorage.getItem("kurir_deleted_ids") || "[]");
-
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 4000);
-        
-        const res = await fetch(url + "?action=get_all", { signal: controller.signal });
-        clearTimeout(timeoutId);
-        
-        const data = await res.json();
-        if (data.status === "success") {
-          currentTarif = localTarif ? Number(localTarif) : (Number(data.tarif) || 3000);
-          document.getElementById("settingsTarifLabel").innerText = formatRupiah(currentTarif) + " / KM";
-          
-          const serverOrders = (data.pesanan || []).filter(o => !deletedIds.includes(o["ID Pesanan"]));
-          const unsyncedOrders = localOrders.filter(o => o._synced === false && !deletedIds.includes(o["ID Pesanan"]));
-          
-          let oldOrdersCount = ordersData.length;
-          ordersData = [...unsyncedOrders, ...serverOrders];
-          
-          if (!isCustomerMode && ordersData.length > oldOrdersCount && oldOrdersCount > 0) {
-            showLiveNotification("Pesanan Baru!", "Ada pesanan kurir masuk dari web.", "success");
-          }
-
-          ordersData.forEach(o => {
-            let id = o["ID Pesanan"];
-            let currentSt = o["Status"] || "Menunggu";
-            if (lastKnownStatuses[id] && lastKnownStatuses[id] !== currentSt) {
-              showLiveNotification("Update Status", `Pesanan ${id} kini: ${currentSt}`, "success");
-            }
-            lastKnownStatuses[id] = currentSt;
-          });
-
-          statusDot.className = "w-2 h-2 rounded-full bg-emerald-400 inline-block";
-          statusText.innerText = "Terhubung (Online)";
-          checkUnsyncedData(unsyncedOrders);
-          renderDashboardAndHistory();
-          checkAutoOpenOrder();
-        }
-      } catch (err) {
-        statusDot.className = "w-2 h-2 rounded-full bg-emerald-400 inline-block";
-        statusText.innerText = "Siap (Lokal)";
-      }
-    }
-
-    function loadData() {
-      loadDataBackground();
-    }
-    
-    function checkAutoOpenOrder() {
-      if (autoOpenOrderId && isCustomerMode) {
-        setTimeout(() => {
-          showDetailById(autoOpenOrderId);
-          autoOpenOrderId = null;
-        }, 300);
-      }
-    }
-
-    function checkUnsyncedData(unsyncedOrders) {
-      const syncContainer = document.getElementById("syncContainer");
-      if (syncContainer) {
-        if (unsyncedOrders.length > 0) {
-          syncContainer.classList.remove('hidden');
-          document.getElementById("unsyncedCount").innerText = `${unsyncedOrders.length} pesanan lokal belum dikirim`;
-        } else {
-          syncContainer.classList.add('hidden');
-        }
-      }
-    }
-
-    async function syncOfflineData() {
-      let localOrders = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
-      let unsynced = localOrders.filter(o => o._synced === false);
-      const url = document.getElementById("gasUrlInput").value.trim();
-
-      if (!url) {
-        showToast("Perhatian", "URL Apps Script belum diisi di Pengaturan!", "warning");
-        return;
-      }
-      if (unsynced.length === 0) {
-        showToast("Informasi", "Semua data sudah tersinkronisasi.", "success");
-        return;
-      }
-
-      const btn = document.getElementById("btnSyncOffline");
-      const originalHtml = btn.innerHTML;
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menyinkronkan...`;
-      btn.disabled = true;
-
-      let successCount = 0;
-      for (let order of unsynced) {
-        try {
-          const payload = {
-            nama: order["Nama Pelanggan"],
-            noHp: order["Nomor HP"],
-            alamatJemput: order["Alamat Jemput"],
-            alamatTujuan: order["Alamat Tujuan"],
-            catatan: order["Catatan"],
-            jarak: order["Jarak KM"],
-            estimasiMenit: order["Estimasi Menit"],
-            tarif: order["Tarif per KM"],
-            totalOngkos: order["Total Ongkos"],
-            status: order["Status"]
-          };
-
-          const response = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify(payload)
-          });
-          const result = await response.json();
-          if (result.status === "success") {
-            order._synced = true;
-            successCount++;
-          }
-        } catch (e) {
-          console.error("Gagal sync order: ", order["ID Pesanan"]);
-        }
-      }
-
-      localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
-      btn.innerHTML = originalHtml;
-      btn.disabled = false;
-      
-      showToast("Sinkronisasi Selesai", `${successCount} dari ${unsynced.length} pesanan berhasil dikirim ke server.`, "success");
-      loadDataBackground();
-    }
-
-    function clearAllHistory() {
-      if (confirm("Apakah Anda yakin ingin MENGHAPUS SEMUA riwayat pesanan? (Data tidak akan muncul kembali)")) {
-        let deletedIds = JSON.parse(localStorage.getItem("kurir_deleted_ids") || "[]");
-        
-        ordersData.forEach(o => {
-          if (o["ID Pesanan"] && !deletedIds.includes(o["ID Pesanan"])) {
-            deletedIds.push(o["ID Pesanan"]);
-          }
-        });
-
-        localStorage.setItem("kurir_deleted_ids", JSON.stringify(deletedIds));
-        localStorage.setItem("kurir_orders", JSON.stringify([]));
-        ordersData = [];
-        renderDashboardAndHistory();
-        showToast("Dibersihkan", "Semua riwayat berhasil dihapus secara permanen.", "success");
-      }
-    }
-
-    async function deleteOrder(orderId) {
-      if (!confirm("Hapus pesanan ini dari riwayat?")) return;
-
-      let localOrders = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
-      localOrders = localOrders.filter(o => o["ID Pesanan"] !== orderId);
-      localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
-
-      let deletedIds = JSON.parse(localStorage.getItem("kurir_deleted_ids") || "[]");
-      if (!deletedIds.includes(orderId)) {
-        deletedIds.push(orderId);
-        localStorage.setItem("kurir_deleted_ids", JSON.stringify(deletedIds));
-      }
-
-      ordersData = ordersData.filter(o => o["ID Pesanan"] !== orderId);
-
-      const url = document.getElementById("gasUrlInput").value.trim();
-      if (url) {
-        try {
-          fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({ action: "delete_order", orderId: orderId })
-          });
-        } catch(e) {}
-      }
-
-      closeModal();
       renderDashboardAndHistory();
     }
+
+    function loadData() { loadDataInstant(); }
 
     function renderDashboardAndHistory() {
-      let displayOrders = ordersData;
-
-      if (isCustomerMode && customerPhone) {
-        displayOrders = ordersData.filter(o => {
-          const orderPhone = (o["Nomor HP"] || "").replace(/\D/g, '');
-          return orderPhone.includes(customerPhone) || customerPhone.includes(orderPhone);
-        });
-      }
-
-      let totalOrders = displayOrders.length;
-      let totalKm = 0;
-      let totalRevenue = 0;
-      let activeOrders = [];
+      let displayOrders = isCustomerMode && customerPhone ? ordersData.filter(o => (o["Nomor HP"] || "").includes(customerPhone)) : ordersData;
+      let totalOrders = displayOrders.length, totalKm = 0, totalRevenue = 0, activeOrders = [];
 
       displayOrders.forEach(o => {
         let km = Number(o["Jarak KM"] || 0);
-        // Mengambil Total Ongkos secara mutlak dari data pesanan yang terkunci
-        let cost = Number(o["Total Ongkos"] || Math.round(km * Number(o["Tarif per KM"] || 3000)));
-        let status = o["Status"] || "Menunggu";
-
-        totalKm += km;
-        totalRevenue += cost;
-
-        if (status !== "Selesai") {
-          activeOrders.push(o);
-        }
+        let cost = Number(o["Total Ongkos"] || Math.round(km * 3000));
+        totalKm += km; totalRevenue += cost;
+        if ((o["Status"] || "Menunggu") !== "Selesai") activeOrders.push(o);
       });
 
-      if (document.getElementById("dashOrdersCount") && !isCustomerMode) {
+      let expenses = JSON.parse(localStorage.getItem("kurir_expenses") || "[]");
+      let totalExpense = expenses.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+      let netProfit = totalRevenue - totalExpense;
+
+      if (document.getElementById("dashGrossRevenue") && !isCustomerMode) {
+        document.getElementById("dashGrossRevenue").innerText = formatRupiah(totalRevenue);
+        document.getElementById("dashTotalExpense").innerText = formatRupiah(totalExpense);
+        document.getElementById("dashNetProfit").innerText = formatRupiah(netProfit);
         document.getElementById("dashOrdersCount").innerText = totalOrders;
         document.getElementById("dashTotalKm").innerText = totalKm.toFixed(1) + " KM";
-        document.getElementById("dashTotalRevenue").innerText = formatRupiah(totalRevenue);
-        if (document.getElementById("activeCount")) document.getElementById("activeCount").innerText = activeOrders.length;
+        document.getElementById("activeCount").innerText = activeOrders.length;
+        document.getElementById("batchCount").innerText = activeOrders.length;
       }
 
       if (isCustomerMode) {
-        const finCard = document.getElementById("customerFinancialSummary");
-        if (finCard) {
-          finCard.classList.remove('hidden');
-          document.getElementById("custSummaryIdBadge").innerText = "No: " + customerPhone;
-          document.getElementById("custTotalOrders").innerText = totalOrders;
-          document.getElementById("custTotalKm").innerText = totalKm.toFixed(1) + " KM";
-          document.getElementById("custTotalSpent").innerText = formatRupiah(totalRevenue);
+        document.getElementById("customerFinancialSummary").classList.remove('hidden');
+        document.getElementById("custSummaryIdBadge").innerText = "No: " + customerPhone;
+        document.getElementById("custTotalOrders").innerText = totalOrders;
+        document.getElementById("custTotalKm").innerText = totalKm.toFixed(1) + " KM";
+        document.getElementById("custTotalSpent").innerText = formatRupiah(totalRevenue);
+      }
+
+      const batchContainer = document.getElementById("batchRouteContainer");
+      if (batchContainer && !isCustomerMode) {
+        if (activeOrders.length === 0) {
+          batchContainer.innerHTML = `<p class="text-[11px] text-slate-500 text-center py-2">Tidak ada kloter rute aktif.</p>`;
+        } else {
+          batchContainer.innerHTML = activeOrders.map((o, idx) => {
+            const safeId = String(o["ID Pesanan"] || "");
+            let st = o["Status"] || "Menunggu";
+            return `
+              <div class="bg-white/5 p-3 rounded-2xl border border-white/5 flex items-center justify-between text-xs cursor-pointer hover:bg-white/10 transition" onclick="showDetailById('${safeId}')">
+                <div class="flex items-center space-x-2.5 min-w-0">
+                  <div class="w-6 h-6 rounded-xl bg-violet-600 text-white font-bold flex items-center justify-center text-[10px] shrink-0">${idx + 1}</div>
+                  <div class="min-w-0 pr-2">
+                    <span class="font-bold text-white block truncate">${o["Nama Pelanggan"]}</span>
+                    <span class="text-[10px] text-slate-400 block truncate">Jemput: ${o["Alamat Jemput"]}</span>
+                    <span class="text-[10px] text-violet-300 block truncate">Tujuan: ${o["Alamat Tujuan"]}</span>
+                  </div>
+                </div>
+                <div class="text-right shrink-0">
+                  <span class="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-amber-500/20 text-amber-300 block mb-1">${st}</span>
+                  <span class="text-[11px] text-emerald-400 font-bold">${o["Jarak KM"]} KM</span>
+                </div>
+              </div>
+            `;
+          }).join('');
         }
       }
 
       const activeContainer = document.getElementById("activeOrdersListContainer");
       if (activeContainer && !isCustomerMode) {
-        if (activeOrders.length === 0) {
-          activeContainer.innerHTML = `<p class="text-xs text-slate-400 text-center py-2">Tidak ada pesanan aktif saat ini.</p>`;
-        } else {
-          activeContainer.innerHTML = activeOrders.map(o => {
-            const safeId = String(o["ID Pesanan"] || "").replace(/'/g, "\\'").replace(/"/g, '&quot;');
-            let st = o["Status"] || "Menunggu";
-            let cost = Number(o["Total Ongkos"] || Math.round(Number(o["Jarak KM"] || 0) * Number(o["Tarif per KM"] || 3000)));
-            let nextActionBtn = '';
-            
-            if (st === "Menunggu") {
-              nextActionBtn = `<button onclick="event.stopPropagation(); updateOrderStatus('${safeId}', 'Diambil')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold px-4 py-2 rounded-xl transition shadow-sm"><i class="fa-solid fa-box-open mr-1"></i> Pickup Sekarang</button>`;
-            } else if (st === "Diambil") {
-              nextActionBtn = `<button onclick="event.stopPropagation(); updateOrderStatus('${safeId}', 'Dalam Pengiriman')" class="bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold px-4 py-2 rounded-xl transition shadow-sm"><i class="fa-solid fa-truck-fast mr-1"></i> Kirim Pesanan</button>`;
-            } else if (st === "Dalam Pengiriman") {
-              nextActionBtn = `<button onclick="event.stopPropagation(); updateOrderStatus('${safeId}', 'Selesai')" class="bg-[#10b981] hover:bg-emerald-600 text-white text-[11px] font-bold px-4 py-2 rounded-xl transition shadow-sm"><i class="fa-solid fa-check mr-1"></i> Selesaikan</button>`;
-            }
-
-            return `
-              <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex flex-col cursor-pointer hover:border-indigo-300 transition mb-3" onclick="showDetailById('${safeId}')">
-                
-                <div class="flex items-center justify-between mb-2">
-                  <div class="flex items-center space-x-2">
-                    <span class="font-bold text-slate-800 text-sm">${o["Nama Pelanggan"]} ${o._synced === false ? '<i class="fa-solid fa-cloud-arrow-up text-amber-500 ml-1"></i>' : ''}</span>
-                  </div>
-                  <span class="px-2.5 py-1 ${getStatusBadgeClass(st)} font-bold rounded-lg text-[10px]">${st}</span>
-                </div>
-
-                <div class="text-[11px] text-slate-500 mb-3 leading-relaxed">
-                  <div class="font-mono text-[10px] text-slate-400 mb-0.5">${o["ID Pesanan"]}</div>
-                  <span class="font-semibold text-slate-700">${o["Jarak KM"]} KM</span> • <span class="font-bold text-[#10b981]">${formatRupiah(cost)}</span>
-                </div>
-                
-                <div class="border-t border-slate-100 pt-3 flex justify-end">
-                  ${nextActionBtn}
-                </div>
-
+        activeContainer.innerHTML = activeOrders.length === 0 ? `<p class="text-xs text-slate-500 text-center py-2">Tidak ada pesanan aktif.</p>` : activeOrders.map(o => {
+          let st = o["Status"] || "Menunggu";
+          let kat = o["Kategori"] || "Paket Umum";
+          let bayar = o["Metode Pembayaran"] || "Tunai / COD";
+          let cost = Number(o["Total Ongkos"] || Math.round(Number(o["Jarak KM"]) * 3000));
+          let bayarBadge = bayar === 'Tempo / Tunda' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-emerald-500/20 text-emerald-300';
+          const safeId = String(o["ID Pesanan"] || "");
+          return `
+            <div class="bg-white/5 p-3.5 rounded-2xl border border-white/5 flex flex-col space-y-2 cursor-pointer hover:bg-white/10 transition" onclick="showDetailById('${safeId}')">
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-white text-xs">${o["Nama Pelanggan"]}</span>
+                <span class="px-2 py-0.5 rounded-lg text-[9px] font-bold ${bayarBadge}">${bayar}</span>
               </div>
-            `;
-          }).join('');
-        }
+              <div class="text-[11px] text-slate-400 flex justify-between items-center">
+                <span>Kategori: ${kat} • ${o["Jarak KM"]} KM</span>
+                <span class="text-emerald-400 font-bold">${formatRupiah(cost)}</span>
+              </div>
+            </div>
+          `;
+        }).join('');
       }
 
       const tableBody = document.getElementById("historyTableBody");
       if (tableBody) {
-        if (displayOrders.length === 0) {
-          tableBody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-slate-400">Belum ada riwayat pesanan.</td></tr>`;
-        } else {
-          tableBody.innerHTML = displayOrders.map(o => {
-            const safeId = String(o["ID Pesanan"] || "").replace(/'/g, "\\'").replace(/"/g, '&quot;');
-            let cost = Number(o["Total Ongkos"] || Math.round(Number(o["Jarak KM"] || 0) * Number(o["Tarif per KM"] || 3000)));
-            return `
-            <tr class="hover:bg-slate-50 cursor-pointer border-b border-slate-100" onclick="showDetailById('${safeId}')">
-              <td class="p-2.5">
-                <span class="font-bold text-slate-800 block">${o["Nama Pelanggan"]} ${o._synced === false ? '<i class="fa-solid fa-cloud-arrow-up text-amber-500 ml-1" title="Belum Sinkron"></i>' : ''}</span>
+        tableBody.innerHTML = displayOrders.length === 0 ? `<tr><td colspan="4" class="text-center py-4 text-slate-500">Belum ada riwayat.</td></tr>` : displayOrders.map(o => {
+          let cost = Number(o["Total Ongkos"] || Math.round(Number(o["Jarak KM"]) * 3000));
+          let kat = o["Kategori"] || "Paket Umum";
+          let bayar = o["Metode Pembayaran"] || "Tunai / COD";
+          let bayarBadge = bayar === 'Tempo / Tunda' ? 'bg-amber-500/20 text-amber-300' : 'bg-slate-800 text-slate-300';
+          const safeId = String(o["ID Pesanan"] || "");
+          return `
+            <tr class="border-b border-white/5 hover:bg-white/5 cursor-pointer" onclick="showDetailById('${safeId}')">
+              <td class="p-3">
+                <span class="font-bold text-white block">${o["Nama Pelanggan"]}</span>
                 <span class="text-[10px] text-slate-400">${o["ID Pesanan"]}</span>
               </td>
-              <td class="p-2.5 font-medium">${o["Jarak KM"]} KM</td>
-              <td class="p-2.5 font-bold text-emerald-600">${formatRupiah(cost)}</td>
-              <td class="p-2.5">
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${getStatusBadgeClass(o["Status"])}">${o["Status"]}</span>
+              <td class="p-3">
+                <span class="px-2 py-0.5 rounded-md text-[9px] font-bold bg-indigo-500/20 text-indigo-300 block mb-1">${kat}</span>
+                <span class="px-2 py-0.5 rounded-md text-[9px] font-bold ${bayarBadge} inline-block">${bayar}</span>
               </td>
+              <td class="p-3 font-medium text-slate-300">${o["Jarak KM"]} KM<br><span class="text-emerald-400 font-bold">${formatRupiah(cost)}</span></td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-300">${o["Status"]}</span></td>
             </tr>
-            `;
-          }).join('');
-        }
-      }
-    }
-
-    function getStatusBadgeClass(status) {
-      switch(status) {
-        case 'Selesai': return 'bg-emerald-100 text-emerald-800';
-        case 'Dalam Pengiriman': return 'bg-blue-100 text-blue-800';
-        case 'Diambil': return 'bg-purple-100 text-purple-800';
-        default: return 'bg-amber-100 text-amber-800';
+          `;
+        }).join('');
       }
     }
 
     function showDetailById(orderId) {
       const order = ordersData.find(o => o["ID Pesanan"] === orderId);
-      if (order) {
-        showDetail(order);
-      } else {
-        if (!autoOpenOrderId) {
-          showToast("Peringatan", "Data pesanan tidak ditemukan.", "warning");
-        }
-      }
+      if (order) showDetail(order);
     }
 
     function showDetail(order) {
       const currentStatus = (order["Status"] || "Menunggu").trim();
-      const isActive = currentStatus !== "Selesai";
-      let cost = Number(order["Total Ongkos"] || Math.round(Number(order["Jarak KM"] || 0) * Number(order["Tarif per KM"] || 3000)));
+      let cost = Number(order["Total Ongkos"] || Math.round(Number(order["Jarak KM"] || 0) * 3000));
       
-      const timelineEl = document.getElementById("orderTimeline");
-      timelineEl.classList.remove('hidden');
+      const driverName = localStorage.getItem("driver_name") || "Ari GPM";
+      const driverVehicle = localStorage.getItem("driver_vehicle") || "Honda Beat Hitam • H 1234 ABC";
+      const driverWa = formatPhoneNumber(localStorage.getItem("driver_wa") || "6281234567890");
 
-      const steps = ["Menunggu", "Diambil", "Dalam Pengiriman", "Selesai"];
-      let currentStepIdx = steps.indexOf(currentStatus);
-      if (currentStepIdx === -1) currentStepIdx = 0;
-
-      timelineEl.innerHTML = `
-        <div class="flex justify-between items-center relative pt-3 pb-5">
-          <div class="absolute top-7 left-[12%] right-[12%] h-[2px] bg-slate-200 z-0"></div>
-          ${steps.map((st, idx) => {
-            let isPassed = idx < currentStepIdx;
-            let isCurrent = idx === currentStepIdx;
-            
-            let circleClass = 'bg-white border-2 border-slate-200 text-slate-300';
-            let textClass = 'text-slate-400';
-            
-            if (isPassed) {
-               circleClass = 'bg-[#10b981] border-2 border-[#10b981] text-white';
-               textClass = 'text-slate-500';
-            }
-            if (isCurrent) {
-               circleClass = 'bg-[#6366f1] border-2 border-[#6366f1] ring-4 ring-indigo-50 text-white shadow-sm';
-               textClass = 'text-[#6366f1] font-bold';
-            }
-            
-            let icon = idx === 0 ? 'fa-clock' : (idx === 1 ? 'fa-box-open' : (idx === 2 ? 'fa-truck-fast' : 'fa-check'));
-            
-            return `
-              <div class="flex flex-col items-center relative z-10 w-1/4">
-                <div class="w-9 h-9 rounded-full flex items-center justify-center text-[13px] transition-all ${circleClass}">
-                  <i class="fa-solid ${icon}"></i>
-                </div>
-                <span class="text-[10px] mt-2 font-medium text-center ${textClass}">${st}</span>
-              </div>
-            `;
-          }).join('')}
+      const driverCardContainer = document.getElementById("driverProfileCardContainer");
+      driverCardContainer.innerHTML = `
+        <div class="bg-gradient-to-r from-violet-600/20 to-indigo-600/20 border border-violet-500/30 p-4 rounded-3xl mb-3 flex items-center space-x-3.5">
+          <div class="w-12 h-12 bg-violet-600 text-white rounded-2xl flex items-center justify-center text-lg font-black shadow-lg shadow-violet-500/30 shrink-0">
+            <i class="fa-solid fa-user-shield"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center space-x-1">
+              <h4 class="font-bold text-white text-xs truncate">${driverName}</h4>
+              <span class="text-[9px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded-full font-bold">Terverifikasi</span>
+            </div>
+            <p class="text-[11px] text-slate-300 truncate mt-0.5"><i class="fa-solid fa-motorcycle mr-1 text-violet-400"></i>${driverVehicle}</p>
+            <div class="flex items-center space-x-2 mt-1 text-[10px] text-amber-400 font-bold">
+              <span>⭐ 4.9 (1.2k+ Pengiriman)</span>
+            </div>
+          </div>
         </div>
       `;
 
       const content = document.getElementById("modalContent");
       content.innerHTML = `
-        <div class="space-y-2 text-[13px] text-slate-700 border-t border-b border-slate-100 py-4 mb-2">
-            <div class="flex"><span class="font-bold w-[120px] shrink-0 text-slate-800">ID Pesanan:</span> <span>${order["ID Pesanan"]} ${order._synced === false ? '<span class="text-amber-500 text-[10px] ml-1">(Offline)</span>' : ''}</span></div>
-            <div class="flex"><span class="font-bold w-[120px] shrink-0 text-slate-800">Tanggal:</span> <span>${order["Tanggal"] || order["Timestamp"]}</span></div>
-            <div class="flex"><span class="font-bold w-[120px] shrink-0 text-slate-800">Nama Pelanggan:</span> <span>${order["Nama Pelanggan"]} (${order["Nomor HP"] || '-'})</span></div>
-            <div class="flex"><span class="font-bold w-[120px] shrink-0 text-slate-800">Alamat Jemput:</span> <span>${order["Alamat Jemput"]}</span></div>
-            <div class="flex"><span class="font-bold w-[120px] shrink-0 text-slate-800">Alamat Tujuan:</span> <span>${order["Alamat Tujuan"]}</span></div>
-            <div class="flex"><span class="font-bold w-[120px] shrink-0 text-slate-800">Catatan:</span> <span>${order["Catatan"] || '-'}</span></div>
-            <div class="flex"><span class="font-bold w-[120px] shrink-0 text-slate-800">Jarak & Estimasi:</span> <span>${order["Jarak KM"]} KM (${order["Estimasi Menit"]} menit)</span></div>
-            <div class="flex"><span class="font-bold w-[120px] shrink-0 text-slate-800">Tarif / KM:</span> <span>${formatRupiah(order["Tarif per KM"] || 3000)}</span></div>
-            <div class="flex"><span class="font-bold w-[120px] shrink-0 text-slate-800">Total Ongkos:</span> <span class="text-[#10b981] font-bold">${formatRupiah(cost)}</span></div>
+        <div class="space-y-2 text-xs text-slate-300 border-t border-b border-white/10 py-3">
+          <div class="flex justify-between"><span class="font-bold text-slate-400">ID Pesanan:</span> <span class="font-mono text-white">${order["ID Pesanan"]}</span></div>
+          <div class="flex justify-between"><span class="font-bold text-slate-400">Tanggal:</span> <span class="text-white">${order["Tanggal"] || order["Timestamp"]}</span></div>
+          <div class="flex justify-between"><span class="font-bold text-slate-400">Pelanggan:</span> <span class="text-white">${order["Nama Pelanggan"]}</span></div>
+          <div class="flex justify-between"><span class="font-bold text-slate-400">Kategori:</span> <span class="text-violet-300 font-bold">${order["Kategori"] || 'Paket Umum'}</span></div>
+          <div class="flex justify-between"><span class="font-bold text-slate-400">Pembayaran:</span> <span class="text-amber-300 font-bold">${order["Metode Pembayaran"] || 'Tunai / COD'}</span></div>
+          <div class="flex flex-col space-y-0.5 pt-1"><span class="font-bold text-slate-400">Jemput:</span> <span class="text-white">${order["Alamat Jemput"]}</span></div>
+          <div class="flex flex-col space-y-0.5 pt-1"><span class="font-bold text-slate-400">Tujuan:</span> <span class="text-white">${order["Alamat Tujuan"]}</span></div>
+          <div class="flex justify-between pt-1"><span class="font-bold text-slate-400">Jarak & Estimasi:</span> <span class="text-white">${order["Jarak KM"]} KM (${order["Estimasi Menit"]} mnt)</span></div>
+          <div class="flex justify-between pt-1"><span class="font-bold text-slate-400">Total Ongkos:</span> <span class="text-emerald-400 font-bold text-sm">${formatRupiah(cost)}</span></div>
         </div>
       `;
 
-      const mapJemputUrl = `https://maps.google.com/?q=${encodeURIComponent(order["Alamat Jemput"])}`;
-      const mapTujuanUrl = `https://maps.google.com/?q=${encodeURIComponent(order["Alamat Tujuan"])}`;
+      // Interactive Map Viewer (Leaflet)
+      const mapContainer = document.getElementById("modalMapNavContainer");
+      if (order.jemputLat && order.tujuanLat) {
+        mapContainer.innerHTML = `
+          <div class="space-y-1.5 my-2">
+            <span class="text-[10px] text-violet-300 font-bold uppercase block"><i class="fa-solid fa-map mr-1"></i> Peta Rute Perjalanan</span>
+            <div id="orderLeafletMap" class="w-full h-40 rounded-2xl border border-white/10 z-0"></div>
+          </div>
+        `;
+        setTimeout(() => {
+          if (window._currentOrderMap) {
+            window._currentOrderMap.remove();
+          }
+          const map = L.map('orderLeafletMap').setView([order.jemputLat, order.jemputLon], 13);
+          window._currentOrderMap = map;
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap'
+          }).addTo(map);
 
-      document.getElementById("modalMapNavContainer").innerHTML = `
-        <div class="grid grid-cols-2 gap-3 mt-4 mb-4">
-          <a href="${mapJemputUrl}" target="_blank" class="bg-white border border-indigo-100 text-indigo-700 font-bold py-3 px-2 rounded-2xl text-[12px] flex items-center justify-center space-x-2 hover:bg-indigo-50 transition shadow-sm">
-            <i class="fa-solid fa-map-pin text-indigo-500"></i>
-            <span>Penjemputan</span>
-          </a>
-          <a href="${mapTujuanUrl}" target="_blank" class="bg-white border border-red-100 text-red-600 font-bold py-3 px-2 rounded-2xl text-[12px] flex items-center justify-center space-x-2 hover:bg-red-50 transition shadow-sm">
-            <i class="fa-solid fa-truck-fast text-red-500"></i>
-            <span>Dalam Pengiriman</span>
-          </a>
-        </div>
-      `;
+          L.marker([order.jemputLat, order.jemputLon]).addTo(map).bindPopup("Jemput: " + order["Alamat Jemput"]);
+          L.marker([order.tujuanLat, order.tujuanLon]).addTo(map).bindPopup("Tujuan: " + order["Alamat Tujuan"]);
 
-      const shareContainer = document.getElementById("modalShareContainer");
-      const safeId = String(order["ID Pesanan"]).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+          const latlngs = [
+            [order.jemputLat, order.jemputLon],
+            [order.tujuanLat, order.tujuanLon]
+          ];
+          const polyline = L.polyline(latlngs, {color: '#ec4899', weight: 4}).addTo(map);
+          map.fitBounds(polyline.getBounds(), {padding: [20, 20]});
+        }, 200);
+      } else {
+        mapContainer.innerHTML = '';
+      }
 
-      let statusColor = "text-[#10b981]";
-      let statusIconColor = "text-[#10b981]";
-      if (currentStatus === "Menunggu") { statusColor = "text-amber-600"; statusIconColor = "text-amber-500"; }
-      if (currentStatus === "Diambil") { statusColor = "text-purple-600"; statusIconColor = "text-purple-500"; }
-      if (currentStatus === "Dalam Pengiriman") { statusColor = "text-blue-600"; statusIconColor = "text-blue-500"; }
-
-      let deleteBtnHTML = "";
-      if (!isActive && !isCustomerMode) {
-         deleteBtnHTML = `<button onclick="deleteOrder('${safeId}')" class="w-full mt-3 bg-white hover:bg-red-50 text-red-500 font-semibold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 transition border border-red-100">
-            <i class="fa-solid fa-trash"></i>
-            <span>Hapus Riwayat Pesanan</span>
-          </button>`;
+      // PoD Section
+      const podContainer = document.getElementById("modalPodContainer");
+      if (order["podPhoto"]) {
+        podContainer.innerHTML = `
+          <div class="bg-white/5 p-3 rounded-2xl border border-white/5 space-y-2 my-2">
+            <span class="text-[10px] text-emerald-400 font-bold uppercase block"><i class="fa-solid fa-camera mr-1"></i> Bukti Foto Pengiriman (PoD) Terunggah</span>
+            <img src="${order["podPhoto"]}" alt="PoD" class="w-full h-32 object-cover rounded-xl border border-white/10">
+          </div>
+        `;
+      } else if (!isCustomerMode) {
+        podContainer.innerHTML = `
+          <div class="bg-violet-600/10 p-3 rounded-2xl border border-violet-500/30 space-y-2 my-2">
+            <span class="text-[10px] text-violet-300 font-bold uppercase block"><i class="fa-solid fa-camera mr-1"></i> Unggah Bukti Foto Pengiriman (PoD)</span>
+            <input type="file" accept="image/*" onchange="handlePodUpload(event, '${order["ID Pesanan"]}')" class="w-full text-xs text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-violet-600 file:text-white hover:file:bg-violet-700 cursor-pointer">
+          </div>
+        `;
+      } else {
+        podContainer.innerHTML = `<p class="text-[10px] text-slate-500 italic text-center my-2">Belum ada foto bukti pengiriman.</p>`;
       }
 
       const baseUrl = window.location.href.split('?')[0];
       const rawPhone = (order["Nomor HP"] || "").replace(/\D/g, '');
       const linkCustomerOrder = `${baseUrl}?mode=order&phone=${rawPhone}&order=${order["ID Pesanan"]}`;
 
-      if (!isCustomerMode) {
-        const customerWa = formatPhoneNumber(order['Nomor HP']);
-        
-        let shareText = "";
-        if (currentStatus === "Selesai") {
-            shareText = generateWaText(order["ID Pesanan"], order["Nama Pelanggan"], order["Nomor HP"], order["Alamat Jemput"], order["Alamat Tujuan"], order["Jarak KM"], cost, order["Status"], "done_order_to_cust");
-        } else {
-            shareText = generateWaText(order["ID Pesanan"], order["Nama Pelanggan"], order["Nomor HP"], order["Alamat Jemput"], order["Alamat Tujuan"], order["Jarak KM"], cost, order["Status"], "update_status_to_cust");
-        }
-        
-        const confirmWaText = `Halo *${order["Nama Pelanggan"]}*, saya Driver Kurir Express. Saya ingin mengkonfirmasi pesanan penjemputan paket di *${order["Alamat Jemput"]}*. Apakah titik lokasinya sudah sesuai?\n\n🔗 *Link Khusus Pesan Kurir Untuk Anda:*\n${linkCustomerOrder}`;
+      const shareContainer = document.getElementById("modalShareContainer");
+      let invoiceBtnHtml = `<button onclick="openInvoiceModal('${order["ID Pesanan"]}')" class="w-full bg-violet-600/30 hover:bg-violet-600/50 text-violet-300 border border-violet-500/30 font-bold py-2.5 px-4 rounded-2xl text-xs flex items-center justify-center space-x-2 transition mb-2"><i class="fa-solid fa-receipt"></i><span>Cetak Nota / Invoice Resmi</span></button>`;
 
-        const waButtonLabel = currentStatus === "Selesai" ? "Kirim WA (Paket Selesai)" : `Kirim Status WA (${currentStatus})`;
-
+      if (isCustomerMode) {
+        const confirmToDriverText = `Halo Driver ${driverName}, saya ingin mengkonfirmasi pesanan saya dengan ID: *${order["ID Pesanan"]}*.\n\n🔗 Lacak: ${linkCustomerOrder}`;
         shareContainer.innerHTML = `
-          <div class="mb-4">
-            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5"><i class="fa-solid fa-link"></i> Link Resi & Lacak Pesanan</label>
-            <div class="bg-slate-50 border border-slate-200 rounded-xl p-1.5 pl-3 flex items-center justify-between">
-                <input type="text" readonly value="${linkCustomerOrder}" class="bg-transparent text-[11px] text-slate-500 w-full outline-none font-mono" id="copyLinkInput">
-                <button onclick="copyToClipboard('${linkCustomerOrder}')" class="text-indigo-600 bg-indigo-100 hover:bg-indigo-200 px-3 py-2 rounded-lg text-[10px] font-bold transition ml-2 whitespace-nowrap shadow-sm">
-                    <i class="fa-regular fa-copy"></i> Salin
-                </button>
-            </div>
-          </div>
-
-          <div class="flex items-center justify-center space-x-2 mb-4 border-t border-slate-100 pt-4">
-            <i class="fa-solid fa-circle-check ${statusIconColor} text-[18px]"></i>
-            <span class="${statusColor} font-bold text-[15px]">Pesanan ${currentStatus}</span>
-          </div>
-          
-          <div class="flex flex-col gap-2 mb-1">
-            ${currentStatus === "Menunggu" ? `
-            <a href="https://wa.me/${customerWa}?text=${encodeURIComponent(confirmWaText)}" target="_blank" class="bg-white border border-emerald-200 text-emerald-600 hover:bg-emerald-50 font-bold py-3 px-2 rounded-2xl text-[12px] flex items-center justify-center space-x-1.5 transition shadow-sm w-full">
-              <i class="fa-brands fa-whatsapp text-[15px]"></i>
-              <span>Chat Konfirmasi Jemput</span>
-            </a>` : ""}
-            <a href="https://wa.me/${customerWa}?text=${encodeURIComponent(shareText)}" target="_blank" class="bg-[#10b981] border border-[#10b981] hover:bg-emerald-600 text-white font-bold py-3 px-2 rounded-2xl text-[12px] flex items-center justify-center space-x-1.5 transition shadow-sm w-full">
-              <i class="fa-brands fa-whatsapp text-[15px]"></i>
-              <span>${waButtonLabel}</span>
+          <div class="mt-3 space-y-2">
+            ${invoiceBtnHtml}
+            <a href="https://wa.me/${driverWa}?text=${encodeURIComponent(confirmToDriverText)}" target="_blank" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-4 rounded-2xl text-xs flex items-center justify-center space-x-2 shadow-lg">
+              <i class="fa-brands fa-whatsapp text-base"></i>
+              <span>Chat Konfirmasi ke Driver</span>
             </a>
           </div>
-          
-          ${deleteBtnHTML}
         `;
       } else {
-        const driverWaNum = formatPhoneNumber(localStorage.getItem("driver_wa") || "6281234567890");
-        const confirmToDriverText = `Halo Driver, saya ingin mengkonfirmasi pesanan saya dengan ID: *${order["ID Pesanan"]}*.\n\n🔗 Lacak Pesanan: ${linkCustomerOrder}`;
-        
+        const customerWa = formatPhoneNumber(order['Nomor HP']);
+        const shareText = `Halo *${order["Nama Pelanggan"]}*, update status pesanan kurir Anda: *${currentStatus}*.\n\n💳 Pembayaran: ${order["Metode Pembayaran"] || 'Tunai'}\n📦 Jemput: ${order["Alamat Jemput"]}\n🏁 Tujuan: ${order["Alamat Tujuan"]}\n- Total Ongkos: ${formatRupiah(cost)}\n\n📞 Driver: ${driverWa} (${driverName})\n🔗 Cek Resi: ${linkCustomerOrder}`;
         shareContainer.innerHTML = `
-          <div class="flex items-center justify-center space-x-2 mb-4 pt-1">
-            <i class="fa-solid fa-circle-check ${statusIconColor} text-[18px]"></i>
-            <span class="${statusColor} font-bold text-[15px]">Pesanan ${currentStatus}</span>
+          <div class="mt-3 space-y-2">
+            ${invoiceBtnHtml}
+            <a href="https://wa.me/${customerWa}?text=${encodeURIComponent(shareText)}" target="_blank" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-4 rounded-2xl text-xs flex items-center justify-center space-x-2 shadow-lg">
+              <i class="fa-brands fa-whatsapp text-base"></i>
+              <span>Kirim Status ke WhatsApp Pelanggan</span>
+            </a>
           </div>
-          
-          <a href="https://wa.me/${driverWaNum}?text=${encodeURIComponent(confirmToDriverText)}" target="_blank" class="w-full bg-[#10b981] hover:bg-emerald-600 text-white font-bold py-3 px-4 rounded-2xl text-[13px] flex items-center justify-center space-x-2 transition shadow-md mb-3">
-            <i class="fa-brands fa-whatsapp text-lg"></i>
-            <span>Chat Konfirmasi ke Driver</span>
-          </a>
-          
-          <div class="text-center text-[11px] text-slate-500 py-1.5 bg-slate-50 rounded-xl"><i class="fa-solid fa-circle-info mr-1"></i> Status diperbarui secara real-time oleh Driver.</div>
         `;
       }
 
       document.getElementById("detailModal").classList.remove('hidden');
     }
 
-    async function updateOrderStatus(orderId, newStatus) {
-      if (isCustomerMode) return; 
-
-      const url = document.getElementById("gasUrlInput").value.trim();
-      let localOrders = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
-      let updatedOrder = null;
-      
-      for (let i = 0; i < localOrders.length; i++) {
-        if (localOrders[i]["ID Pesanan"] === orderId) {
-          localOrders[i]["Status"] = newStatus;
-          if (url) localOrders[i]["_synced"] = false; 
-          updatedOrder = localOrders[i];
-          break;
-        }
+    function clearAllHistory() {
+      if (confirm("Hapus semua riwayat?")) {
+        localStorage.setItem("kurir_orders", JSON.stringify([]));
+        ordersData = []; renderDashboardAndHistory();
+        showToast("Dihapus", "Riwayat dikosongkan.", "success");
       }
-      if (updatedOrder) {
-        localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
-      }
-
-      for (let i = 0; i < ordersData.length; i++) {
-        if (ordersData[i]["ID Pesanan"] === orderId) {
-          ordersData[i]["Status"] = newStatus;
-          break;
-        }
-      }
-
-      if (url) {
-        try {
-          fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({ action: "update_status", orderId: orderId, status: newStatus })
-          });
-        } catch (e) {}
-      }
-
-      renderDashboardAndHistory();
     }
 
-    function closeModal() {
-      document.getElementById("detailModal").classList.add('hidden');
+    function closeModal() { 
+      if (window._currentOrderMap) { window._currentOrderMap.remove(); window._currentOrderMap = null; }
+      document.getElementById("detailModal").classList.add('hidden'); 
     }
 
     function saveSettings() {
-      const url = document.getElementById("gasUrlInput").value.trim();
-      const driverWa = document.getElementById("driverWaInput").value.trim();
-      const localTarif = document.getElementById("localTarifInput").value.trim();
-      const waTemplate = document.getElementById("waTemplateInput").value.trim();
-
-      localStorage.setItem("gas_url", url);
-      localStorage.setItem("driver_wa", driverWa);
-      if (localTarif) {
-          localStorage.setItem("local_tarif", localTarif);
-      } else {
-          localStorage.removeItem("local_tarif");
-      }
-      if (waTemplate) {
-          localStorage.setItem("wa_template", waTemplate);
-      }
-      
-      showToast("Berhasil", "Pengaturan aplikasi berhasil disimpan!", "success");
-      loadDataBackground();
+      localStorage.setItem("driver_name", document.getElementById("driverNameInput").value.trim());
+      localStorage.setItem("driver_vehicle", document.getElementById("driverVehicleInput").value.trim());
+      localStorage.setItem("driver_wa", document.getElementById("driverWaInput").value.trim());
+      localStorage.setItem("local_tarif", document.getElementById("localTarifInput").value.trim() || "3000");
+      localStorage.setItem("wa_template", document.getElementById("waTemplateInput").value.trim());
+      showToast("Berhasil", "Pengaturan & Profil Driver disimpan!", "success");
+      loadDataInstant();
     }
   </script>
 </body>
