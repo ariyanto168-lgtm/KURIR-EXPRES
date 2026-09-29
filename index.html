@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KURIR EXPRESS — LIVE DEPOSIT BALANCE & WALLET</title>
+  <title>KURIR EXPRESS — INSTANT STATUS UPDATE</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- FontAwesome for Icons -->
@@ -119,12 +119,12 @@
             <i class="fa-brands fa-whatsapp"></i>
           </div>
           <div>
-            <h4 class="font-bold text-xs">Bagikan Link CS Unik</h4>
-            <p class="text-[10px] text-emerald-100">Cegah bentrok antar nomor CS</p>
+            <h4 class="font-bold text-xs">Broadcast Link CS Unik</h4>
+            <p class="text-[10px] text-emerald-100">Format URL bersih tanpa data lama</p>
           </div>
         </div>
         <button onclick="shareCsUniqueApp()" class="bg-white text-emerald-700 font-extrabold text-xs px-3.5 py-2.5 rounded-2xl shadow hover:bg-emerald-50 transition active:scale-95 shrink-0">
-          <i class="fa-solid fa-share-nodes mr-1"></i> Share CS Link
+          <i class="fa-solid fa-share-nodes mr-1"></i> Broadcast
         </button>
       </div>
 
@@ -536,7 +536,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-2 text-[10px] text-slate-500 font-medium tracking-wide">
-      v3.43 (Live Deposit Balance & Wallet) • Powered by Ari GPM
+      v3.45 (Instant Status Update Edition) • Powered by Ari GPM
     </div>
 
   </main>
@@ -580,7 +580,7 @@
     </div>
   </div>
 
-  <!-- CUSTOM TOAST MODAL -->
+  <!-- CUSTOM TOAST MODAL (Hanya untuk aksi non-status seperti salin/simpan) -->
   <div id="customToastModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-white/10 w-full max-w-xs rounded-[2.5rem] p-6 shadow-2xl text-center space-y-4">
       <div id="toastIconContainer" class="w-14 h-14 rounded-3xl flex items-center justify-center mx-auto text-xl font-bold bg-indigo-500/20 text-indigo-400 shadow-inner">
@@ -794,9 +794,9 @@
     function shareCsUniqueApp() {
       const baseUrl = window.location.href.split('?')[0];
       const csId = localStorage.getItem("cs_id") || "081325325088";
-      const customerOrderLink = `${baseUrl}?mode=order&phone=${csId}`;
+      const cleanCustomerOrderLink = `${baseUrl}?mode=order&phone=${csId}`;
       const driverName = localStorage.getItem("driver_name") || "Ari GPM";
-      const text = `Halo! Ingin kirim paket cepat & aman bersama *${driverName}*?\n\nSilakan buat pesanan melalui link CS kami di bawah ini:\n🔗 ${customerOrderLink}\n\nTerima kasih!`;
+      const text = `Halo! Ingin kirim paket cepat & aman bersama *${driverName}*?\n\nSilakan buat pesanan melalui link portal kami di bawah ini:\n🔗 ${cleanCustomerOrderLink}\n\nTerima kasih!`;
       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
     }
 
@@ -897,6 +897,7 @@
       });
     }
 
+    // UPDATE STATUS TANPA POPUP / TOAST KONSEKUTIF (INSTANT UPDATE)
     function updateOrderStatus(orderId, newStatus) {
       if (isCustomerMode) return;
       let localOrders = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
@@ -913,7 +914,6 @@
 
         loadDataInstant();
         showDetailById(orderId);
-        showToast("Status Diperbarui", `Pesanan kini: ${newStatus}`, "success");
       }
     }
 
@@ -1446,8 +1446,6 @@
         const cDeposit = document.getElementById("custDepositSpent");
         if (cDeposit) cDeposit.innerText = formatRupiah(totalDeposit);
 
-        // HITUNG SISA SALDO DEPOSIT (TOTAL DEPOSIT MASUK - PENGGUNAAN DEPOSIT)
-        // Catatan: Jika CS belum memasukkan saldo awal topup, saldo awal diasumsikan dari penyimpanan lokal atau sisa berjalan.
         let depositsTopups = JSON.parse(localStorage.getItem("kurir_deposit_topups") || "{}");
         let myTopup = Number(depositsTopups[currentCsId || customerPhone] || 0);
         let sisaSaldo = myTopup - totalDeposit;
