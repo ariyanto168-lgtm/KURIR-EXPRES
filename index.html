@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KURIR EXPRESS — MANDATORY ACCOUNT</title>
+  <title>KURIR EXPRESS — ACTIVE ORDERS FIX</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- FontAwesome for Icons -->
@@ -140,7 +140,7 @@
         <div id="batchRouteContainer" class="space-y-2.5"></div>
       </div>
 
-      <!-- Pesanan Aktif Collapsible Card -->
+      <!-- Pesanan Aktif Collapsible Card (Fixed Clickable) -->
       <div class="bg-slate-900/80 backdrop-blur-xl p-4.5 rounded-[2.5rem] shadow-xl border border-white/10">
         <div class="flex justify-between items-center cursor-pointer select-none px-1" onclick="toggleActiveOrdersCard()">
           <h3 class="text-white font-bold text-sm flex items-center space-x-2.5">
@@ -482,7 +482,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-2 text-[10px] text-slate-500 font-medium tracking-wide">
-      v3.37 (Mandatory Account Routing) • Powered by Ari GPM
+      v3.38 (Active Orders Click Fix) • Powered by Ari GPM
     </div>
 
   </main>
@@ -982,7 +982,6 @@
           document.getElementById("custRegPhone").value = savedCustAcc.phone || "";
         }
 
-        // JIKA BELUM ADA AKUN TERDAFTAR DI PERANGKAT INI, ARAHKAN KE TAB AKUN DENGAN PESAN WAJIB ISI
         if (!savedCustAcc.phone && !autoOpenOrderId) {
           switchTab('akun');
           showToast("Registrasi Wajib", "Harap isi data akun Anda terlebih dahulu.", "warning");
@@ -1326,6 +1325,33 @@
         if (document.getElementById("dashTodayTrips")) document.getElementById("dashTodayTrips").innerText = `${todayTrips} Trip (${todayKm.toFixed(1)} KM)`;
         if (document.getElementById("activeCount")) document.getElementById("activeCount").innerText = activeOrders.length;
         if (document.getElementById("batchCount")) document.getElementById("batchCount").innerText = activeOrders.length;
+
+        // RENDER ACTIVE ORDERS LIST SO THEY ARE CLICKABLE
+        const activeContainer = document.getElementById("activeOrdersListContainer");
+        if (activeContainer) {
+          if (activeOrders.length === 0) {
+            activeContainer.innerHTML = `<p class="text-slate-500 text-center text-xs py-2">Tidak ada pesanan aktif.</p>`;
+          } else {
+            activeContainer.innerHTML = activeOrders.map(o => {
+              const safeId = String(o["ID Pesanan"] || "");
+              return `
+                <div class="bg-white/5 hover:bg-white/10 p-3 rounded-2xl border border-white/5 cursor-pointer transition flex items-center justify-between" onclick="showDetailById('${safeId}')">
+                  <div class="space-y-0.5 min-w-0 pr-2">
+                    <div class="flex items-center space-x-2">
+                      <span class="font-bold text-white text-xs truncate">${o["Nama Pelanggan"]}</span>
+                      <span class="text-[9px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-mono">CS: ${o["CS ID"] || 'Umum'}</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 truncate">Jemput: ${o["Alamat Jemput"]}</p>
+                  </div>
+                  <div class="text-right shrink-0">
+                    <span class="text-[10px] font-extrabold text-amber-400 block">${o["Status"] || 'Menunggu'}</span>
+                    <span class="text-[10px] text-slate-300 font-mono">${o["Jarak KM"]} KM</span>
+                  </div>
+                </div>
+              `;
+            }).join('');
+          }
+        }
       }
 
       if (isCustomerMode) {
