@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KURIR EXPRESS — STRICT CS ISOLATION</title>
+  <title>KURIR EXPRESS — SMART CS ISOLATION & CLEAN UI</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- FontAwesome for Icons -->
@@ -358,8 +358,8 @@
     <section id="tab-akun" class="tab-content hidden space-y-4">
       <div class="bg-slate-900/80 backdrop-blur-xl p-5 rounded-[2.5rem] shadow-xl border border-white/10 space-y-4">
         
-        <!-- PENGINGAT / INSTRUKSI WAJIB ISI AKUN -->
-        <div class="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 p-4 rounded-2xl flex items-start space-x-3 text-xs">
+        <!-- PENGINGAT / INSTRUKSI WAJIB ISI AKUN (Hanya tampil jika belum terdaftar) -->
+        <div id="registrationAlertBox" class="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 p-4 rounded-2xl flex items-start space-x-3 text-xs">
           <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-base shrink-0 mt-0.5">
             <i class="fa-solid fa-triangle-exclamation"></i>
           </div>
@@ -482,7 +482,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-2 text-[10px] text-slate-500 font-medium tracking-wide">
-      v3.39 (Strict Customer Tab Isolation) • Powered by Ari GPM
+      v3.41 (Smart CS Isolation & Clean UI) • Powered by Ari GPM
     </div>
 
   </main>
@@ -938,7 +938,6 @@
       const roleParam = urlParams.get('role');
       const modeParam = urlParams.get('mode');
       const phoneParam = urlParams.get('phone');
-      const savedCustAcc = JSON.parse(localStorage.getItem("kurir_customer_account") || "{}");
 
       if (roleParam === 'driver') {
         isCustomerMode = false;
@@ -946,9 +945,6 @@
       } else if (modeParam === 'order' || phoneParam) {
         isCustomerMode = true;
         customerPhone = phoneParam || "";
-      } else if (savedCustAcc.phone && !urlParams.has('order')) {
-        isCustomerMode = true;
-        customerPhone = savedCustAcc.phone;
       } else {
         isCustomerMode = false;
         customerPhone = "";
@@ -961,6 +957,9 @@
       const headerTitleEl = document.getElementById("headerTitle");
       const headerSubtitleEl = document.getElementById("headerSubtitle");
       
+      const savedCustAcc = JSON.parse(localStorage.getItem("kurir_customer_account") || "{}");
+      const isRegistered = savedCustAcc.name && savedCustAcc.phone;
+
       if (isCustomerMode) {
         headerEl.className = "bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 text-white shadow-lg sticky top-0 z-40 px-4 py-3.5 flex justify-between items-center backdrop-blur-md bg-opacity-95";
         headerTitleEl.innerText = "KURIR EXPRESS";
@@ -975,23 +974,25 @@
           noHpInput.value = customerPhone;
         }
 
-        if (savedCustAcc.name) {
+        if (isRegistered) {
+          // CS SUDAH TERDAFTAR: TAMPILKAN MENU PESANAN & RIWAYAT, SEMBUNYIKAN KOTAK KUNING
+          document.getElementById("nav-pesanan").style.display = "flex";
+          document.getElementById("nav-riwayat").style.display = "flex";
+          document.getElementById("registrationAlertBox").classList.add('hidden');
+
           document.getElementById("nama").value = savedCustAcc.name;
           document.getElementById("custRegName").value = savedCustAcc.name;
           document.getElementById("custRegEmail").value = savedCustAcc.email || "";
           document.getElementById("custRegPhone").value = savedCustAcc.phone || "";
-        }
 
-        // KUNCI TAB PESANAN & RIWAYAT JIKA BELUM ADA AKUN TERDAFTAR
-        if (!savedCustAcc.phone && !autoOpenOrderId) {
+          switchTab(autoOpenOrderId ? 'riwayat' : 'pesanan');
+        } else {
+          // CS BARU: KUNCI/SEMBUNYIKAN PESANAN & RIWAYAT, TAMPILKAN KOTAK KUNING DI TAB AKUN
           document.getElementById("nav-pesanan").style.display = "none";
           document.getElementById("nav-riwayat").style.display = "none";
+          document.getElementById("registrationAlertBox").classList.remove('hidden');
+
           switchTab('akun');
-          showToast("Registrasi Wajib", "Harap isi data akun Anda terlebih dahulu.", "warning");
-        } else {
-          document.getElementById("nav-pesanan").style.display = "flex";
-          document.getElementById("nav-riwayat").style.display = "flex";
-          switchTab(autoOpenOrderId ? 'riwayat' : 'pesanan');
         }
       } else {
         headerEl.className = "bg-gradient-to-r from-violet-600 via-indigo-600 to-pink-600 text-white shadow-lg sticky top-0 z-40 px-4 py-3.5 flex justify-between items-center backdrop-blur-md bg-opacity-95";
@@ -1001,6 +1002,8 @@
         document.getElementById("nav-akun").style.display = "none";
         document.getElementById("nav-dashboard").style.display = "flex";
         document.getElementById("nav-pengaturan").style.display = "flex";
+        document.getElementById("nav-pesanan").style.display = "flex";
+        document.getElementById("nav-riwayat").style.display = "flex";
         switchTab('dashboard'); 
       }
 
@@ -1040,12 +1043,12 @@
 
       const noHpInput = document.getElementById("noHp");
       noHpInput.value = phone;
-
       document.getElementById("nama").value = name;
       
-      // Buka akses tab pesanan & riwayat setelah akun tersimpan
+      // BUKA AKSES MENU PESANAN & RIWAYAT, SEMBUNYIKAN KOTAK KUNING
       document.getElementById("nav-pesanan").style.display = "flex";
       document.getElementById("nav-riwayat").style.display = "flex";
+      document.getElementById("registrationAlertBox").classList.add('hidden');
 
       showToast("Berhasil", "Akun Berhasil Disimpan, Silakan Buat Pesanan!", "success");
       setTimeout(() => {
