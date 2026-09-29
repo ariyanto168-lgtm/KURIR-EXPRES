@@ -33,10 +33,24 @@
     </div>
   </header>
 
+  <!-- Live Floating Notification Banner -->
+  <div id="liveNotificationBanner" class="fixed top-16 left-4 right-4 z-50 transform -translate-y-20 opacity-0 transition-all duration-300 max-w-md mx-auto">
+    <div class="bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl border border-slate-700 flex items-center space-x-3">
+      <div id="notifIconContainer" class="w-9 h-9 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+        <i class="fa-solid fa-bell text-sm" id="notifIcon"></i>
+      </div>
+      <div class="flex-1 min-w-0">
+        <h4 id="notifTitle" class="text-xs font-bold text-slate-200">Notifikasi Pesanan</h4>
+        <p id="notifMessage" class="text-[11px] text-slate-400 truncate">Pesan notifikasi...</p>
+      </div>
+      <button onclick="hideLiveNotification()" class="text-slate-400 hover:text-white px-1 text-xs"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+  </div>
+
   <!-- Main Content Container -->
   <main class="flex-1 max-w-md w-full mx-auto p-4 safe-bottom">
 
-    <!-- TAB 1: DASHBOARD (Khusus Driver) -->
+    <!-- TAB 1: DASHBOARD (Khusus Driver - Default Awal Buka) -->
     <section id="tab-dashboard" class="tab-content space-y-4">
       <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100">
         <h2 class="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-3">Ringkasan Hari Ini</h2>
@@ -95,7 +109,7 @@
     </section>
 
     <!-- TAB 2: FORM / PESANAN -->
-    <section id="tab-pesanan" class="tab-content space-y-4">
+    <section id="tab-pesanan" class="tab-content hidden space-y-4">
       <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100">
         <h2 class="font-bold text-slate-800 text-base mb-3 flex items-center space-x-2">
           <i class="fa-solid fa-map-location-dot text-indigo-600"></i>
@@ -246,7 +260,40 @@
       </div>
     </section>
 
-    <!-- TAB 4: PENGATURAN -->
+    <!-- TAB 4: AKUN / REGISTRASI (Khusus Customer) -->
+    <section id="tab-akun" class="tab-content hidden space-y-4">
+      <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 space-y-4">
+        <div class="flex items-center space-x-3 border-b border-slate-100 pb-3">
+          <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xl font-bold">
+            <i class="fa-solid fa-user"></i>
+          </div>
+          <div>
+            <h2 class="font-bold text-slate-800 text-base">Akun Pelanggan Saya</h2>
+            <p class="text-xs text-slate-400">Registrasi akun email untuk pesanan otomatis</p>
+          </div>
+        </div>
+
+        <form id="customerAccountForm" onsubmit="event.preventDefault(); saveCustomerAccount();" class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Lengkap</label>
+            <input type="text" id="custRegName" required placeholder="Contoh: Budi Santoso" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Alamat Email</label>
+            <input type="email" id="custRegEmail" required placeholder="Contoh: budi@gmail.com" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor WhatsApp</label>
+            <input type="tel" id="custRegPhone" required placeholder="Contoh: 081234567890" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-xl text-sm shadow transition mt-2">
+            Simpan & Daftarkan Akun
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- TAB 5: PENGATURAN (Khusus Driver) -->
     <section id="tab-pengaturan" class="tab-content hidden space-y-4">
       <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 space-y-4">
         <h2 class="font-bold text-slate-800 text-base flex items-center space-x-2">
@@ -301,7 +348,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.84 • Powered by Ari GPM
+      v2.86 • Powered by Ari GPM
     </div>
 
   </main>
@@ -380,6 +427,10 @@
       <i class="fa-solid fa-clock-rotate-left text-lg"></i>
       <span class="text-[10px] font-semibold">Riwayat</span>
     </button>
+    <button onclick="switchTab('akun')" id="nav-akun" class="flex flex-col items-center text-slate-400 space-y-0.5 px-3 py-1 rounded-xl transition">
+      <i class="fa-solid fa-user text-lg"></i>
+      <span class="text-[10px] font-semibold">Akun</span>
+    </button>
     <button onclick="switchTab('pengaturan')" id="nav-pengaturan" class="flex flex-col items-center text-slate-400 space-y-0.5 px-3 py-1 rounded-xl transition">
       <i class="fa-solid fa-gear text-lg"></i>
       <span class="text-[10px] font-semibold">Pengaturan</span>
@@ -401,6 +452,8 @@
     let typingTimer;
     let activeOrdersExpanded = true;
     let isSaving = false;
+    let lastOrderCount = 0;
+    let lastKnownStatuses = {};
 
     function showToast(title, message, type = 'success') {
       const modal = document.getElementById("customToastModal");
@@ -428,6 +481,25 @@
 
     function closeCustomToast() {
       document.getElementById("customToastModal").classList.add('hidden');
+    }
+
+    function showLiveNotification(title, message, type = 'success') {
+      const banner = document.getElementById("liveNotificationBanner");
+      document.getElementById("notifTitle").innerText = title;
+      document.getElementById("notifMessage").innerText = message;
+      
+      banner.classList.remove("-translate-y-20", "opacity-0");
+      banner.classList.add("translate-y-0", "opacity-100");
+
+      setTimeout(() => {
+        hideLiveNotification();
+      }, 5000);
+    }
+
+    function hideLiveNotification() {
+      const banner = document.getElementById("liveNotificationBanner");
+      banner.classList.remove("translate-y-0", "opacity-100");
+      banner.classList.add("-translate-y-20", "opacity-0");
     }
 
     function copyToClipboard(text) {
@@ -471,9 +543,23 @@
       if (isCustomerMode) {
         document.getElementById("nav-dashboard").style.display = "none";
         document.getElementById("nav-pengaturan").style.display = "none";
+        document.getElementById("nav-akun").style.display = "flex";
+        
         if (customerPhone) {
           document.getElementById("noHp").value = customerPhone;
           document.getElementById("noHp").readOnly = true;
+        }
+
+        const savedCustAcc = JSON.parse(localStorage.getItem("kurir_customer_account") || "{}");
+        if (savedCustAcc.name) {
+          document.getElementById("nama").value = savedCustAcc.name;
+          document.getElementById("custRegName").value = savedCustAcc.name;
+          document.getElementById("custRegEmail").value = savedCustAcc.email || "";
+          if (savedCustAcc.phone) {
+            document.getElementById("noHp").value = savedCustAcc.phone;
+            document.getElementById("custRegPhone").value = savedCustAcc.phone;
+            customerPhone = savedCustAcc.phone;
+          }
         }
         
         if (autoOpenOrderId) {
@@ -481,6 +567,12 @@
         } else {
           switchTab('pesanan');
         }
+      } else {
+        // MODE DRIVER: Tampilkan Dashboard, Akun di-hide, dan ATUR DEFAULT KE DASHBOARD
+        document.getElementById("nav-akun").style.display = "none";
+        document.getElementById("nav-dashboard").style.display = "flex";
+        document.getElementById("nav-pengaturan").style.display = "flex";
+        switchTab('dashboard'); 
       }
 
       const savedUrl = localStorage.getItem("gas_url") || GAS_WEB_APP_URL;
@@ -508,6 +600,22 @@
       loadData();
     });
 
+    function saveCustomerAccount() {
+      const name = document.getElementById("custRegName").value.trim();
+      const email = document.getElementById("custRegEmail").value.trim();
+      const phone = document.getElementById("custRegPhone").value.trim().replace(/\D/g, '');
+
+      const accData = { name, email, phone };
+      localStorage.setItem("kurir_customer_account", JSON.stringify(accData));
+      
+      document.getElementById("nama").value = name;
+      document.getElementById("noHp").value = phone;
+      customerPhone = phone;
+
+      showToast("Akun Tersimpan", "Registrasi akun berhasil! Data Anda terhubung ke form pemesanan.", "success");
+      switchTab('pesanan');
+    }
+
     function onPhoneInput(val) {
       if (val.length >= 10) {
         customerPhone = val.replace(/\D/g, '');
@@ -516,12 +624,12 @@
     }
 
     function switchTab(tabId) {
-      if (isCustomerMode && tabId !== 'pesanan' && tabId !== 'riwayat') return;
+      if (isCustomerMode && tabId !== 'pesanan' && tabId !== 'riwayat' && tabId !== 'akun') return;
 
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
       document.getElementById('tab-' + tabId).classList.remove('hidden');
 
-      ['dashboard', 'pesanan', 'riwayat', 'pengaturan'].forEach(id => {
+      ['dashboard', 'pesanan', 'riwayat', 'akun', 'pengaturan'].forEach(id => {
         const btn = document.getElementById('nav-' + id);
         if (btn && btn.style.display !== "none") {
           if (id === tabId) {
@@ -734,7 +842,7 @@
       btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Menyimpan...`;
 
       const url = document.getElementById("gasUrlInput").value.trim();
-      const dataToSave = { ...calculatedData }; // Mengunci data agar tidak hilang
+      const dataToSave = { ...calculatedData };
 
       if (url) {
         try {
@@ -787,7 +895,6 @@
       handlePostSaveSuccess(orderId, dataToSave);
     }
 
-    // FUNGSI BARU CANGGIH: Membedakan tipe pengirim dan format WA secara spesifik
     function generateWaText(orderId, nama, noHp, jemput, tujuan, jarak, ongkos, status, actionType = 'update_status_to_cust') {
       const baseUrl = window.location.href.split('?')[0];
       const jemputLink = `https://maps.google.com/?q=${encodeURIComponent(jemput)}`;
@@ -796,22 +903,17 @@
       const custWaNum = formatPhoneNumber(noHp);
 
       const rawPhone = (noHp || "").replace(/\D/g, '');
-      // Link untuk Customer memantau riwayat
       const linkOrderCust = `${baseUrl}?mode=order&phone=${rawPhone}&order=${orderId}`;
-      // Link untuk Driver membuka order dan langsung memproses
       const linkOrderDriver = `${baseUrl}?order=${orderId}`;
 
-      // Skenario 1: Customer membuat order baru, WA dikirim ke Driver
       if (actionType === 'new_order_to_driver') {
          return `*PESANAN BARU MASUK (VIA WEB)*\n\nHalo Driver, ada pesanan masuk dari *${nama}*.\n\n📦 *Jemput:*\n${jemput}\n📍 Map: ${jemputLink}\n\n🏁 *Tujuan:*\n${tujuan}\n📍 Map: ${tujuanLink}\n\n- *Jarak:* ${jarak} KM\n- *Ongkos:* ${formatRupiah(ongkos)}\n\n📞 *Hubungi Customer (WA):*\nwa.me/${custWaNum}\n\n🔗 *Buka & Proses Pesanan Ini di Aplikasi Driver:*\n${linkOrderDriver}`;
       }
 
-      // Skenario 2: Status Selesai, Driver mengirim WA laporan ke Customer
       if (actionType === 'done_order_to_cust') {
          return `Halo *${nama}*,\n\nPaket/Pesanan Anda dengan ID *${orderId}* telah *SELESAI* dikirimkan. ✅\n\n📦 *Titik Jemput:*\n${jemput}\n\n🏁 *Titik Tujuan:*\n${tujuan}\n\n- *Total Ongkos:* ${formatRupiah(ongkos)}\n\nTerima kasih telah menggunakan layanan Kurir Express!\n\n🔗 *Cek Nota & Riwayat Pesanan:*\n${linkOrderCust}`;
       }
 
-      // Skenario 3: Update Status Normal (Menunggu/Diambil/Dalam Pengiriman) dari Driver ke Customer
       if (actionType === 'update_status_to_cust') {
           let template = localStorage.getItem("wa_template") || DEFAULT_WA_TEMPLATE;
           
@@ -843,8 +945,6 @@
     function handlePostSaveSuccess(orderId, savedData) {
       if (isCustomerMode) {
         const driverWa = formatPhoneNumber(localStorage.getItem("driver_wa") || "6281234567890");
-        
-        // Memakai flag 'new_order_to_driver' agar WA Customer tertuju spesifik ke Driver dengan link Driver.
         const reportText = generateWaText(orderId, savedData.nama, savedData.noHp, savedData.alamatJemput, savedData.alamatTujuan, savedData.jarak, savedData.totalOngkos, "Menunggu", "new_order_to_driver");
 
         document.getElementById("customerShareBtnContainer").innerHTML = `
@@ -860,7 +960,6 @@
         switchTab('riwayat');
       }
       
-      // Mengosongkan data HANYA setelah fungsi di atas selesai berjalan (mencegah bug jarak 0 KM)
       calculatedData = null;
       isSaving = false;
       resetForm();
@@ -912,8 +1011,22 @@
             const serverOrders = (data.pesanan || []).filter(o => !deletedIds.includes(o["ID Pesanan"]));
             const unsyncedOrders = localOrders.filter(o => o._synced === false && !deletedIds.includes(o["ID Pesanan"]));
             
+            let oldOrdersCount = ordersData.length;
             ordersData = [...unsyncedOrders, ...serverOrders];
             
+            if (!isCustomerMode && ordersData.length > oldOrdersCount && oldOrdersCount > 0) {
+              showLiveNotification("Pesanan Baru!", "Ada pesanan kurir masuk dari web.", "success");
+            }
+
+            ordersData.forEach(o => {
+              let id = o["ID Pesanan"];
+              let currentSt = o["Status"] || "Menunggu";
+              if (lastKnownStatuses[id] && lastKnownStatuses[id] !== currentSt) {
+                showLiveNotification("Update Status", `Pesanan ${id} kini: ${currentSt}`, "success");
+              }
+              lastKnownStatuses[id] = currentSt;
+            });
+
             statusDot.className = "w-2 h-2 rounded-full bg-emerald-400 inline-block";
             statusText.innerText = "Terhubung (Online)";
             checkUnsyncedData(unsyncedOrders);
@@ -1303,7 +1416,6 @@
       if (!isCustomerMode) {
         const customerWa = formatPhoneNumber(order['Nomor HP']);
         
-        // PENGELOMPOKAN TEMPLATE WA DRIVER YANG BARU
         let shareText = "";
         if (currentStatus === "Selesai") {
             shareText = generateWaText(order["ID Pesanan"], order["Nama Pelanggan"], order["Nomor HP"], order["Alamat Jemput"], order["Alamat Tujuan"], order["Jarak KM"], order["Total Ongkos"], order["Status"], "done_order_to_cust");
@@ -1336,7 +1448,7 @@
             <a href="https://wa.me/${customerWa}?text=${encodeURIComponent(confirmWaText)}" target="_blank" class="bg-white border border-emerald-200 text-emerald-600 hover:bg-emerald-50 font-bold py-3 px-2 rounded-2xl text-[12px] flex items-center justify-center space-x-1.5 transition shadow-sm w-full">
               <i class="fa-brands fa-whatsapp text-[15px]"></i>
               <span>Chat Konfirmasi Jemput</span>
-            </a>` : ""}
+            ` : ""}
             <a href="https://wa.me/${customerWa}?text=${encodeURIComponent(shareText)}" target="_blank" class="bg-[#10b981] border border-[#10b981] hover:bg-emerald-600 text-white font-bold py-3 px-2 rounded-2xl text-[12px] flex items-center justify-center space-x-1.5 transition shadow-sm w-full">
               <i class="fa-brands fa-whatsapp text-[15px]"></i>
               <span>${waButtonLabel}</span>
