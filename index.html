@@ -301,7 +301,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.79 • Powered by Ari GPM
+      v2.80 • Powered by Ari GPM
     </div>
 
   </main>
@@ -1343,7 +1343,7 @@
       const url = document.getElementById("gasUrlInput").value.trim();
       const isOnline = document.getElementById("statusText").innerText.includes("Online");
       
-      let localOrders = JSON.parse(localStorage.getItem("kurir_orders"] || "[]");
+      let localOrders = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
       let updatedOrder = null;
       
       for (let i = 0; i < localOrders.length; i++) {
