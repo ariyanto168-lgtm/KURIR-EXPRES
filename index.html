@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KURIR EXPRESS — ACCOUNT FIX</title>
+  <title>KURIR EXPRESS — ROLE SEPARATION FIX</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- FontAwesome for Icons -->
@@ -179,7 +179,7 @@
               <label class="block text-xs font-semibold text-slate-300">Nomor WhatsApp Akun CS <span class="text-pink-500">*</span></label>
               <span id="csPhoneBadge" class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-bold">Terikat Otomatis</span>
             </div>
-            <input type="tel" id="noHp" required readonly class="w-full px-4 py-2.5 text-sm bg-slate-800/50 border border-emerald-500/30 rounded-2xl text-emerald-300 font-mono font-bold cursor-not-allowed focus:outline-none">
+            <input type="tel" id="noHp" required placeholder="Contoh: 081325325088" class="w-full px-4 py-2.5 text-sm bg-slate-800/80 border border-emerald-500/30 rounded-2xl text-emerald-300 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500">
           </div>
 
           <div class="grid grid-cols-2 gap-2">
@@ -460,12 +460,17 @@
         <button onclick="saveSettings()" class="w-full bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-bold py-3 rounded-2xl text-sm shadow-xl shadow-indigo-500/25 hover:opacity-95 transition mt-2">
           Simpan Konfigurasi & Profil
         </button>
+
+        <!-- TOMBOL RESET / KEMBALI KE MODE DRIVER -->
+        <button onclick="forceResetDriverRole()" class="w-full bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/30 font-bold py-3 rounded-2xl text-xs transition mt-2">
+          <i class="fa-solid fa-rotate-right mr-1"></i> Paksa Masuk Mode Driver Utama
+        </button>
       </div>
     </section>
 
     <!-- Version Footer -->
     <div class="text-center py-2 text-[10px] text-slate-500 font-medium tracking-wide">
-      v3.30 (CS Account Binding Fix) • Powered by Ari GPM
+      v3.31 (Role Separation Fix) • Powered by Ari GPM
     </div>
 
   </main>
@@ -733,6 +738,11 @@
       }
     }
 
+    function forceResetDriverRole() {
+      localStorage.removeItem("kurir_customer_account");
+      window.location.href = window.location.pathname + "?role=driver";
+    }
+
     function verifyPickupLocationAndUpload(orderId) {
       const order = ordersData.find(o => o["ID Pesanan"] === orderId);
       if (!order || !order.jemputLat || !order.jemputLon) {
@@ -894,14 +904,23 @@
         } catch (e) {}
       }
 
-      isCustomerMode = urlParams.get('mode') === 'order';
-      customerPhone = urlParams.get('phone') || "";
-      
-      // CEK JUGA DARI LOCALSTORAGE JIKA SUDAH PERNAH MENDAFTAR AKUN SEBELUMNYA
-      const savedCustAcc = JSON.parse(localStorage.getItem("kurir_customer_account") || "{}");
-      if (!customerPhone && savedCustAcc.phone) {
-        customerPhone = savedCustAcc.phone;
+      const roleParam = urlParams.get('role');
+      const modeParam = urlParams.get('mode');
+      const phoneParam = urlParams.get('phone');
+
+      // HANYA MASUK MODE CS JIKA ADA PARAMETER MODE=ORDER ATAU PHONE (LINK DARI CS)
+      if (modeParam === 'order' || phoneParam) {
+        isCustomerMode = true;
+        customerPhone = phoneParam || "";
+      } else if (roleParam === 'driver') {
+        isCustomerMode = false;
+        customerPhone = "";
+      } else {
+        // DEFAULT: JIKA TIDAK ADA LINK CS, ANGGAP SEBAGAI DRIVER UTAMA
+        isCustomerMode = false;
+        customerPhone = "";
       }
+
       currentCsId = customerPhone;
       autoOpenOrderId = urlParams.get('order') || null;
 
@@ -909,7 +928,7 @@
       const headerTitleEl = document.getElementById("headerTitle");
       const headerSubtitleEl = document.getElementById("headerSubtitle");
       
-      if (isCustomerMode || customerPhone) {
+      if (isCustomerMode) {
         // TEMA APLIKASI CS (HIJAU EMERALD / TEAL)
         headerEl.className = "bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 text-white shadow-lg sticky top-0 z-40 px-4 py-3.5 flex justify-between items-center backdrop-blur-md bg-opacity-95";
         headerTitleEl.innerText = "KURIR EXPRESS";
@@ -922,9 +941,9 @@
         if (customerPhone) {
           const noHpInput = document.getElementById("noHp");
           noHpInput.value = customerPhone;
-          noHpInput.readOnly = true;
         }
 
+        const savedCustAcc = JSON.parse(localStorage.getItem("kurir_customer_account") || "{}");
         if (savedCustAcc.name) {
           document.getElementById("nama").value = savedCustAcc.name;
           document.getElementById("custRegName").value = savedCustAcc.name;
@@ -972,15 +991,12 @@
         return;
       }
 
-      // SIMPAN KE LOCALSTORAGE DAN IKAT KE VARIABEL GLOBAL
       localStorage.setItem("kurir_customer_account", JSON.stringify({ name, email, phone }));
       customerPhone = phone;
       currentCsId = phone;
 
-      // OTOMATIS ISI DAN KUNCI NOMOR HP PADA FORM PESANAN
       const noHpInput = document.getElementById("noHp");
       noHpInput.value = phone;
-      noHpInput.readOnly = true;
 
       document.getElementById("nama").value = name;
       
@@ -1180,7 +1196,7 @@
       localOrders.unshift(newOrder);
       localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
 
-      if (isCustomerMode || customerPhone) {
+      if (isCustomerMode) {
         const driverWa = formatPhoneNumber(localStorage.getItem("driver_wa") || "6281234567890");
         const reportText = `*PESANAN BARU (CS: ${calculatedData.csId})*\nID: ${orderId}\nKategori: ${newOrder["Kategori"]}\nPembayaran: ${newOrder["Metode Pembayaran"]}\nNama: ${newOrder["Nama Pelanggan"]}\nJemput: ${newOrder["Alamat Jemput"]}\nTujuan: ${newOrder["Alamat Tujuan"]}\nOngkos: ${formatRupiah(newOrder["Total Ongkos"])}`;
         document.getElementById("customerShareBtnContainer").innerHTML = `<a href="https://wa.me/${driverWa}?text=${encodeURIComponent(reportText)}" target="_blank" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-4 rounded-2xl text-xs flex items-center justify-center space-x-2 shadow-lg"><i class="fa-brands fa-whatsapp text-base"></i><span>Kirim WA ke Driver</span></a>`;
@@ -1192,9 +1208,6 @@
       }
       calculatedData = null; isSaving = false;
       document.getElementById("orderForm").reset();
-      if (customerPhone) {
-        document.getElementById("noHp").value = customerPhone;
-      }
       document.getElementById("resultCard").classList.add('hidden');
     }
 
@@ -1210,7 +1223,7 @@
 
     function renderDashboardAndHistory() {
       let displayOrders = ordersData;
-      if (isCustomerMode || customerPhone) {
+      if (isCustomerMode) {
         displayOrders = ordersData.filter(o => (o["CS ID"] === currentCsId) || (o["Nomor HP"] === customerPhone));
       }
 
@@ -1256,7 +1269,7 @@
       let totalExpense = expenses.reduce((sum, item) => sum + Number(item.amount || 0), 0);
       let netProfit = totalRevenue - totalExpense;
 
-      if (document.getElementById("dashGrossRevenue") && !isCustomerMode && !customerPhone) {
+      if (document.getElementById("dashGrossRevenue") && !isCustomerMode) {
         document.getElementById("dashGrossRevenue").innerText = formatRupiah(totalRevenue);
         document.getElementById("dashTunaiRevenue").innerText = formatRupiah(totalTunai);
         document.getElementById("dashTempoRevenue").innerText = formatRupiah(totalTempo);
@@ -1268,7 +1281,7 @@
         if (document.getElementById("batchCount")) document.getElementById("batchCount").innerText = activeOrders.length;
       }
 
-      if (isCustomerMode || customerPhone) {
+      if (isCustomerMode) {
         const badge = document.getElementById("custSummaryIdBadge");
         if (badge) badge.innerText = "CS: " + (currentCsId || "Umum");
         const sumEl = document.getElementById("customerFinancialSummary");
@@ -1288,7 +1301,7 @@
       }
 
       const batchContainer = document.getElementById("batchRouteContainer");
-      if (batchContainer && !isCustomerMode && !customerPhone) {
+      if (batchContainer && !isCustomerMode) {
         let driverActiveOrders = ordersData.filter(o => (o["Status"] || "Menunggu") !== "Selesai");
         if (driverActiveOrders.length === 0) {
           batchContainer.innerHTML = `<p class="text-[11px] text-slate-500 text-center py-2">Tidak ada kloter rute aktif.</p>`;
@@ -1317,7 +1330,7 @@
       }
 
       const activeContainer = document.getElementById("activeOrdersListContainer");
-      if (activeContainer && !isCustomerMode && !customerPhone) {
+      if (activeContainer && !isCustomerMode) {
         let driverActiveOrders = ordersData.filter(o => (o["Status"] || "Menunggu") !== "Selesai");
         activeContainer.innerHTML = driverActiveOrders.length === 0 ? `<p class="text-xs text-slate-500 text-center py-2">Tidak ada pesanan aktif.</p>` : driverActiveOrders.map(o => {
           let st = o["Status"] || "Menunggu";
@@ -1417,8 +1430,7 @@
       `;
 
       const statusButtonsContainer = document.getElementById("modalStatusButtons");
-      const isCustActive = isCustomerMode || customerPhone;
-      if (!isCustActive) {
+      if (!isCustomerMode) {
         if (currentStatus === 'Selesai') {
           statusButtonsContainer.innerHTML = `
             <div class="bg-emerald-500/20 border border-emerald-500/40 p-3 rounded-2xl text-center my-2">
@@ -1514,7 +1526,7 @@
           </div>
         `;
       } else {
-        if (!isCustActive) {
+        if (!isCustomerMode) {
           podContainer.innerHTML = `
             <div class="bg-gradient-to-r from-emerald-600/25 to-teal-600/25 p-3 rounded-2xl border border-emerald-500/40 space-y-2 my-2 text-center shadow-lg">
               <span class="text-xs text-emerald-200 font-extrabold uppercase block"><i class="fa-solid fa-location-crosshairs mr-1.5 text-emerald-400"></i> Ambil Foto di Area Pick Up (Geofence)</span>
@@ -1542,7 +1554,7 @@
       const linkCustomerOrder = `${baseUrl}?mode=order&phone=${order["CS ID"] || rawPhone}&order=${order["ID Pesanan"]}&data=${encodedOrderData}`;
 
       const linkContainer = document.getElementById("modalLinkContainer");
-      if (!isCustActive) {
+      if (!isCustomerMode) {
         linkContainer.innerHTML = `
           <div class="bg-white/5 p-2.5 rounded-2xl border border-white/5 space-y-1 my-2">
             <span class="text-[10px] text-slate-400 font-bold uppercase block"><i class="fa-solid fa-link mr-1"></i> Link Resi & Lacak Pesanan (Auto-Sync Foto)</span>
@@ -1557,9 +1569,9 @@
       }
 
       const shareContainer = document.getElementById("modalShareContainer");
-      let invoiceBtnHtml = !isCustActive ? `<button onclick="openInvoiceModal('${order["ID Pesanan"]}')" class="w-full bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 border border-emerald-500/30 font-bold py-2.5 px-4 rounded-2xl text-xs flex items-center justify-center space-x-2 transition mb-2"><i class="fa-solid fa-receipt"></i><span>Cetak Nota / Invoice Resmi</span></button>` : '';
+      let invoiceBtnHtml = !isCustomerMode ? `<button onclick="openInvoiceModal('${order["ID Pesanan"]}')" class="w-full bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 border border-emerald-500/30 font-bold py-2.5 px-4 rounded-2xl text-xs flex items-center justify-center space-x-2 transition mb-2"><i class="fa-solid fa-receipt"></i><span>Cetak Nota / Invoice Resmi</span></button>` : '';
 
-      if (isCustActive) {
+      if (isCustomerMode) {
         const confirmToDriverText = `Halo Driver ${driverName}, saya ingin mengkonfirmasi pesanan dari CS ${order["CS ID"] || 'Umum'} dengan ID: *${order["ID Pesanan"]}*.\n\n🔗 Lacak: ${linkCustomerOrder}`;
         shareContainer.innerHTML = `
           <div class="mt-2 space-y-2">
