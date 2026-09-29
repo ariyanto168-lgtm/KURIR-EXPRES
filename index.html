@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KURIR EXPRESS — LINK ROUTING FIX</title>
+  <title>KURIR EXPRESS — STRICT CS ISOLATION</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- FontAwesome for Icons -->
@@ -470,7 +470,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-2 text-[10px] text-slate-500 font-medium tracking-wide">
-      v3.34 (Link Routing Fix) • Powered by Ari GPM
+      v3.35 (Strict CS Isolation) • Powered by Ari GPM
     </div>
 
   </main>
@@ -928,7 +928,6 @@
       const phoneParam = urlParams.get('phone');
       const savedCustAcc = JSON.parse(localStorage.getItem("kurir_customer_account") || "{}");
 
-      // JIKA ADA PARAMETER role=driver ATAU TIDAK ADA PARAMETER MODE ORDER, MAKA PAKSA MASUK MODE DRIVER
       if (roleParam === 'driver') {
         isCustomerMode = false;
         customerPhone = "";
@@ -1245,13 +1244,15 @@
 
     function renderDashboardAndHistory() {
       let displayOrders = ordersData;
+      
+      // PERBAIKAN UTAMA: ISOLASI KETAT BERDASARKAN NOMOR CS DI URL
       if (isCustomerMode) {
+        const targetCs = String(currentCsId || customerPhone || "").replace(/\D/g, '');
         displayOrders = ordersData.filter(o => {
           const oCs = String(o["CS ID"] || "").replace(/\D/g, '');
           const oHp = String(o["Nomor HP"] || "").replace(/\D/g, '');
-          const target = String(currentCsId || customerPhone || "").replace(/\D/g, '');
-          if (!target) return true;
-          return oCs === target || oHp === target;
+          if (!targetCs) return false; // JIKA TIDAK ADA NOMOR CS DI URL, JANGAN TAMPILKAN APA PUN UNTUK MENCEGAH TABRAKAN DATA UMUM
+          return oCs === targetCs || oHp === targetCs;
         });
       }
 
@@ -1397,7 +1398,7 @@
 
       const tableBody = document.getElementById("historyTableBody");
       if (tableBody) {
-        tableBody.innerHTML = displayOrders.length === 0 ? `<tr><td colspan="4" class="text-center py-4 text-slate-500">Belum ada riwayat.</td></tr>` : displayOrders.map(o => {
+        tableBody.innerHTML = displayOrders.length === 0 ? `<tr><td colspan="4" class="text-center py-4 text-slate-500">Belum ada riwayat pesanan untuk nomor CS ini.</td></tr>` : displayOrders.map(o => {
           let cost = Number(o["Total Ongkos"] || Math.round(Number(o["Jarak KM"]) * 3000));
           let kat = o["Kategori"] || "Paket Umum";
           let bayar = o["Metode Pembayaran"] || "Tunai / COD";
@@ -1645,7 +1646,7 @@
     function saveSettings() {
       localStorage.setItem("driver_name", document.getElementById("driverNameInput").value.trim());
       localStorage.setItem("cs_id", document.getElementById("csIdInput").value.trim());
-      localStorage.setItem("driver_vehicle", document.getElementById("driverVehicleInput").value.trim());
+      localStorage.setItem("driver_vehicle", document.getElementById("driverVehicleInput2")?.value.trim() || document.getElementById("driverVehicleInput").value.trim());
       localStorage.setItem("driver_wa", document.getElementById("driverWaInput").value.trim());
       localStorage.setItem("local_tarif", document.getElementById("localTarifInput").value.trim() || "3000");
       localStorage.setItem("wa_template", document.getElementById("waTemplateInput").value.trim());
