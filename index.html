@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KURIR EXPRESS — ROLE SEPARATION FIX</title>
+  <title>KURIR EXPRESS — CS HISTORY FIX</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- FontAwesome for Icons -->
@@ -470,7 +470,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-2 text-[10px] text-slate-500 font-medium tracking-wide">
-      v3.31 (Role Separation Fix) • Powered by Ari GPM
+      v3.32 (CS History Filter Fix) • Powered by Ari GPM
     </div>
 
   </main>
@@ -740,7 +740,7 @@
 
     function forceResetDriverRole() {
       localStorage.removeItem("kurir_customer_account");
-      window.location.href = window.location.pathname + "?role=driver";
+      window.location.href = window.location.pathname.split('?')[0] + "?role=driver";
     }
 
     function verifyPickupLocationAndUpload(orderId) {
@@ -848,7 +848,7 @@
         <div class="space-y-1 py-1 text-slate-700">
           <div class="flex justify-between"><span class="font-semibold">ID Transaksi:</span> <span class="font-mono font-bold">${order["ID Pesanan"]}</span></div>
           <div class="flex justify-between"><span class="font-semibold">Tanggal:</span> <span>${order["Tanggal"] || order["Timestamp"]}</span></div>
-          <div class="flex justify-between"><span class="font-semibold">Pelanggan:</span> <span class="font-bold">${order["Nama Pelanggan"]} (CS: ${order["Nomor HP"]})</span></div>
+          <div class="flex justify-between"><span class="font-semibold">Pelanggan:</span> <span class="font-bold">${order["Nama Pelanggan"]} (CS: ${order["CS ID"] || order["Nomor HP"]})</span></div>
           <div class="flex justify-between"><span class="font-semibold">Kurir:</span> <span>${driverName} (${driverVehicle})</span></div>
         </div>
         <div class="border-t border-b border-slate-200 py-2 space-y-1 text-slate-700">
@@ -907,16 +907,15 @@
       const roleParam = urlParams.get('role');
       const modeParam = urlParams.get('mode');
       const phoneParam = urlParams.get('phone');
+      const savedCustAcc = JSON.parse(localStorage.getItem("kurir_customer_account") || "{}");
 
-      // HANYA MASUK MODE CS JIKA ADA PARAMETER MODE=ORDER ATAU PHONE (LINK DARI CS)
-      if (modeParam === 'order' || phoneParam) {
-        isCustomerMode = true;
-        customerPhone = phoneParam || "";
-      } else if (roleParam === 'driver') {
+      if (roleParam === 'driver') {
         isCustomerMode = false;
         customerPhone = "";
+      } else if (modeParam === 'order' || phoneParam || savedCustAcc.phone) {
+        isCustomerMode = true;
+        customerPhone = phoneParam || savedCustAcc.phone || "";
       } else {
-        // DEFAULT: JIKA TIDAK ADA LINK CS, ANGGAP SEBAGAI DRIVER UTAMA
         isCustomerMode = false;
         customerPhone = "";
       }
@@ -929,7 +928,6 @@
       const headerSubtitleEl = document.getElementById("headerSubtitle");
       
       if (isCustomerMode) {
-        // TEMA APLIKASI CS (HIJAU EMERALD / TEAL)
         headerEl.className = "bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 text-white shadow-lg sticky top-0 z-40 px-4 py-3.5 flex justify-between items-center backdrop-blur-md bg-opacity-95";
         headerTitleEl.innerText = "KURIR EXPRESS";
         headerSubtitleEl.innerText = "Customer Order Portal (CS: " + (customerPhone || "Umum") + ")";
@@ -943,7 +941,6 @@
           noHpInput.value = customerPhone;
         }
 
-        const savedCustAcc = JSON.parse(localStorage.getItem("kurir_customer_account") || "{}");
         if (savedCustAcc.name) {
           document.getElementById("nama").value = savedCustAcc.name;
           document.getElementById("custRegName").value = savedCustAcc.name;
@@ -952,7 +949,6 @@
         }
         switchTab(autoOpenOrderId ? 'riwayat' : 'pesanan');
       } else {
-        // TEMA APLIKASI DRIVER (UNGU / INDIGO / PINK DENGAN TEKS DRIVER)
         headerEl.className = "bg-gradient-to-r from-violet-600 via-indigo-600 to-pink-600 text-white shadow-lg sticky top-0 z-40 px-4 py-3.5 flex justify-between items-center backdrop-blur-md bg-opacity-95";
         headerTitleEl.innerText = "DRIVER KURIR EXPRESS";
         headerSubtitleEl.innerText = "Driver & Fleet Management Edition";
@@ -1003,6 +999,7 @@
       showToast("Tersimpan", "Akun & Nomor CS Berhasil Terikat!", "success");
       setTimeout(() => {
         switchTab('pesanan');
+        loadDataInstant();
       }, 500);
     }
 
@@ -1138,7 +1135,7 @@
         let totalOngkos = Math.round(jarakKm * currentTarif);
 
         calculatedData = { 
-          nama, noHp: noHp.replace(/\D/g, ''), csId: currentCsId || "Umum", kategori, pembayaran, 
+          nama, noHp: noHp.replace(/\D/g, ''), csId: currentCsId || noHp.replace(/\D/g, '') || "Umum", kategori, pembayaran, 
           alamatJemput: jemput, alamatTujuan: tujuan, 
           jemputLat: c1.lat, jemputLon: c1.lon, 
           tujuanLat: c2.lat, tujuanLon: c2.lon,
@@ -1224,7 +1221,13 @@
     function renderDashboardAndHistory() {
       let displayOrders = ordersData;
       if (isCustomerMode) {
-        displayOrders = ordersData.filter(o => (o["CS ID"] === currentCsId) || (o["Nomor HP"] === customerPhone));
+        displayOrders = ordersData.filter(o => {
+          const oCs = String(o["CS ID"] || "").replace(/\D/g, '');
+          const oHp = String(o["Nomor HP"] || "").replace(/\D/g, '');
+          const target = String(currentCsId || customerPhone || "").replace(/\D/g, '');
+          if (!target) return true;
+          return oCs === target || oHp === target;
+        });
       }
 
       let totalOrders = displayOrders.length, totalKm = 0, totalRevenue = 0, activeOrders = [];
@@ -1283,7 +1286,7 @@
 
       if (isCustomerMode) {
         const badge = document.getElementById("custSummaryIdBadge");
-        if (badge) badge.innerText = "CS: " + (currentCsId || "Umum");
+        if (badge) badge.innerText = "CS: " + (currentCsId || customerPhone || "Umum");
         const sumEl = document.getElementById("customerFinancialSummary");
         if (sumEl) sumEl.classList.remove('hidden');
         const cOrders = document.getElementById("custTotalOrders");
