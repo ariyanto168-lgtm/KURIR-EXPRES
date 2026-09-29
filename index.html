@@ -301,7 +301,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.78 • Powered by Ari GPM
+      v2.79 • Powered by Ari GPM
     </div>
 
   </main>
@@ -983,7 +983,7 @@
 
     function clearAllHistory() {
       if (confirm("Apakah Anda yakin ingin MENGHAPUS SEMUA riwayat pesanan? (Data tidak akan muncul kembali)")) {
-        let deletedIds = JSON.parse(localStorage.getItem("kurir_deleted_ids"] || "[]");
+        let deletedIds = JSON.parse(localStorage.getItem("kurir_deleted_ids") || "[]");
         
         ordersData.forEach(o => {
           if (o["ID Pesanan"] && !deletedIds.includes(o["ID Pesanan"])) {
@@ -1294,7 +1294,6 @@
           .replace(/{jemput}/g, order["Alamat Jemput"])
           .replace(/{linkOrder}/g, linkCustomerOrder);
 
-        // Teks label tombol WA dinamis sesuai status (misal: Selesai, Dalam Pengiriman, dll)
         const waButtonLabel = currentStatus === "Selesai" ? "Kirim Resi Selesai (WA)" : `Kirim Status (${currentStatus}) WA`;
 
         shareContainer.innerHTML = `
@@ -1344,7 +1343,7 @@
       const url = document.getElementById("gasUrlInput").value.trim();
       const isOnline = document.getElementById("statusText").innerText.includes("Online");
       
-      let localOrders = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
+      let localOrders = JSON.parse(localStorage.getItem("kurir_orders"] || "[]");
       let updatedOrder = null;
       
       for (let i = 0; i < localOrders.length; i++) {
