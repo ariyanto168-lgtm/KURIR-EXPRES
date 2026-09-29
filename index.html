@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KURIR EXPRESS — SMART CS ISOLATION & CLEAN UI</title>
+  <title>KURIR EXPRESS — LIVE DEPOSIT BALANCE & WALLET</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- FontAwesome for Icons -->
@@ -358,7 +358,7 @@
     <section id="tab-akun" class="tab-content hidden space-y-4">
       <div class="bg-slate-900/80 backdrop-blur-xl p-5 rounded-[2.5rem] shadow-xl border border-white/10 space-y-4">
         
-        <!-- PENGINGAT / INSTRUKSI WAJIB ISI AKUN (Hanya tampil jika belum terdaftar) -->
+        <!-- PENGINGAT / INSTRUKSI WAJIB ISI AKUN -->
         <div id="registrationAlertBox" class="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 p-4 rounded-2xl flex items-start space-x-3 text-xs">
           <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-base shrink-0 mt-0.5">
             <i class="fa-solid fa-triangle-exclamation"></i>
@@ -416,7 +416,61 @@
       </div>
     </section>
 
-    <!-- TAB 5: PENGATURAN (Driver & Profil) -->
+    <!-- TAB 5: DOMPET / DEPOSIT (Customer) -->
+    <section id="tab-dompet" class="tab-content hidden space-y-4">
+      <div class="bg-gradient-to-br from-violet-950 via-slate-900 to-indigo-950 p-5 rounded-[2.5rem] shadow-xl border border-violet-500/30 space-y-4">
+        <div class="flex items-center space-x-3.5 border-b border-white/10 pb-4">
+          <div class="w-14 h-14 bg-gradient-to-tr from-violet-600 to-pink-600 text-white rounded-3xl flex items-center justify-center text-xl font-black shadow-lg shadow-violet-500/30">
+            <i class="fa-solid fa-wallet"></i>
+          </div>
+          <div>
+            <h2 class="font-bold text-white text-base">Dompet & Saldo Deposit Anda</h2>
+            <p class="text-xs text-violet-300">Cek sisa saldo & rekening transfer</p>
+          </div>
+        </div>
+
+        <!-- SISA SALDO LIVE CARD -->
+        <div class="bg-gradient-to-r from-violet-600/20 to-pink-600/20 p-4 rounded-3xl border border-violet-500/40 text-center space-y-1">
+          <span class="text-[10px] text-violet-300 font-bold uppercase tracking-widest block">Sisa Saldo Deposit Aktif</span>
+          <p id="customerWalletBalance" class="text-3xl font-black text-white tracking-tight">Rp0</p>
+          <span class="text-[10px] text-slate-400 block pt-1">Otomatis terpotong saat Anda memilih pembayaran Deposit</span>
+        </div>
+
+        <div class="bg-white/5 p-4 rounded-3xl border border-white/5 space-y-3">
+          <h3 class="font-bold text-emerald-400 text-xs uppercase tracking-wider flex items-center space-x-2">
+            <i class="fa-solid fa-university"></i>
+            <span>Rekening & E-Wallet Resmi Transfer Deposit</span>
+          </h3>
+          <p class="text-xs text-slate-300 leading-relaxed">Silakan transfer deposit ke nomor berikut agar saldo Anda bertambah:</p>
+          
+          <div class="space-y-2">
+            <div class="bg-black/40 p-3 rounded-2xl border border-white/5 flex justify-between items-center">
+              <div>
+                <span class="text-[10px] text-slate-400 font-semibold uppercase block">BCA (Yudi Ariyanto)</span>
+                <span class="font-mono font-bold text-white text-sm">2465583655</span>
+              </div>
+              <button onclick="navigator.clipboard.writeText('2465583655'); showToast('Disalin', 'Nomor BCA disalin!', 'success');" class="bg-violet-600 hover:bg-violet-500 text-white text-[10px] font-bold px-3 py-1.5 rounded-xl transition">Salin</button>
+            </div>
+
+            <div class="bg-black/40 p-3 rounded-2xl border border-white/5 flex justify-between items-center">
+              <div>
+                <span class="text-[10px] text-slate-400 font-semibold uppercase block">DANA (Yudi Ariyanto)</span>
+                <span class="font-mono font-bold text-white text-sm">085727222789</span>
+              </div>
+              <button onclick="navigator.clipboard.writeText('085727222789'); showToast('Disalin', 'Nomor DANA disalin!', 'success');" class="bg-violet-600 hover:bg-violet-500 text-white text-[10px] font-bold px-3 py-1.5 rounded-xl transition">Salin</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-2 pt-2">
+          <button onclick="goToOrderWithDeposit()" class="w-full bg-gradient-to-r from-violet-600 to-pink-600 hover:opacity-95 text-white font-bold py-3 rounded-2xl text-xs transition shadow-lg shadow-violet-500/30">
+            <i class="fa-solid fa-paper-plane mr-1"></i> Buat Pesanan Pakai Deposit Sekarang
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 6: PENGATURAN (Driver & Profil) -->
     <section id="tab-pengaturan" class="tab-content hidden space-y-4">
       <div class="bg-slate-900/80 backdrop-blur-xl p-5 rounded-[2.5rem] shadow-xl border border-white/10 space-y-4">
         <h2 class="font-bold text-white text-base flex items-center space-x-2.5">
@@ -482,7 +536,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-2 text-[10px] text-slate-500 font-medium tracking-wide">
-      v3.41 (Smart CS Isolation & Clean UI) • Powered by Ari GPM
+      v3.43 (Live Deposit Balance & Wallet) • Powered by Ari GPM
     </div>
 
   </main>
@@ -596,6 +650,10 @@
     <button onclick="switchTab('riwayat')" id="nav-riwayat" class="flex flex-col items-center text-slate-400 space-y-0.5 px-3 py-1 rounded-2xl transition">
       <i class="fa-solid fa-clock-rotate-left text-base"></i>
       <span class="text-[9px] font-bold">Riwayat</span>
+    </button>
+    <button onclick="switchTab('dompet')" id="nav-dompet" class="flex flex-col items-center text-slate-400 space-y-0.5 px-3 py-1 rounded-2xl transition">
+      <i class="fa-solid fa-wallet text-base"></i>
+      <span class="text-[9px] font-bold">Dompet</span>
     </button>
     <button onclick="switchTab('akun')" id="nav-akun" class="flex flex-col items-center text-slate-400 space-y-0.5 px-3 py-1 rounded-2xl transition">
       <i class="fa-solid fa-user text-base"></i>
@@ -748,6 +806,12 @@
       if (lastCreatedOrderId) {
         setTimeout(() => showDetailById(lastCreatedOrderId), 300);
       }
+    }
+
+    function goToOrderWithDeposit() {
+      document.getElementById("metodePembayaran").value = "Deposit / Saldo";
+      switchTab('pesanan');
+      showToast("Auto-Deposit", "Metode pembayaran otomatis diatur ke Deposit / Saldo.", "success");
     }
 
     function forceResetDriverRole() {
@@ -967,6 +1031,7 @@
         
         document.getElementById("nav-dashboard").style.display = "none";
         document.getElementById("nav-pengaturan").style.display = "none";
+        document.getElementById("nav-dompet").style.display = "flex";
         document.getElementById("nav-akun").style.display = "flex";
         
         if (customerPhone) {
@@ -975,7 +1040,6 @@
         }
 
         if (isRegistered) {
-          // CS SUDAH TERDAFTAR: TAMPILKAN MENU PESANAN & RIWAYAT, SEMBUNYIKAN KOTAK KUNING
           document.getElementById("nav-pesanan").style.display = "flex";
           document.getElementById("nav-riwayat").style.display = "flex";
           document.getElementById("registrationAlertBox").classList.add('hidden');
@@ -987,7 +1051,6 @@
 
           switchTab(autoOpenOrderId ? 'riwayat' : 'pesanan');
         } else {
-          // CS BARU: KUNCI/SEMBUNYIKAN PESANAN & RIWAYAT, TAMPILKAN KOTAK KUNING DI TAB AKUN
           document.getElementById("nav-pesanan").style.display = "none";
           document.getElementById("nav-riwayat").style.display = "none";
           document.getElementById("registrationAlertBox").classList.remove('hidden');
@@ -1000,6 +1063,7 @@
         headerSubtitleEl.innerText = "Driver & Fleet Management Edition";
 
         document.getElementById("nav-akun").style.display = "none";
+        document.getElementById("nav-dompet").style.display = "none";
         document.getElementById("nav-dashboard").style.display = "flex";
         document.getElementById("nav-pengaturan").style.display = "flex";
         document.getElementById("nav-pesanan").style.display = "flex";
@@ -1045,7 +1109,6 @@
       noHpInput.value = phone;
       document.getElementById("nama").value = name;
       
-      // BUKA AKSES MENU PESANAN & RIWAYAT, SEMBUNYIKAN KOTAK KUNING
       document.getElementById("nav-pesanan").style.display = "flex";
       document.getElementById("nav-riwayat").style.display = "flex";
       document.getElementById("registrationAlertBox").classList.add('hidden');
@@ -1087,11 +1150,11 @@
     }
 
     function switchTab(tabId) {
-      if (isCustomerMode && ['pesanan', 'riwayat', 'akun'].indexOf(tabId) === -1) return;
+      if (isCustomerMode && ['pesanan', 'riwayat', 'akun', 'dompet'].indexOf(tabId) === -1) return;
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
       document.getElementById('tab-' + tabId).classList.remove('hidden');
 
-      ['dashboard', 'pesanan', 'riwayat', 'akun', 'pengaturan'].forEach(id => {
+      ['dashboard', 'pesanan', 'riwayat', 'dompet', 'akun', 'pengaturan'].forEach(id => {
         const btn = document.getElementById('nav-' + id);
         if (btn && btn.style.display !== "none") {
           const activeColor = isCustomerMode ? 'text-emerald-400' : 'text-violet-400';
@@ -1382,6 +1445,14 @@
         if (cTempo) cTempo.innerText = formatRupiah(totalTempo);
         const cDeposit = document.getElementById("custDepositSpent");
         if (cDeposit) cDeposit.innerText = formatRupiah(totalDeposit);
+
+        // HITUNG SISA SALDO DEPOSIT (TOTAL DEPOSIT MASUK - PENGGUNAAN DEPOSIT)
+        // Catatan: Jika CS belum memasukkan saldo awal topup, saldo awal diasumsikan dari penyimpanan lokal atau sisa berjalan.
+        let depositsTopups = JSON.parse(localStorage.getItem("kurir_deposit_topups") || "{}");
+        let myTopup = Number(depositsTopups[currentCsId || customerPhone] || 0);
+        let sisaSaldo = myTopup - totalDeposit;
+        const walletEl = document.getElementById("customerWalletBalance");
+        if (walletEl) walletEl.innerText = formatRupiah(sisaSaldo);
       }
 
       const tableBody = document.getElementById("historyTableBody");
