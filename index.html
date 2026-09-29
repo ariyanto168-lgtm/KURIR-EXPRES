@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KURIR EXPRESS — FOCUSED DRIVER DASHBOARD</title>
+  <title>KURIR EXPRESS — INTERACTIVE MAP SYNC</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- FontAwesome for Icons -->
@@ -626,7 +626,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-2 text-[10px] text-slate-500 font-medium tracking-wide">
-      v3.58 (Focused Driver Dashboard Edition) • Powered by Ari GPM
+      v3.59 (Interactive Map Sync Edition) • Powered by Ari GPM
     </div>
 
   </main>
@@ -1700,6 +1700,13 @@
       if (order) showDetail(order);
     }
 
+    function panMapToLocation(lat, lon, label) {
+      if (window._currentOrderMap && lat && lon) {
+        window._currentOrderMap.setView([lat, lon], 16, { animate: true });
+        showToast("Peta Disinkronkan", `Berpusat ke: ${label}`, "success");
+      }
+    }
+
     function showDetail(order) {
       const currentStatus = (order["Status"] || "Menunggu").trim();
       let cost = Number(order["Total Ongkos"] || Math.round(Number(order["Jarak KM"] || 0) * 3000));
@@ -1773,8 +1780,23 @@
           <div class="flex justify-between"><span class="font-bold text-slate-400">Pelanggan:</span> <span class="text-white">${order["Nama Pelanggan"]}</span></div>
           <div class="flex justify-between"><span class="font-bold text-slate-400">Kategori:</span> <span class="text-emerald-300 font-bold">${order["Kategori"] || 'Paket Umum'}</span></div>
           <div class="flex justify-between"><span class="font-bold text-slate-400">Pembayaran:</span> <span class="text-emerald-300 font-bold">${order["Metode Pembayaran"] || 'Tunai / COD'}</span></div>
-          <div class="flex flex-col space-y-0.5 pt-1"><span class="font-bold text-slate-400">Jemput:</span> <span class="text-white text-[11px]">${order["Alamat Jemput"]}</span></div>
-          <div class="flex flex-col space-y-0.5 pt-1"><span class="font-bold text-slate-400">Tujuan:</span> <span class="text-white text-[11px]">${order["Alamat Tujuan"]}</span></div>
+          
+          <div class="flex flex-col space-y-0.5 pt-1">
+            <span class="font-bold text-slate-400 flex items-center justify-between">
+              <span>Alamat Jemput (Pickup):</span>
+              ${order.jemputLat ? `<button onclick="panMapToLocation(${order.jemputLat},${order.jemputLon}, 'Jemput')" class="text-[10px] bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 px-2 py-0.5 rounded font-bold transition flex items-center space-x-1"><i class="fa-solid fa-map-pin"></i><span>Fokus Map</span></button>` : ''}
+            </span> 
+            <span class="text-white text-[11px]">${order["Alamat Jemput"]}</span>
+          </div>
+
+          <div class="flex flex-col space-y-0.5 pt-1">
+            <span class="font-bold text-slate-400 flex items-center justify-between">
+              <span>Alamat Tujuan:</span>
+              ${order.tujuanLat ? `<button onclick="panMapToLocation(${order.tujuanLat},${order.tujuanLon}, 'Tujuan')" class="text-[10px] bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 px-2 py-0.5 rounded font-bold transition flex items-center space-x-1"><i class="fa-solid fa-map-pin"></i><span>Fokus Map</span></button>` : ''}
+            </span>
+            <span class="text-white text-[11px]">${order["Alamat Tujuan"]}</span>
+          </div>
+
           <div class="flex justify-between pt-1"><span class="font-bold text-slate-400">Jarak & Estimasi:</span> <span class="text-white">${order["Jarak KM"]} KM (${order["Estimasi Menit"]} mnt)</span></div>
           <div class="flex justify-between pt-1"><span class="font-bold text-slate-400">Total Ongkos:</span> <span class="text-emerald-400 font-bold text-sm">${formatRupiah(cost)}</span></div>
         </div>
@@ -1784,7 +1806,10 @@
       if (order.jemputLat && order.tujuanLat) {
         mapContainer.innerHTML = `
           <div class="space-y-1 my-2">
-            <span class="text-[10px] text-emerald-300 font-bold uppercase block"><i class="fa-solid fa-map mr-1"></i> Peta Rute Perjalanan</span>
+            <span class="text-[10px] text-emerald-300 font-bold uppercase block flex items-center justify-between">
+              <span><i class="fa-solid fa-map mr-1"></i> Peta Rute Perjalanan</span>
+              <span class="text-[9px] text-slate-400 font-normal">Ketuk tombol Fokus Map di atas untuk sinkron</span>
+            </span>
             <div id="orderLeafletMap" class="w-full h-36 rounded-2xl border border-white/10 z-0"></div>
           </div>
         `;
