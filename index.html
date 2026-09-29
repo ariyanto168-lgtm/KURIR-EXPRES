@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KURIR EXPRESS — STRICT CS ISOLATION</title>
+  <title>KURIR EXPRESS — MANDATORY ACCOUNT</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- FontAwesome for Icons -->
@@ -357,31 +357,43 @@
     <!-- TAB 4: AKUN & BUKU ALAMAT FAVORIT (Customer) -->
     <section id="tab-akun" class="tab-content hidden space-y-4">
       <div class="bg-slate-900/80 backdrop-blur-xl p-5 rounded-[2.5rem] shadow-xl border border-white/10 space-y-4">
+        
+        <!-- PENGINGAT / INSTRUKSI WAJIB ISI AKUN -->
+        <div class="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 p-4 rounded-2xl flex items-start space-x-3 text-xs">
+          <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-base shrink-0 mt-0.5">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </div>
+          <div>
+            <h4 class="font-extrabold text-amber-300 mb-0.5">Perhatian!</h4>
+            <p class="text-slate-300 leading-relaxed">Harap isi data akun Anda di bawah ini terlebih dahulu agar dapat membuat pesanan dan bertransaksi.</p>
+          </div>
+        </div>
+
         <div class="flex items-center space-x-3.5 border-b border-white/10 pb-4">
           <div class="w-14 h-14 bg-gradient-to-tr from-emerald-600 to-teal-600 text-white rounded-3xl flex items-center justify-center text-xl font-black shadow-lg shadow-emerald-500/30">
             <i class="fa-solid fa-user"></i>
           </div>
           <div>
-            <h2 class="font-bold text-white text-base">Akun Pelanggan</h2>
-            <p class="text-xs text-slate-400">Identitas otomatis pemesanan</p>
+            <h2 class="font-bold text-white text-base">Akun Pelanggan / CS</h2>
+            <p class="text-xs text-slate-400">Identitas wajib sebelum transaksi</p>
           </div>
         </div>
 
         <form id="customerAccountForm" onsubmit="event.preventDefault(); saveCustomerAccount();" class="space-y-3.5">
           <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Nama Lengkap</label>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Nama Lengkap <span class="text-pink-500">*</span></label>
             <input type="text" id="custRegName" required placeholder="Contoh: Budi Santoso" class="w-full px-4 py-2.5 text-sm bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500">
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-300 mb-1">Alamat Email</label>
-            <input type="email" id="custRegEmail" required placeholder="Contoh: budi@gmail.com" class="w-full px-4 py-2.5 text-sm bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            <input type="email" id="custRegEmail" placeholder="Contoh: budi@gmail.com" class="w-full px-4 py-2.5 text-sm bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Nomor WhatsApp CS / Pengelola</label>
-            <input type="tel" id="custRegPhone" required placeholder="Contoh: 081325325088" class="w-full px-4 py-2.5 text-sm bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Nomor WhatsApp CS / Pelanggan <span class="text-pink-500">*</span></label>
+            <input type="tel" id="custRegPhone" required placeholder="Contoh: 081325325088" class="w-full px-4 py-2.5 text-sm bg-slate-800/80 border border-emerald-500/30 rounded-2xl text-emerald-300 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500">
           </div>
           <button type="submit" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:opacity-95 text-white font-bold py-3 rounded-2xl text-sm shadow-xl shadow-emerald-500/25 transition mt-2">
-            Simpan Akun Pelanggan
+            Simpan Akun & Mulai Transaksi
           </button>
         </form>
 
@@ -470,7 +482,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-2 text-[10px] text-slate-500 font-medium tracking-wide">
-      v3.35 (Strict CS Isolation) • Powered by Ari GPM
+      v3.37 (Mandatory Account Routing) • Powered by Ari GPM
     </div>
 
   </main>
@@ -969,7 +981,14 @@
           document.getElementById("custRegEmail").value = savedCustAcc.email || "";
           document.getElementById("custRegPhone").value = savedCustAcc.phone || "";
         }
-        switchTab(autoOpenOrderId ? 'riwayat' : 'pesanan');
+
+        // JIKA BELUM ADA AKUN TERDAFTAR DI PERANGKAT INI, ARAHKAN KE TAB AKUN DENGAN PESAN WAJIB ISI
+        if (!savedCustAcc.phone && !autoOpenOrderId) {
+          switchTab('akun');
+          showToast("Registrasi Wajib", "Harap isi data akun Anda terlebih dahulu.", "warning");
+        } else {
+          switchTab(autoOpenOrderId ? 'riwayat' : 'pesanan');
+        }
       } else {
         headerEl.className = "bg-gradient-to-r from-violet-600 via-indigo-600 to-pink-600 text-white shadow-lg sticky top-0 z-40 px-4 py-3.5 flex justify-between items-center backdrop-blur-md bg-opacity-95";
         headerTitleEl.innerText = "DRIVER KURIR EXPRESS";
@@ -1020,7 +1039,7 @@
 
       document.getElementById("nama").value = name;
       
-      showToast("Tersimpan", "Akun & Nomor CS Berhasil Terikat!", "success");
+      showToast("Berhasil", "Akun Berhasil Disimpan, Silakan Buat Pesanan!", "success");
       setTimeout(() => {
         switchTab('pesanan');
         loadDataInstant();
@@ -1245,13 +1264,12 @@
     function renderDashboardAndHistory() {
       let displayOrders = ordersData;
       
-      // PERBAIKAN UTAMA: ISOLASI KETAT BERDASARKAN NOMOR CS DI URL
       if (isCustomerMode) {
         const targetCs = String(currentCsId || customerPhone || "").replace(/\D/g, '');
         displayOrders = ordersData.filter(o => {
           const oCs = String(o["CS ID"] || "").replace(/\D/g, '');
           const oHp = String(o["Nomor HP"] || "").replace(/\D/g, '');
-          if (!targetCs) return false; // JIKA TIDAK ADA NOMOR CS DI URL, JANGAN TAMPILKAN APA PUN UNTUK MENCEGAH TABRAKAN DATA UMUM
+          if (!targetCs) return false;
           return oCs === targetCs || oHp === targetCs;
         });
       }
@@ -1329,76 +1347,9 @@
         if (cDeposit) cDeposit.innerText = formatRupiah(totalDeposit);
       }
 
-      const batchContainer = document.getElementById("batchRouteContainer");
-      if (batchContainer && !isCustomerMode) {
-        let driverActiveOrders = ordersData.filter(o => (o["Status"] || "Menunggu") !== "Selesai");
-        if (driverActiveOrders.length === 0) {
-          batchContainer.innerHTML = `<p class="text-[11px] text-slate-500 text-center py-2">Tidak ada kloter rute aktif.</p>`;
-        } else {
-          batchContainer.innerHTML = driverActiveOrders.map((o, idx) => {
-            const safeId = String(o["ID Pesanan"] || "");
-            let st = o["Status"] || "Menunggu";
-            return `
-              <div class="bg-white/5 p-3 rounded-2xl border border-white/5 flex items-center justify-between text-xs cursor-pointer hover:bg-white/10 transition" onclick="showDetailById('${safeId}')">
-                <div class="flex items-center space-x-2.5 min-w-0">
-                  <div class="w-6 h-6 rounded-xl bg-violet-600 text-white font-bold flex items-center justify-center text-[10px] shrink-0">${idx + 1}</div>
-                  <div class="min-w-0 pr-2">
-                    <span class="font-bold text-white block truncate">${o["Nama Pelanggan"]} (CS: ${o["CS ID"] || 'Umum'})</span>
-                    <span class="text-[10px] text-slate-400 block truncate">Jemput: ${o["Alamat Jemput"]}</span>
-                    <span class="text-[10px] text-violet-300 block truncate">Tujuan: ${o["Alamat Tujuan"]}</span>
-                  </div>
-                </div>
-                <div class="text-right shrink-0">
-                  <span class="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-amber-500/20 text-amber-300 block mb-1">${st}</span>
-                  <span class="text-[11px] text-emerald-400 font-bold">${o["Jarak KM"]} KM</span>
-                </div>
-              </div>
-            `;
-          }).join('');
-        }
-      }
-
-      const activeContainer = document.getElementById("activeOrdersListContainer");
-      if (activeContainer && !isCustomerMode) {
-        let driverActiveOrders = ordersData.filter(o => (o["Status"] || "Menunggu") !== "Selesai");
-        activeContainer.innerHTML = driverActiveOrders.length === 0 ? `<p class="text-xs text-slate-500 text-center py-2">Tidak ada pesanan aktif.</p>` : driverActiveOrders.map(o => {
-          let st = o["Status"] || "Menunggu";
-          let kat = o["Kategori"] || "Paket Umum";
-          let bayar = o["Metode Pembayaran"] || "Tunai / COD";
-          let cost = Number(o["Total Ongkos"] || Math.round(Number(o["Jarak KM"]) * 3000));
-          let bayarBadge = 'bg-emerald-500/20 text-emerald-300';
-          if (bayar.includes('Tempo')) {
-            bayarBadge = 'bg-amber-500/20 text-amber-300 border border-amber-500/30';
-          } else if (bayar.includes('Deposit')) {
-            bayarBadge = 'bg-violet-500/20 text-violet-300 border border-violet-500/30';
-          }
-          const safeId = String(o["ID Pesanan"] || "");
-          return `
-            <div class="bg-white/5 p-3.5 rounded-2xl border border-white/5 flex flex-col space-y-2 cursor-pointer hover:bg-white/10 transition" onclick="showDetailById('${safeId}')">
-              <div class="flex justify-between items-center">
-                <span class="font-bold text-white text-xs">${o["Nama Pelanggan"]} <span class="text-[9px] bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded ml-1">CS: ${o["CS ID"] || 'Umum'}</span></span>
-                <span class="px-2 py-0.5 rounded-lg text-[9px] font-bold ${bayarBadge}">${bayar}</span>
-              </div>
-              <div class="text-[11px] text-slate-400 flex justify-between items-center">
-                <span>Kategori: ${kat} • ${o["Jarak KM"]} KM</span>
-                <span class="text-emerald-400 font-bold">${formatRupiah(cost)}</span>
-              </div>
-              <div class="flex justify-between items-center pt-1 border-t border-white/5">
-                <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-md font-bold">${st}</span>
-                <button onclick="event.stopPropagation(); verifyPickupLocationAndUpload('${safeId}')" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold px-3 py-1.5 rounded-xl text-[10px] flex items-center space-x-1 cursor-pointer shadow">
-                  <i class="fa-solid fa-camera"></i>
-                  <span>Foto & Selesai</span>
-                </button>
-                <input type="file" id="fileInput_${safeId}" accept="image/*" capture="environment" onchange="handlePodUploadDirect(event, '${safeId}')" class="hidden">
-              </div>
-            </div>
-          `;
-        }).join('');
-      }
-
       const tableBody = document.getElementById("historyTableBody");
       if (tableBody) {
-        tableBody.innerHTML = displayOrders.length === 0 ? `<tr><td colspan="4" class="text-center py-4 text-slate-500">Belum ada riwayat pesanan untuk nomor CS ini.</td></tr>` : displayOrders.map(o => {
+        tableBody.innerHTML = displayOrders.length === 0 ? `<tr><td colspan="4" class="text-center py-4 text-slate-500">Belum ada riwayat pesanan.</td></tr>` : displayOrders.map(o => {
           let cost = Number(o["Total Ongkos"] || Math.round(Number(o["Jarak KM"]) * 3000));
           let kat = o["Kategori"] || "Paket Umum";
           let bayar = o["Metode Pembayaran"] || "Tunai / COD";
@@ -1413,16 +1364,22 @@
           const safeId = String(o["ID Pesanan"] || "");
           return `
             <tr class="border-b border-white/5 hover:bg-white/5 cursor-pointer" onclick="showDetailById('${safeId}')">
-              <td class="p-3">
-                <span class="font-bold text-white block">${o["Nama Pelanggan"]} <span class="text-[8px] bg-emerald-500/20 text-emerald-300 px-1 rounded">CS: ${o["CS ID"] || 'Umum'}</span></span>
-                <span class="text-[10px] text-slate-400">${o["ID Pesanan"]}</span>
+              <td class="p-3 align-top">
+                <div class="font-bold text-white text-xs mb-1">${o["Nama Pelanggan"]}</div>
+                <div class="text-[9px] text-emerald-300 bg-emerald-500/10 px-1.5 py-0.5 rounded inline-block mb-1 font-mono">CS: ${o["CS ID"] || 'Umum'}</div>
+                <div class="text-[9px] text-slate-400 font-mono">${o["ID Pesanan"]}</div>
               </td>
-              <td class="p-3">
-                <span class="px-2 py-0.5 rounded-md text-[9px] font-bold bg-emerald-500/20 text-emerald-300 block mb-1">${kat}</span>
-                <span class="px-2 py-0.5 rounded-md text-[9px] font-bold ${bayarBadge} inline-block">${bayar}</span>
+              <td class="p-3 align-top space-y-1">
+                <span class="px-2 py-0.5 rounded-md text-[9px] font-bold bg-emerald-500/20 text-emerald-300 block w-max">${kat}</span>
+                <span class="px-2 py-0.5 rounded-md text-[9px] font-bold ${bayarBadge} block w-max">${bayar}</span>
               </td>
-              <td class="p-3 font-medium text-slate-300">${o["Jarak KM"]} KM<br><span class="text-emerald-400 font-bold">${formatRupiah(cost)}</span></td>
-              <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${stBadgeColor}">${st}</span></td>
+              <td class="p-3 align-top text-slate-300">
+                <div class="font-medium">${o["Jarak KM"]} KM</div>
+                <div class="text-emerald-400 font-bold">${formatRupiah(cost)}</div>
+              </td>
+              <td class="p-3 align-top">
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${stBadgeColor} inline-block">${st}</span>
+              </td>
             </tr>
           `;
         }).join('');
@@ -1646,7 +1603,7 @@
     function saveSettings() {
       localStorage.setItem("driver_name", document.getElementById("driverNameInput").value.trim());
       localStorage.setItem("cs_id", document.getElementById("csIdInput").value.trim());
-      localStorage.setItem("driver_vehicle", document.getElementById("driverVehicleInput2")?.value.trim() || document.getElementById("driverVehicleInput").value.trim());
+      localStorage.setItem("driver_vehicle", document.getElementById("driverVehicleInput").value.trim());
       localStorage.setItem("driver_wa", document.getElementById("driverWaInput").value.trim());
       localStorage.setItem("local_tarif", document.getElementById("localTarifInput").value.trim() || "3000");
       localStorage.setItem("wa_template", document.getElementById("waTemplateInput").value.trim());
