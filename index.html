@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KURIR EXPRESS — INTERACTIVE MAP SYNC</title>
+  <title>KURIR EXPRESS — INTERACTIVE MAP PICKER SYNC</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- FontAwesome for Icons -->
@@ -143,28 +143,32 @@
           </div>
 
           <!-- Alamat Jemput -->
-          <div class="relative">
-            <div class="flex justify-between items-center mb-1">
+          <div class="relative space-y-1.5">
+            <div class="flex justify-between items-center">
               <label class="block text-xs font-semibold text-slate-300">Alamat Jemput <span class="text-pink-500">*</span></label>
-              <div id="quickJemputPicker" class="flex flex-wrap gap-1"></div>
+              <button type="button" onclick="openMapPicker('alamatJemput')" class="text-[10px] bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 px-2.5 py-1 rounded-xl font-bold transition flex items-center space-x-1">
+                <i class="fa-solid fa-map-pin"></i><span>Geser Pin di Peta</span>
+              </button>
             </div>
-            <textarea id="alamatJemput" data-lat="" data-lon="" rows="2" required placeholder="Ketik area/jalan/kota (otomatis dicari)" oninput="handleAddressInput('alamatJemput', 'saranJemput')" class="w-full px-4 py-2.5 text-sm bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition resize-none"></textarea>
+            <textarea id="alamatJemput" data-lat="" data-lon="" rows="2" required placeholder="Ketik area/jalan/gang (otomatis dicari)" oninput="handleAddressInput('alamatJemput', 'saranJemput')" class="w-full px-4 py-2.5 text-sm bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition resize-none"></textarea>
             <div id="saranJemput" class="absolute z-30 left-0 right-0 bg-slate-900 border border-white/10 rounded-2xl shadow-2xl hidden flex-col divide-y divide-white/5 max-h-48 overflow-y-auto text-xs mt-1"></div>
           </div>
 
           <!-- Alamat Tujuan -->
-          <div class="relative">
-            <div class="flex justify-between items-center mb-1">
+          <div class="relative space-y-1.5">
+            <div class="flex justify-between items-center">
               <label class="block text-xs font-semibold text-slate-300">Alamat Tujuan <span class="text-pink-500">*</span></label>
-              <div id="quickTujuanPicker" class="flex flex-wrap gap-1"></div>
+              <button type="button" onclick="openMapPicker('alamatTujuan')" class="text-[10px] bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 px-2.5 py-1 rounded-xl font-bold transition flex items-center space-x-1">
+                <i class="fa-solid fa-map-pin"></i><span>Geser Pin di Peta</span>
+              </button>
             </div>
-            <textarea id="alamatTujuan" data-lat="" data-lon="" rows="2" required placeholder="Ketik area/jalan/kota (otomatis dicari)" oninput="handleAddressInput('alamatTujuan', 'saranTujuan')" class="w-full px-4 py-2.5 text-sm bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition resize-none"></textarea>
+            <textarea id="alamatTujuan" data-lat="" data-lon="" rows="2" required placeholder="Ketik area/jalan/gang (otomatis dicari)" oninput="handleAddressInput('alamatTujuan', 'saranTujuan')" class="w-full px-4 py-2.5 text-sm bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition resize-none"></textarea>
             <div id="saranTujuan" class="absolute z-30 left-0 right-0 bg-slate-900 border border-white/10 rounded-2xl shadow-2xl hidden flex-col divide-y divide-white/5 max-h-48 overflow-y-auto text-xs mt-1"></div>
           </div>
 
           <div>
             <label class="block text-xs font-semibold text-slate-300 mb-1">Catatan Tambahan (Opsional)</label>
-            <input type="text" id="catatan" placeholder="Contoh: Titik di depan pagar warna hijau" class="w-full px-4 py-2.5 text-sm bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+            <input type="text" id="catatan" placeholder="Contoh: Rumah cat hijau dekat pos ronda" class="w-full px-4 py-2.5 text-sm bg-slate-800/80 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
           </div>
 
           <button type="button" onclick="calculateDistance()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold py-3 rounded-2xl text-sm shadow-lg shadow-emerald-500/25 hover:opacity-95 transition flex items-center justify-center space-x-2 mt-2">
@@ -626,10 +630,40 @@
 
     <!-- Version Footer -->
     <div class="text-center py-2 text-[10px] text-slate-500 font-medium tracking-wide">
-      v3.59 (Interactive Map Sync Edition) • Powered by Ari GPM
+      v3.60 (Interactive Map Picker Sync Edition) • Powered by Ari GPM
     </div>
 
   </main>
+
+  <!-- MAP PICKER MODAL (PILIH & GESER PIN MANUAL) -->
+  <div id="mapPickerModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[90] hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-indigo-500/40 w-full max-w-sm rounded-[2.5rem] p-5 shadow-2xl space-y-3">
+      <div class="flex justify-between items-center border-b pb-3 border-white/10">
+        <div>
+          <h3 id="mapPickerTitle" class="font-bold text-white text-sm flex items-center"><i class="fa-solid fa-map-location-dot mr-2 text-indigo-400"></i> Geser Pin ke Lokasi Tepat</h3>
+          <p class="text-[10px] text-slate-400 mt-0.5">Geser peta / geser pin ke gang/rumah tujuan</p>
+        </div>
+        <button onclick="closeMapPicker()" class="text-slate-400 hover:text-white text-xl leading-none"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      
+      <!-- Interactive Picker Map -->
+      <div id="interactivePickerMap" class="w-full h-72 rounded-2xl border border-white/10 z-0 relative"></div>
+      
+      <div class="bg-white/5 p-2.5 rounded-xl border border-white/5">
+        <span class="text-[9px] text-indigo-300 font-semibold uppercase block">Koordinat Terpilih:</span>
+        <p id="pickerCoordText" class="text-[11px] font-mono text-white truncate">-</p>
+      </div>
+
+      <div class="flex space-x-2">
+        <button onclick="confirmPickedLocation()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:opacity-95 text-white font-bold py-3 rounded-2xl text-xs transition shadow-lg">
+          <i class="fa-solid fa-check mr-1"></i> Gunakan Titik Ini
+        </button>
+        <button onclick="closeMapPicker()" class="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-3 rounded-2xl text-xs transition border border-white/10">
+          Batal
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- STATUS FILTER DETAIL MODAL -->
   <div id="statusFilterModal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-[75] hidden flex items-center justify-center p-4">
@@ -786,6 +820,10 @@
     let isSaving = false;
     let lastCreatedOrderId = null;
     let currentCsId = "";
+    
+    let activePickerFieldId = null;
+    let pickerMapInstance = null;
+    let pickerMarkerInstance = null;
 
     function showToast(title, message, type = 'success') {
       const modal = document.getElementById("customToastModal");
@@ -1367,8 +1405,6 @@
       clearTimeout(typingTimer);
       const query = document.getElementById(inputId).value.trim();
       const saranDiv = document.getElementById(saranId);
-      document.getElementById(inputId).dataset.lat = "";
-      document.getElementById(inputId).dataset.lon = "";
       if (query.length < 3) { saranDiv.classList.add('hidden'); saranDiv.classList.remove('flex'); return; }
 
       typingTimer = setTimeout(async () => {
@@ -1378,7 +1414,7 @@
           const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5&bbox=94.0,-11.0,141.0,6.0`);
           const data = await res.json();
           if (!data.features || data.features.length === 0) {
-            saranDiv.innerHTML = `<div class="p-3 text-center text-amber-400">Tidak ditemukan.</div>`;
+            saranDiv.innerHTML = `<div class="p-3 text-center text-amber-400">Tidak ditemukan. Silakan gunakan tombol "Geser Pin di Peta".</div>`;
           } else {
             saranDiv.innerHTML = data.features.map(f => {
               const p = f.properties;
@@ -1395,6 +1431,69 @@
       const el = document.getElementById(inputId);
       el.value = namaLokasi; el.dataset.lat = lat; el.dataset.lon = lon;
       document.getElementById(saranId).classList.add('hidden'); document.getElementById(saranId).classList.remove('flex');
+      showToast("Titik Ditemukan", "Koordinat rute diperbarui otomatis.", "success");
+    }
+
+    // MAP PICKER INTERACTIVE LOGIC
+    function openMapPicker(fieldId) {
+      activePickerFieldId = fieldId;
+      const el = document.getElementById(fieldId);
+      let initLat = parseFloat(el.dataset.lat) || -6.9175; // Default Center (Semarang/Jateng area or general ID)
+      let initLon = parseFloat(el.dataset.lon) || 110.4199;
+
+      document.getElementById("mapPickerModal").classList.remove('hidden');
+      
+      setTimeout(() => {
+        if (pickerMapInstance) {
+          pickerMapInstance.remove();
+        }
+        
+        pickerMapInstance = L.map('interactivePickerMap').setView([initLat, initLon], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap'
+        }).addTo(pickerMapInstance);
+
+        pickerMarkerInstance = L.marker([initLat, initLon], {draggable: true}).addTo(pickerMapInstance);
+        
+        updatePickerCoordDisplay(initLat, initLon);
+
+        pickerMarkerInstance.on('dragend', function(e) {
+          const pos = pickerMarkerInstance.getLatLng();
+          updatePickerCoordDisplay(pos.lat, pos.lng);
+        });
+
+        pickerMapInstance.on('click', function(e) {
+          pickerMarkerInstance.setLatLng(e.latlng);
+          updatePickerCoordDisplay(e.latlng.lat, e.latlng.lng);
+        });
+      }, 250);
+    }
+
+    function updatePickerCoordDisplay(lat, lon) {
+      document.getElementById("pickerCoordText").innerText = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+    }
+
+    function closeMapPicker() {
+      if (pickerMapInstance) {
+        pickerMapInstance.remove();
+        pickerMapInstance = null;
+      }
+      document.getElementById("mapPickerModal").classList.add('hidden');
+    }
+
+    function confirmPickedLocation() {
+      if (!pickerMarkerInstance || !activePickerFieldId) return;
+      const pos = pickerMarkerInstance.getLatLng();
+      const el = document.getElementById(activePickerFieldId);
+      
+      el.dataset.lat = pos.lat;
+      el.dataset.lon = pos.lng;
+      if (!el.value.trim()) {
+        el.value = `Titik Peta (${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)})`;
+      }
+
+      showToast("Tersimpan", "Posisi pin peta berhasil dikunci!", "success");
+      closeMapPicker();
     }
 
     async function getCoordinates(inputId, queryStr) {
@@ -1426,7 +1525,7 @@
       try {
         const c1 = await getCoordinates("alamatJemput", jemput);
         const c2 = await getCoordinates("alamatTujuan", tujuan);
-        if (!c1 || !c2) throw new Error("Alamat tidak valid.");
+        if (!c1 || !c2) throw new Error("Alamat tidak valid. Gunakan tombol 'Geser Pin di Peta' untuk menentukan titik akurat.");
 
         let jarakKm = 3.5, estimasiMnt = 10;
         try {
