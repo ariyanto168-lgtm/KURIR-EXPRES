@@ -301,7 +301,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.83 • Powered by Ari GPM
+      v2.84 • Powered by Ari GPM
     </div>
 
   </main>
@@ -787,53 +787,65 @@
       handlePostSaveSuccess(orderId, dataToSave);
     }
 
-    // Fungsi canggih untuk membedakan WA ke Driver (internal) dan WA ke Customer
-    function generateWaText(orderId, nama, noHp, jemput, tujuan, jarak, ongkos, status, recipientType = 'customer') {
+    // FUNGSI BARU CANGGIH: Membedakan tipe pengirim dan format WA secara spesifik
+    function generateWaText(orderId, nama, noHp, jemput, tujuan, jarak, ongkos, status, actionType = 'update_status_to_cust') {
       const baseUrl = window.location.href.split('?')[0];
       const jemputLink = `https://maps.google.com/?q=${encodeURIComponent(jemput)}`;
       const tujuanLink = `https://maps.google.com/?q=${encodeURIComponent(tujuan)}`;
       const driverWaNum = formatPhoneNumber(localStorage.getItem("driver_wa") || "6281234567890");
       const custWaNum = formatPhoneNumber(noHp);
 
-      // KHUSUS FORMAT WA DARI CUSTOMER UNTUK DRIVER
-      if (recipientType === 'driver') {
-         const linkOrderDriver = `${baseUrl}?order=${orderId}`;
+      const rawPhone = (noHp || "").replace(/\D/g, '');
+      // Link untuk Customer memantau riwayat
+      const linkOrderCust = `${baseUrl}?mode=order&phone=${rawPhone}&order=${orderId}`;
+      // Link untuk Driver membuka order dan langsung memproses
+      const linkOrderDriver = `${baseUrl}?order=${orderId}`;
+
+      // Skenario 1: Customer membuat order baru, WA dikirim ke Driver
+      if (actionType === 'new_order_to_driver') {
          return `*PESANAN BARU MASUK (VIA WEB)*\n\nHalo Driver, ada pesanan masuk dari *${nama}*.\n\n📦 *Jemput:*\n${jemput}\n📍 Map: ${jemputLink}\n\n🏁 *Tujuan:*\n${tujuan}\n📍 Map: ${tujuanLink}\n\n- *Jarak:* ${jarak} KM\n- *Ongkos:* ${formatRupiah(ongkos)}\n\n📞 *Hubungi Customer (WA):*\nwa.me/${custWaNum}\n\n🔗 *Buka & Proses Pesanan Ini di Aplikasi Driver:*\n${linkOrderDriver}`;
       }
 
-      // FORMAT WA UNTUK CUSTOMER
-      let template = localStorage.getItem("wa_template") || DEFAULT_WA_TEMPLATE;
+      // Skenario 2: Status Selesai, Driver mengirim WA laporan ke Customer
+      if (actionType === 'done_order_to_cust') {
+         return `Halo *${nama}*,\n\nPaket/Pesanan Anda dengan ID *${orderId}* telah *SELESAI* dikirimkan. ✅\n\n📦 *Titik Jemput:*\n${jemput}\n\n🏁 *Titik Tujuan:*\n${tujuan}\n\n- *Total Ongkos:* ${formatRupiah(ongkos)}\n\nTerima kasih telah menggunakan layanan Kurir Express!\n\n🔗 *Cek Nota & Riwayat Pesanan:*\n${linkOrderCust}`;
+      }
+
+      // Skenario 3: Update Status Normal (Menunggu/Diambil/Dalam Pengiriman) dari Driver ke Customer
+      if (actionType === 'update_status_to_cust') {
+          let template = localStorage.getItem("wa_template") || DEFAULT_WA_TEMPLATE;
+          
+          if (!template.includes("{linkOrder}")) {
+             template += "\n\n🔗 Cek Riwayat & Detail Pesanan Anda:\n{linkOrder}";
+          }
+          if (!template.includes("{driverWa}")) {
+             template += "\n📞 Kontak Driver: {driverWa}";
+          }
+
+          return template
+            .replace(/{nama}/g, nama)
+            .replace(/{id}/g, orderId)
+            .replace(/{noHp}/g, noHp)
+            .replace(/{jemput}/g, jemput)
+            .replace(/{tujuan}/g, tujuan)
+            .replace(/{mapJemput}/g, jemputLink)
+            .replace(/{mapTujuan}/g, tujuanLink)
+            .replace(/{jarak}/g, jarak)
+            .replace(/{ongkos}/g, formatRupiah(ongkos))
+            .replace(/{status}/g, status)
+            .replace(/{linkOrder}/g, linkOrderCust)
+            .replace(/{driverWa}/g, driverWaNum);
+      }
       
-      if (!template.includes("{linkOrder}")) {
-         template += "\n\n🔗 Cek Riwayat & Detail Pesanan Anda:\n{linkOrder}";
-      }
-      if (!template.includes("{driverWa}")) {
-         template += "\n📞 Kontak Driver: {driverWa}";
-      }
-
-      const rawPhone = (noHp || "").replace(/\D/g, '');
-      const linkOrderCust = `${baseUrl}?mode=order&phone=${rawPhone}&order=${orderId}`;
-
-      return template
-        .replace(/{nama}/g, nama)
-        .replace(/{id}/g, orderId)
-        .replace(/{noHp}/g, noHp)
-        .replace(/{jemput}/g, jemput)
-        .replace(/{tujuan}/g, tujuan)
-        .replace(/{mapJemput}/g, jemputLink)
-        .replace(/{mapTujuan}/g, tujuanLink)
-        .replace(/{jarak}/g, jarak)
-        .replace(/{ongkos}/g, formatRupiah(ongkos))
-        .replace(/{status}/g, status)
-        .replace(/{linkOrder}/g, linkOrderCust)
-        .replace(/{driverWa}/g, driverWaNum);
+      return "";
     }
 
     function handlePostSaveSuccess(orderId, savedData) {
       if (isCustomerMode) {
         const driverWa = formatPhoneNumber(localStorage.getItem("driver_wa") || "6281234567890");
-        // Meneruskan data valid ke dalam template WA Driver
-        const reportText = generateWaText(orderId, savedData.nama, savedData.noHp, savedData.alamatJemput, savedData.alamatTujuan, savedData.jarak, savedData.totalOngkos, "Menunggu", "driver");
+        
+        // Memakai flag 'new_order_to_driver' agar WA Customer tertuju spesifik ke Driver dengan link Driver.
+        const reportText = generateWaText(orderId, savedData.nama, savedData.noHp, savedData.alamatJemput, savedData.alamatTujuan, savedData.jarak, savedData.totalOngkos, "Menunggu", "new_order_to_driver");
 
         document.getElementById("customerShareBtnContainer").innerHTML = `
           <a href="https://wa.me/${driverWa}?text=${encodeURIComponent(reportText)}" target="_blank" class="w-full bg-[#10b981] hover:bg-emerald-600 text-white font-bold py-3 px-4 rounded-xl text-sm flex items-center justify-center space-x-2 transition shadow-md">
@@ -848,7 +860,7 @@
         switchTab('riwayat');
       }
       
-      // Mengosongkan data HANYA setelah fungsi di atas selesai berjalan
+      // Mengosongkan data HANYA setelah fungsi di atas selesai berjalan (mencegah bug jarak 0 KM)
       calculatedData = null;
       isSaving = false;
       resetForm();
@@ -1291,8 +1303,13 @@
       if (!isCustomerMode) {
         const customerWa = formatPhoneNumber(order['Nomor HP']);
         
-        // Memakai fungsi baru dengan flag "customer" (karena ini WA dari Driver ke Customer)
-        const shareText = generateWaText(order["ID Pesanan"], order["Nama Pelanggan"], order["Nomor HP"], order["Alamat Jemput"], order["Alamat Tujuan"], order["Jarak KM"], order["Total Ongkos"], order["Status"], "customer");
+        // PENGELOMPOKAN TEMPLATE WA DRIVER YANG BARU
+        let shareText = "";
+        if (currentStatus === "Selesai") {
+            shareText = generateWaText(order["ID Pesanan"], order["Nama Pelanggan"], order["Nomor HP"], order["Alamat Jemput"], order["Alamat Tujuan"], order["Jarak KM"], order["Total Ongkos"], order["Status"], "done_order_to_cust");
+        } else {
+            shareText = generateWaText(order["ID Pesanan"], order["Nama Pelanggan"], order["Nomor HP"], order["Alamat Jemput"], order["Alamat Tujuan"], order["Jarak KM"], order["Total Ongkos"], order["Status"], "update_status_to_cust");
+        }
         
         const confirmWaText = `Halo *${order["Nama Pelanggan"]}*, saya Driver Kurir Express. Saya ingin mengkonfirmasi pesanan penjemputan paket di *${order["Alamat Jemput"]}*. Apakah titik lokasinya sudah sesuai?\n\n🔗 *Link Khusus Pesan Kurir Untuk Anda:*\n${linkCustomerOrder}`;
 
@@ -1330,7 +1347,7 @@
         `;
       } else {
         const driverWaNum = formatPhoneNumber(localStorage.getItem("driver_wa") || "6281234567890");
-        const confirmToDriverText = `Halo Driver, saya ingin mengkonfirmasi pesanan saya dengan ID: *${order["ID Pesanan"]}*.`;
+        const confirmToDriverText = `Halo Driver, saya ingin mengkonfirmasi pesanan saya dengan ID: *${order["ID Pesanan"]}*.\n\n🔗 Lacak Pesanan: ${linkCustomerOrder}`;
         
         shareContainer.innerHTML = `
           <div class="flex items-center justify-center space-x-2 mb-4 pt-1">
