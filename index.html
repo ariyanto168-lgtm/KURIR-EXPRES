@@ -29,7 +29,7 @@
     </div>
     <div id="connectionStatus" class="text-xs bg-indigo-700 px-2 py-1 rounded-full font-medium flex items-center space-x-1">
       <span class="w-2 h-2 rounded-full bg-amber-400 inline-block" id="statusDot"></span>
-      <span id="statusText">Mode Offline</span>
+      <span id="statusText">Mode Instan</span>
     </div>
   </header>
 
@@ -348,7 +348,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.86 • Powered by Ari GPM
+      v2.87 • Powered by Ari GPM
     </div>
 
   </main>
@@ -452,7 +452,6 @@
     let typingTimer;
     let activeOrdersExpanded = true;
     let isSaving = false;
-    let lastOrderCount = 0;
     let lastKnownStatuses = {};
 
     function showToast(title, message, type = 'success') {
@@ -568,7 +567,6 @@
           switchTab('pesanan');
         }
       } else {
-        // MODE DRIVER: Tampilkan Dashboard, Akun di-hide, dan ATUR DEFAULT KE DASHBOARD
         document.getElementById("nav-akun").style.display = "none";
         document.getElementById("nav-dashboard").style.display = "flex";
         document.getElementById("nav-pengaturan").style.display = "flex";
@@ -597,7 +595,13 @@
         }
       });
 
-      loadData();
+      // 1. TAMPILKAN DATA LOKAL SEKETIKA (INSTANT LOAD) TANPA MENUNGGU KONEKSI
+      loadDataInstant();
+
+      // 2. JEDA SEKEJAP, LALU SINKRONKAN DENGAN SERVER DI LATAR BELAKANG (BACKGROUND SYNC)
+      setTimeout(() => {
+        loadDataBackground();
+      }, 1200);
     });
 
     function saveCustomerAccount() {
@@ -956,7 +960,7 @@
         document.getElementById("customerSuccessModal").classList.remove('hidden');
       } else {
         showToast("Sukses", "Pesanan berhasil disimpan! ID: " + orderId, "success");
-        loadData();
+        loadDataBackground();
         switchTab('riwayat');
       }
       
@@ -984,72 +988,88 @@
       }
     }
 
-    async function loadData() {
-      const url = document.getElementById("gasUrlInput").value.trim();
-      const statusText = document.getElementById("statusText");
-      const statusDot = document.getElementById("statusDot");
+    // FUNGSI 1: LOAD INSTAN DARI LOKAL (TANPA TUNGGU KONEKSI)
+    function loadDataInstant() {
       const localTarif = localStorage.getItem("local_tarif");
+      currentTarif = localTarif ? Number(localTarif) : 4000;
+      document.getElementById("settingsTarifLabel").innerText = formatRupiah(currentTarif) + " / KM";
 
       let localOrders = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
       let deletedIds = JSON.parse(localStorage.getItem("kurir_deleted_ids") || "[]");
-
-      if (url) {
-        statusDot.className = "w-2 h-2 rounded-full bg-blue-400 inline-block animate-pulse";
-        statusText.innerText = "Menghubungkan...";
-        try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 6000);
-          
-          const res = await fetch(url + "?action=get_all", { signal: controller.signal });
-          clearTimeout(timeoutId);
-          
-          const data = await res.json();
-          if (data.status === "success") {
-            currentTarif = localTarif ? Number(localTarif) : (Number(data.tarif) || 4000);
-            document.getElementById("settingsTarifLabel").innerText = formatRupiah(currentTarif) + " / KM";
-            
-            const serverOrders = (data.pesanan || []).filter(o => !deletedIds.includes(o["ID Pesanan"]));
-            const unsyncedOrders = localOrders.filter(o => o._synced === false && !deletedIds.includes(o["ID Pesanan"]));
-            
-            let oldOrdersCount = ordersData.length;
-            ordersData = [...unsyncedOrders, ...serverOrders];
-            
-            if (!isCustomerMode && ordersData.length > oldOrdersCount && oldOrdersCount > 0) {
-              showLiveNotification("Pesanan Baru!", "Ada pesanan kurir masuk dari web.", "success");
-            }
-
-            ordersData.forEach(o => {
-              let id = o["ID Pesanan"];
-              let currentSt = o["Status"] || "Menunggu";
-              if (lastKnownStatuses[id] && lastKnownStatuses[id] !== currentSt) {
-                showLiveNotification("Update Status", `Pesanan ${id} kini: ${currentSt}`, "success");
-              }
-              lastKnownStatuses[id] = currentSt;
-            });
-
-            statusDot.className = "w-2 h-2 rounded-full bg-emerald-400 inline-block";
-            statusText.innerText = "Terhubung (Online)";
-            checkUnsyncedData(unsyncedOrders);
-            renderDashboardAndHistory();
-            checkAutoOpenOrder();
-            return;
-          }
-        } catch (err) {
-          console.warn("Koneksi ke server lambat, kembali ke Mode Offline.", err);
-        }
-      }
-
-      statusDot.className = "w-2 h-2 rounded-full bg-amber-400 inline-block";
-      statusText.innerText = "Mode Offline";
-      
-      currentTarif = localTarif ? Number(localTarif) : 4000;
-      document.getElementById("settingsTarifLabel").innerText = formatRupiah(currentTarif) + " / KM";
 
       ordersData = localOrders.filter(o => !deletedIds.includes(o["ID Pesanan"]));
       
       checkUnsyncedData(ordersData.filter(o => o._synced === false));
       renderDashboardAndHistory();
       checkAutoOpenOrder();
+    }
+
+    // FUNGSI 2: SINKRONISASI DI LATAR BELAKANG (BACKGROUND SYNC)
+    async function loadDataBackground() {
+      const url = document.getElementById("gasUrlInput").value.trim();
+      const statusText = document.getElementById("statusText");
+      const statusDot = document.getElementById("statusDot");
+      const localTarif = localStorage.getItem("local_tarif");
+
+      if (!url) {
+        statusDot.className = "w-2 h-2 rounded-full bg-amber-400 inline-block";
+        statusText.innerText = "Mode Offline";
+        return;
+      }
+
+      statusDot.className = "w-2 h-2 rounded-full bg-blue-400 inline-block animate-pulse";
+      statusText.innerText = "Menghubungkan...";
+
+      let localOrders = JSON.parse(localStorage.getItem("kurir_orders") || "[]");
+      let deletedIds = JSON.parse(localStorage.getItem("kurir_deleted_ids") || "[]");
+
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 7000);
+        
+        const res = await fetch(url + "?action=get_all", { signal: controller.signal });
+        clearTimeout(timeoutId);
+        
+        const data = await res.json();
+        if (data.status === "success") {
+          currentTarif = localTarif ? Number(localTarif) : (Number(data.tarif) || 4000);
+          document.getElementById("settingsTarifLabel").innerText = formatRupiah(currentTarif) + " / KM";
+          
+          const serverOrders = (data.pesanan || []).filter(o => !deletedIds.includes(o["ID Pesanan"]));
+          const unsyncedOrders = localOrders.filter(o => o._synced === false && !deletedIds.includes(o["ID Pesanan"]));
+          
+          let oldOrdersCount = ordersData.length;
+          ordersData = [...unsyncedOrders, ...serverOrders];
+          
+          if (!isCustomerMode && ordersData.length > oldOrdersCount && oldOrdersCount > 0) {
+            showLiveNotification("Pesanan Baru!", "Ada pesanan kurir masuk dari web.", "success");
+          }
+
+          ordersData.forEach(o => {
+            let id = o["ID Pesanan"];
+            let currentSt = o["Status"] || "Menunggu";
+            if (lastKnownStatuses[id] && lastKnownStatuses[id] !== currentSt) {
+              showLiveNotification("Update Status", `Pesanan ${id} kini: ${currentSt}`, "success");
+            }
+            lastKnownStatuses[id] = currentSt;
+          });
+
+          statusDot.className = "w-2 h-2 rounded-full bg-emerald-400 inline-block";
+          statusText.innerText = "Terhubung (Online)";
+          checkUnsyncedData(unsyncedOrders);
+          renderDashboardAndHistory();
+          checkAutoOpenOrder();
+        }
+      } catch (err) {
+        console.warn("Sinkronisasi latar belakang tertunda, menggunakan data lokal.", err);
+        statusDot.className = "w-2 h-2 rounded-full bg-amber-400 inline-block";
+        statusText.innerText = "Mode Offline";
+      }
+    }
+
+    // Alias fungsi loadData agar tombol refresh tetap berfungsi normal
+    function loadData() {
+      loadDataBackground();
     }
     
     function checkAutoOpenOrder() {
@@ -1128,7 +1148,7 @@
       btn.disabled = false;
       
       showToast("Sinkronisasi Selesai", `${successCount} dari ${unsynced.length} pesanan berhasil dikirim ke server.`, "success");
-      loadData();
+      loadDataBackground();
     }
 
     function clearAllHistory() {
@@ -1448,7 +1468,7 @@
             <a href="https://wa.me/${customerWa}?text=${encodeURIComponent(confirmWaText)}" target="_blank" class="bg-white border border-emerald-200 text-emerald-600 hover:bg-emerald-50 font-bold py-3 px-2 rounded-2xl text-[12px] flex items-center justify-center space-x-1.5 transition shadow-sm w-full">
               <i class="fa-brands fa-whatsapp text-[15px]"></i>
               <span>Chat Konfirmasi Jemput</span>
-            ` : ""}
+            </a>` : ""}
             <a href="https://wa.me/${customerWa}?text=${encodeURIComponent(shareText)}" target="_blank" class="bg-[#10b981] border border-[#10b981] hover:bg-emerald-600 text-white font-bold py-3 px-2 rounded-2xl text-[12px] flex items-center justify-center space-x-1.5 transition shadow-sm w-full">
               <i class="fa-brands fa-whatsapp text-[15px]"></i>
               <span>${waButtonLabel}</span>
@@ -1545,7 +1565,7 @@
       }
       
       showToast("Berhasil", "Pengaturan aplikasi berhasil disimpan!", "success");
-      loadData();
+      loadDataBackground();
     }
   </script>
 </body>
