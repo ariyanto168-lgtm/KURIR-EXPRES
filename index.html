@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KURIR EXPRESS — GEOFENCED PICKUP POD EDITION</title>
+  <title>KURIR EXPRESS — UNIVERSAL SHARE & DRIVER PHOTO</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- FontAwesome for Icons -->
@@ -33,7 +33,7 @@
       </div>
       <div>
         <h1 class="font-extrabold text-sm tracking-wider uppercase bg-gradient-to-r from-white to-pink-100 bg-clip-text text-transparent">Kurir Express</h1>
-        <p class="text-[10px] text-violet-200 font-medium">Geofenced Pickup PoD Edition</p>
+        <p class="text-[10px] text-violet-200 font-medium">Universal Share & Driver Photo</p>
       </div>
     </div>
     <div id="connectionStatus" class="text-[11px] bg-black/30 backdrop-blur-md px-3 py-1 rounded-full font-semibold flex items-center space-x-1.5 border border-white/10 shadow-sm">
@@ -124,6 +124,22 @@
         </div>
         <button onclick="switchTab('pesanan')" class="relative z-10 bg-white text-indigo-600 font-bold text-xs px-4 py-3 rounded-2xl shadow-lg hover:bg-violet-50 transition active:scale-95 shrink-0 flex items-center space-x-1.5">
           <span>Buat Kurir</span> <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+
+      <!-- UNIVERSAL SHARE APP BUTTON -->
+      <div class="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-[2.5rem] p-4 text-white shadow-xl flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center text-lg">
+            <i class="fa-brands fa-whatsapp"></i>
+          </div>
+          <div>
+            <h4 class="font-bold text-xs">Bagikan Layanan Kurir</h4>
+            <p class="text-[10px] text-emerald-100">Kirim link pemesanan umum ke WhatsApp</p>
+          </div>
+        </div>
+        <button onclick="shareGeneralApp()" class="bg-white text-emerald-700 font-extrabold text-xs px-3.5 py-2.5 rounded-2xl shadow hover:bg-emerald-50 transition active:scale-95 shrink-0">
+          <i class="fa-solid fa-share-nodes mr-1"></i> Bagikan
         </button>
       </div>
 
@@ -407,8 +423,21 @@
           <div class="w-8 h-8 rounded-2xl bg-violet-500/20 text-violet-400 flex items-center justify-center text-sm">
             <i class="fa-solid fa-gear"></i>
           </div>
-          <span>Pengaturan Driver & App</span>
+          <span>Pengaturan Driver & Profil</span>
         </h2>
+
+        <!-- FOTO AKUN / PROFIL DRIVER -->
+        <div class="bg-white/5 p-4 rounded-3xl border border-white/5 text-center space-y-3">
+          <span class="text-xs font-semibold text-slate-300 block">Foto Profil Driver (Dilihat Customer)</span>
+          <div class="w-20 h-20 rounded-full bg-slate-800 mx-auto border-2 border-violet-500 overflow-hidden flex items-center justify-center shadow-lg relative">
+            <img id="driverPhotoPreview" src="" alt="Driver" class="w-full h-full object-cover hidden">
+            <i id="driverPhotoPlaceholder" class="fa-solid fa-user text-2xl text-slate-500"></i>
+          </div>
+          <label class="inline-block bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-4 rounded-xl text-xs cursor-pointer shadow transition">
+            <i class="fa-solid fa-camera mr-1"></i> Unggah Foto Profil
+            <input type="file" accept="image/*" onchange="handleDriverPhotoUpload(event)" class="hidden">
+          </label>
+        </div>
 
         <div>
           <label class="block text-xs font-semibold text-slate-300 mb-1">Nama Kurir / Driver</label>
@@ -452,7 +481,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-2 text-[10px] text-slate-500 font-medium tracking-wide">
-      v3.21 (Geofenced Pickup PoD Edition) • Powered by Ari GPM
+      v3.22 (Universal Share & Driver Photo) • Powered by Ari GPM
     </div>
 
   </main>
@@ -649,7 +678,7 @@
       }
     }
 
-    // Kompresi Gambar agar Ukuran Ringan & Bisa Disinkronkan via URL/Storage
+    // Kompresi Gambar
     function compressImage(file, callback) {
       const reader = new FileReader();
       reader.readAsDataURL(file);
@@ -676,7 +705,36 @@
       }
     }
 
-    // VALIDASI GEOFENCING: Tombol foto hanya bisa dibuka jika driver di area pick up (radius 150m)
+    function handleDriverPhotoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      compressImage(file, function(base64Img) {
+        localStorage.setItem("driver_photo", base64Img);
+        updateDriverPhotoUI(base64Img);
+        showToast("Tersimpan", "Foto profil driver berhasil diperbarui!", "success");
+      });
+    }
+
+    function updateDriverPhotoUI(photoUrl) {
+      const prev = document.getElementById("driverPhotoPreview");
+      const place = document.getElementById("driverPhotoPlaceholder");
+      if (photoUrl) {
+        prev.src = photoUrl; prev.classList.remove('hidden'); place.classList.add('hidden');
+      } else {
+        prev.classList.add('hidden'); place.classList.remove('hidden');
+      }
+    }
+
+    function shareGeneralApp() {
+      const baseUrl = window.location.href.split('?')[0];
+      const customerOrderLink = `${baseUrl}?mode=order`;
+      const driverName = localStorage.getItem("driver_name") || "Ari GPM";
+      const driverWa = formatPhoneNumber(localStorage.getItem("driver_wa") || "6281234567890");
+      const text = `Halo! Ingin kirim paket cepat & aman bersama *${driverName}*?\n\nSilakan buat pesanan melalui link formulir kurir kami di bawah ini:\n🔗 ${customerOrderLink}\n\nTerima kasih!`;
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+    }
+
+    // GEOFENCING PICKUP VALIDATION
     function verifyPickupLocationAndUpload(orderId) {
       const order = ordersData.find(o => o["ID Pesanan"] === orderId);
       if (!order || !order.jemputLat || !order.jemputLon) {
@@ -868,6 +926,9 @@
       document.getElementById("driverWaInput").value = localStorage.getItem("driver_wa") || "6281234567890";
       document.getElementById("localTarifInput").value = localStorage.getItem("local_tarif") || "3000";
       document.getElementById("waTemplateInput").value = localStorage.getItem("wa_template") || DEFAULT_WA_TEMPLATE;
+
+      const savedDriverPhoto = localStorage.getItem("driver_photo");
+      if (savedDriverPhoto) updateDriverPhotoUI(savedDriverPhoto);
 
       loadDataInstant();
       renderSavedAddresses();
@@ -1322,12 +1383,14 @@
       const driverName = localStorage.getItem("driver_name") || "Ari GPM";
       const driverVehicle = localStorage.getItem("driver_vehicle") || "Honda Beat Hitam • H 1234 ABC";
       const driverWa = formatPhoneNumber(localStorage.getItem("driver_wa") || "6281234567890");
+      const driverPhoto = localStorage.getItem("driver_photo");
 
       const driverCardContainer = document.getElementById("driverProfileCardContainer");
+      let driverAvatarHtml = driverPhoto ? `<img src="${driverPhoto}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-user-shield text-sm"></i>`;
       driverCardContainer.innerHTML = `
         <div class="bg-gradient-to-r from-violet-600/20 to-indigo-600/20 border border-violet-500/30 p-3 rounded-2xl mb-2 flex items-center space-x-3">
-          <div class="w-10 h-10 bg-violet-600 text-white rounded-xl flex items-center justify-center text-sm font-black shadow-md shrink-0">
-            <i class="fa-solid fa-user-shield"></i>
+          <div class="w-10 h-10 bg-violet-600 text-white rounded-full overflow-hidden flex items-center justify-center font-black shadow-md shrink-0 border border-violet-400">
+            ${driverAvatarHtml}
           </div>
           <div class="flex-1 min-w-0">
             <div class="flex items-center space-x-1">
@@ -1424,7 +1487,6 @@
         mapContainer.innerHTML = '';
       }
 
-      // POD CONTAINER: TOMBOL GEOFENCED PICKUP FOTO 
       const podContainer = document.getElementById("modalPodContainer");
       if (order["podPhoto"]) {
         podContainer.innerHTML = `
