@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KURIR EXPRESS — AUTO DEPOSIT & DYNAMIC NAV</title>
+  <title>KURIR EXPRESS — CUSTOMER CHAT NAV</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- FontAwesome for Icons -->
@@ -559,7 +559,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-2 text-[10px] text-slate-500 font-medium tracking-wide">
-      v3.49 (Auto-Deposit & Dynamic Nav Edition) • Powered by Ari GPM
+      v3.50 (Customer Chat Nav & Auto-Deposit Edition) • Powered by Ari GPM
     </div>
 
   </main>
@@ -682,6 +682,11 @@
       <i class="fa-solid fa-user text-base"></i>
       <span class="text-[9px] font-bold">Akun</span>
     </button>
+    <!-- TOMBOL IKON PESAN / CHAT WHATSAPP KHUSUS CUSTOMER (UNTUK BANTUAN / KONFIRMASI TOP-UP) -->
+    <button onclick="openCustomerHelpChat()" id="nav-chat" class="flex flex-col items-center text-emerald-400 space-y-0.5 px-3 py-1 rounded-2xl transition" title="Bantuan / Konfirmasi Top-Up">
+      <i class="fa-brands fa-whatsapp text-base"></i>
+      <span class="text-[9px] font-bold">Pesan</span>
+    </button>
     <button onclick="switchTab('pengaturan')" id="nav-pengaturan" class="flex flex-col items-center text-slate-400 space-y-0.5 px-3 py-1 rounded-2xl transition">
       <i class="fa-solid fa-gear text-base"></i>
       <span class="text-[9px] font-bold">Setting</span>
@@ -713,7 +718,16 @@
 
     function closeCustomToast() { document.getElementById("customToastModal").classList.add('hidden'); }
 
-    // FUNGSI ADMIN/DRIVER UNTUK ISI SALDO DEPOSIT PELANGGAN SECARA OTOMATIS
+    // FUNGSI UNTUK MEMBUKA WHATSAPP CS / DRIVER DARI NAVIGASI PESAN
+    function openCustomerHelpChat() {
+      const driverWa = formatPhoneNumber(localStorage.getItem("driver_wa") || "6281234567890");
+      const savedCustAcc = JSON.parse(localStorage.getItem("kurir_customer_account") || "{}");
+      const custName = savedCustAcc.name || "Pelanggan";
+      const custPhone = savedCustAcc.phone || "-";
+      const chatText = `Halo Admin/Driver Kurir Express,\n\nSaya *${custName}* (No. WA: ${custPhone}) ingin konfirmasi:\n- [ ] Bantuan kendala pengiriman\n- [ ] Konfirmasi transfer top-up saldo deposit\n\nMohon bantuannya, terima kasih!`;
+      window.open(`https://api.whatsapp.com/send?phone=${driverWa}&text=${encodeURIComponent(chatText)}`, '_blank');
+    }
+
     function adminExecuteTopup() {
       const phoneInput = document.getElementById("adminTopupPhone").value.replace(/\D/g, '');
       const amountInput = Number(document.getElementById("adminTopupAmount").value);
@@ -1057,6 +1071,7 @@
         document.getElementById("nav-pengaturan").style.display = "none";
         document.getElementById("nav-dompet").style.display = "none"; // Sembunyikan dompet sampai terdaftar
         document.getElementById("nav-akun").style.display = "flex";
+        document.getElementById("nav-chat").style.display = "flex"; // Tampilkan tombol chat pesan untuk customer
 
         if (isRegistered) {
           document.getElementById("nav-pesanan").style.display = "flex";
@@ -1085,6 +1100,7 @@
 
         document.getElementById("nav-akun").style.display = "none";
         document.getElementById("nav-dompet").style.display = "none";
+        document.getElementById("nav-chat").style.display = "none"; // Sembunyikan chat di mode driver
         document.getElementById("nav-dashboard").style.display = "flex";
         document.getElementById("nav-pengaturan").style.display = "flex";
         document.getElementById("nav-pesanan").style.display = "flex";
