@@ -301,7 +301,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.75 • Powered by Ari GPM
+      v2.78 • Powered by Ari GPM
     </div>
 
   </main>
@@ -400,6 +400,7 @@
     let autoOpenOrderId = null; 
     let typingTimer;
     let activeOrdersExpanded = true;
+    let isSaving = false;
 
     function showToast(title, message, type = 'success') {
       const modal = document.getElementById("customToastModal");
@@ -464,7 +465,6 @@
           document.getElementById("noHp").value = customerPhone;
           document.getElementById("noHp").readOnly = true;
         }
-        // CUSTOMER MODE: Default membuka tab PESANAN (Form Order), bukan Riwayat
         switchTab('pesanan');
       }
 
@@ -711,8 +711,9 @@
     }
 
     async function saveOrder() {
-      if (!calculatedData) return;
+      if (!calculatedData || isSaving) return;
 
+      isSaving = true;
       const btn = document.getElementById("btnSimpan");
       btn.disabled = true;
       btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Menyimpan...`;
@@ -731,6 +732,7 @@
             handlePostSaveSuccess(result.orderId);
           } else {
             showToast("Gagal Menyimpan", result.message || "Unknown error", "warning");
+            isSaving = false;
             btn.disabled = false;
             btn.innerHTML = `<i class="fa-solid fa-check-circle"></i><span>SIMPAN PESANAN</span>`;
           }
@@ -801,11 +803,13 @@
     }
 
     function handlePostSaveSuccess(orderId) {
+      calculatedData = null;
+      isSaving = false;
       resetForm();
 
       if (isCustomerMode) {
         const driverWa = formatPhoneNumber(localStorage.getItem("driver_wa") || "6281234567890");
-        const reportText = generateWaText(orderId, calculatedData.nama, calculatedData.noHp, calculatedData.alamatJemput, calculatedData.alamatTujuan, calculatedData.jarak, calculatedData.totalOngkos, "Menunggu");
+        const reportText = generateWaText(orderId, document.getElementById("nama").value, customerPhone, "Alamat Jemput", "Alamat Tujuan", 0, 0, "Menunggu");
 
         document.getElementById("customerShareBtnContainer").innerHTML = `
           <a href="https://wa.me/${driverWa}?text=${encodeURIComponent(reportText)}" target="_blank" class="w-full bg-[#10b981] hover:bg-emerald-600 text-white font-bold py-3 px-4 rounded-xl text-sm flex items-center justify-center space-x-2 transition shadow-md">
@@ -823,8 +827,8 @@
 
     function resetForm() {
       document.getElementById("orderForm").reset();
-      if (!isCustomerMode) {
-        document.getElementById("noHp").value = "";
+      if (isCustomerMode && customerPhone) {
+        document.getElementById("noHp").value = customerPhone;
       }
       document.getElementById("alamatJemput").dataset.lat = "";
       document.getElementById("alamatJemput").dataset.lon = "";
@@ -833,9 +837,12 @@
       
       document.getElementById("resultCard").classList.add('hidden');
       calculatedData = null;
+      isSaving = false;
       const btn = document.getElementById("btnSimpan");
-      btn.disabled = false;
-      btn.innerHTML = `<i class="fa-solid fa-check-circle"></i><span>SIMPAN PESANAN</span>`;
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-check-circle"></i><span>SIMPAN PESANAN</span>`;
+      }
     }
 
     async function loadData() {
@@ -976,7 +983,7 @@
 
     function clearAllHistory() {
       if (confirm("Apakah Anda yakin ingin MENGHAPUS SEMUA riwayat pesanan? (Data tidak akan muncul kembali)")) {
-        let deletedIds = JSON.parse(localStorage.getItem("kurir_deleted_ids") || "[]");
+        let deletedIds = JSON.parse(localStorage.getItem("kurir_deleted_ids"] || "[]");
         
         ordersData.forEach(o => {
           if (o["ID Pesanan"] && !deletedIds.includes(o["ID Pesanan"])) {
@@ -1287,6 +1294,9 @@
           .replace(/{jemput}/g, order["Alamat Jemput"])
           .replace(/{linkOrder}/g, linkCustomerOrder);
 
+        // Teks label tombol WA dinamis sesuai status (misal: Selesai, Dalam Pengiriman, dll)
+        const waButtonLabel = currentStatus === "Selesai" ? "Kirim Resi Selesai (WA)" : `Kirim Status (${currentStatus}) WA`;
+
         shareContainer.innerHTML = `
           <div class="flex items-center justify-center space-x-2 mb-4">
             <i class="fa-solid fa-circle-check ${statusIconColor} text-[18px]"></i>
@@ -1299,8 +1309,8 @@
               <span>Chat Konfirmasi</span>
             </a>
             <a href="https://wa.me/${customerWa}?text=${encodeURIComponent(shareText)}" target="_blank" class="bg-[#10b981] border border-[#10b981] hover:bg-emerald-600 text-white font-bold py-3 px-2 rounded-2xl text-[12px] flex items-center justify-center space-x-1.5 transition shadow-sm">
-              <i class="fa-solid fa-share-nodes text-[15px]"></i>
-              <span>Bagikan Resi</span>
+              <i class="fa-brands fa-whatsapp text-[15px]"></i>
+              <span>${waButtonLabel}</span>
             </a>
           </div>
           
@@ -1308,7 +1318,7 @@
         `;
       } else {
         const driverWaNum = formatPhoneNumber(localStorage.getItem("driver_wa") || "6281234567890");
-        const confirmToDriverText = `Halo Driver, saya ingin mengkonfirmasi pesanan saya dengan ID: *${order["ID Pesanan"]}*.`;
+        const confirmToDriverText = `Halo Driver, saya ingin mengkonfirmasi pesanan saya dengan ID: *{id}*.`.replace(/{id}/g, order["ID Pesanan"]);
         
         shareContainer.innerHTML = `
           <div class="flex items-center justify-center space-x-2 mb-4">
