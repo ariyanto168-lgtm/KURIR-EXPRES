@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KURIR EXPRESS — VERTICAL STATUS & DETAILS</title>
+  <title>KURIR EXPRESS — SEPARATE WALLET EDITION</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- FontAwesome for Icons -->
@@ -50,60 +50,6 @@
 
     <!-- TAB 1: DASHBOARD (Driver) -->
     <section id="tab-dashboard" class="tab-content space-y-4">
-      <div class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-5 rounded-[2.5rem] shadow-xl border border-white/10 relative overflow-hidden">
-        <div class="absolute -right-10 -top-10 w-40 h-40 bg-pink-500/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute -left-10 -bottom-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
-        
-        <div class="flex justify-between items-center mb-4 relative z-10">
-          <h2 class="text-slate-400 text-[11px] font-bold uppercase tracking-widest">Keuangan & Pembayaran</h2>
-          <span class="text-[10px] bg-violet-500/20 text-violet-300 px-2.5 py-1 rounded-full font-semibold border border-violet-500/30">Real-Time</span>
-        </div>
-
-        <div class="grid grid-cols-3 gap-2 relative z-10 mb-3">
-          <div class="bg-white/5 backdrop-blur-md p-2.5 rounded-2xl border border-emerald-500/30 text-center">
-            <span class="text-[9px] text-emerald-300 block font-semibold mb-0.5">TUNAI / COD</span>
-            <p id="dashTunaiRevenue" class="text-xs font-black text-emerald-400 tracking-tight">Rp0</p>
-          </div>
-          <div class="bg-white/5 backdrop-blur-md p-2.5 rounded-2xl border border-amber-500/30 text-center">
-            <span class="text-[9px] text-amber-300 block font-semibold mb-0.5">TEMPO</span>
-            <p id="dashTempoRevenue" class="text-xs font-black text-amber-400 tracking-tight">Rp0</p>
-          </div>
-          <div class="bg-white/5 backdrop-blur-md p-2.5 rounded-2xl border border-violet-500/30 text-center">
-            <span class="text-[9px] text-violet-300 block font-semibold mb-0.5">DEPOSIT</span>
-            <p id="dashDepositRevenue" class="text-xs font-black text-violet-400 tracking-tight">Rp0</p>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3 relative z-10 mb-3">
-          <div class="bg-white/5 backdrop-blur-md p-3.5 rounded-3xl border border-white/5">
-            <span class="text-[10px] text-slate-400 block font-semibold mb-0.5">PENDAPATAN KOTOR</span>
-            <p id="dashGrossRevenue" class="text-sm font-bold text-white tracking-tight">Rp0</p>
-          </div>
-          <div class="bg-white/5 backdrop-blur-md p-3.5 rounded-3xl border border-white/5">
-            <span class="text-[10px] text-slate-400 block font-semibold mb-0.5">TOTAL PENGELUARAN</span>
-            <p id="dashTotalExpense" class="text-sm font-bold text-pink-400 tracking-tight">Rp0</p>
-          </div>
-        </div>
-
-        <div class="bg-white/5 backdrop-blur-md p-3.5 rounded-3xl border border-white/5 mb-3 flex justify-between items-center relative z-10">
-          <div>
-            <span class="text-[10px] text-violet-300 block font-semibold uppercase">Tarikan Hari Ini</span>
-            <p id="dashTodayTrips" class="text-base font-black text-white tracking-tight">0 Trip (0 KM)</p>
-          </div>
-          <div class="w-10 h-10 rounded-2xl bg-violet-500/20 text-violet-400 flex items-center justify-center text-base font-bold shadow-inner">
-            <i class="fa-solid fa-motorcycle"></i>
-          </div>
-        </div>
-
-        <div class="bg-gradient-to-r from-emerald-600/20 to-teal-600/20 backdrop-blur-md p-4 rounded-3xl border border-emerald-500/30 relative z-10">
-          <div class="flex justify-between items-center mb-1">
-            <span class="text-[11px] text-emerald-300 font-semibold uppercase">Laba Bersih Riil</span>
-            <button onclick="openExpenseModal()" class="text-[10px] bg-emerald-500 text-slate-950 font-bold px-2.5 py-1 rounded-xl shadow hover:bg-emerald-400 transition"><i class="fa-solid fa-plus mr-1"></i> Catat Biaya</button>
-          </div>
-          <p id="dashNetProfit" class="text-3xl font-black text-emerald-400 tracking-tight">Rp0</p>
-        </div>
-      </div>
-
       <!-- Quick Action Card -->
       <div class="bg-gradient-to-r from-violet-600 via-indigo-600 to-pink-500 rounded-[2.5rem] p-5 text-white shadow-xl shadow-indigo-500/20 flex items-center justify-between relative overflow-hidden">
         <div class="relative z-10">
@@ -283,7 +229,7 @@
       </div>
     </section>
 
-    <!-- TAB 3: RIWAYAT & LAPORAN (DENGAN KARTU STATUS SUSUN VERTICAL KE BAWAH & KLIK DETAIL) -->
+    <!-- TAB 3: RIWAYAT & LAPORAN -->
     <section id="tab-riwayat" class="tab-content hidden space-y-4">
       
       <!-- STATUS PENGIRIMAN (SUSUN VERTICAL KE BAWAH & KLIK DETAIL) -->
@@ -470,97 +416,69 @@
       </div>
     </section>
 
-    <!-- TAB 5: DOMPET / DEPOSIT (Customer) -->
+    <!-- TAB 5: DOMPET / DEPOSIT (TERPISAH DRIVER VS CUSTOMER) -->
     <section id="tab-dompet" class="tab-content hidden space-y-4">
-      <div class="bg-gradient-to-br from-violet-950 via-slate-900 to-indigo-950 p-5 rounded-[2.5rem] shadow-xl border border-violet-500/30 space-y-4">
-        <div class="flex items-center space-x-3.5 border-b border-white/10 pb-4">
-          <div class="w-14 h-14 bg-gradient-to-tr from-violet-600 to-pink-600 text-white rounded-3xl flex items-center justify-center text-xl font-black shadow-lg shadow-violet-500/30">
-            <i class="fa-solid fa-wallet"></i>
+      
+      <!-- 1. DOMPET & KEUANGAN KHUSUS DRIVER -->
+      <div id="driverFinancialSection" class="space-y-4 hidden">
+        <div class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-5 rounded-[2.5rem] shadow-xl border border-white/10 relative overflow-hidden">
+          <div class="flex justify-between items-center mb-4 relative z-10">
+            <h2 class="text-slate-400 text-[11px] font-bold uppercase tracking-widest">Dompet & Keuangan Driver</h2>
+            <span class="text-[10px] bg-violet-500/20 text-violet-300 px-2.5 py-1 rounded-full font-semibold border border-violet-500/30">Driver Only</span>
           </div>
-          <div>
-            <h2 class="font-bold text-white text-base">Dompet & Saldo Deposit Anda</h2>
-            <p class="text-xs text-violet-300">Cek sisa saldo & rekening transfer</p>
-          </div>
-        </div>
 
-        <!-- SISA SALDO LIVE CARD -->
-        <div class="bg-gradient-to-r from-violet-600/20 to-pink-600/20 p-4 rounded-3xl border border-violet-500/40 text-center space-y-1">
-          <span class="text-[10px] text-violet-300 font-bold uppercase tracking-widest block">Sisa Saldo Deposit Aktif</span>
-          <p id="customerWalletBalance" class="text-3xl font-black text-white tracking-tight">Rp0</p>
-          <span class="text-[10px] text-slate-400 block pt-1">Otomatis terpotong saat Anda memilih pembayaran Deposit</span>
-        </div>
-
-        <!-- REKAP KEUANGAN (TUNAI, TEMPO, DEPOSIT) DI FOLDER DOMPET -->
-        <div class="bg-white/5 p-4 rounded-3xl border border-white/5 space-y-2">
-          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Rekap Pembayaran & Pengeluaran</span>
-          <div class="grid grid-cols-3 gap-1.5 text-center">
-            <div class="bg-black/30 p-2 rounded-2xl border border-emerald-500/30">
-              <span class="text-[9px] text-emerald-300 block font-semibold">Tunai</span>
-              <span id="walletTunaiSpent" class="text-xs font-black text-emerald-400">Rp0</span>
+          <div class="grid grid-cols-3 gap-2 relative z-10 mb-3">
+            <div class="bg-white/5 backdrop-blur-md p-2.5 rounded-2xl border border-emerald-500/30 text-center">
+              <span class="text-[9px] text-emerald-300 block font-semibold mb-0.5">TUNAI / COD</span>
+              <p id="dashTunaiRevenue" class="text-xs font-black text-emerald-400 tracking-tight">Rp0</p>
             </div>
-            <div class="bg-black/30 p-2 rounded-2xl border border-amber-500/30">
-              <span class="text-[9px] text-amber-300 block font-semibold">Tempo</span>
-              <span id="walletTempoSpent" class="text-xs font-black text-amber-400">Rp0</span>
+            <div class="bg-white/5 backdrop-blur-md p-2.5 rounded-2xl border border-amber-500/30 text-center">
+              <span class="text-[9px] text-amber-300 block font-semibold mb-0.5">TEMPO</span>
+              <p id="dashTempoRevenue" class="text-xs font-black text-amber-400 tracking-tight">Rp0</p>
             </div>
-            <div class="bg-black/30 p-2 rounded-2xl border border-violet-500/30">
-              <span class="text-[9px] text-violet-300 block font-semibold">Deposit</span>
-              <span id="walletDepositSpent" class="text-xs font-black text-violet-400">Rp0</span>
+            <div class="bg-white/5 backdrop-blur-md p-2.5 rounded-2xl border border-violet-500/30 text-center">
+              <span class="text-[9px] text-violet-300 block font-semibold mb-0.5">DEPOSIT</span>
+              <p id="dashDepositRevenue" class="text-xs font-black text-violet-400 tracking-tight">Rp0</p>
             </div>
           </div>
-        </div>
 
-        <div class="bg-white/5 p-4 rounded-3xl border border-white/5 space-y-3">
-          <h3 class="font-bold text-emerald-400 text-xs uppercase tracking-wider flex items-center space-x-2">
-            <i class="fa-solid fa-university"></i>
-            <span>Rekening & E-Wallet Resmi Transfer Deposit</span>
-          </h3>
-          <p class="text-xs text-slate-300 leading-relaxed">Silakan transfer deposit ke nomor berikut agar saldo Anda bertambah:</p>
-          
-          <div class="space-y-2">
-            <div class="bg-black/40 p-3 rounded-2xl border border-white/5 flex justify-between items-center">
-              <div>
-                <span class="text-[10px] text-slate-400 font-semibold uppercase block">BCA (Yudi Ariyanto)</span>
-                <span class="font-mono font-bold text-white text-sm">2465583655</span>
-              </div>
-              <button onclick="navigator.clipboard.writeText('2465583655'); showToast('Disalin', 'Nomor BCA disalin!', 'success');" class="bg-violet-600 hover:bg-violet-500 text-white text-[10px] font-bold px-3 py-1.5 rounded-xl transition">Salin</button>
+          <div class="grid grid-cols-2 gap-3 relative z-10 mb-3">
+            <div class="bg-white/5 backdrop-blur-md p-3.5 rounded-3xl border border-white/5">
+              <span class="text-[10px] text-slate-400 block font-semibold mb-0.5">PENDAPATAN KOTOR</span>
+              <p id="dashGrossRevenue" class="text-sm font-bold text-white tracking-tight">Rp0</p>
             </div>
+            <div class="bg-white/5 backdrop-blur-md p-3.5 rounded-3xl border border-white/5">
+              <span class="text-[10px] text-slate-400 block font-semibold mb-0.5">TOTAL PENGELUARAN</span>
+              <p id="dashTotalExpense" class="text-sm font-bold text-pink-400 tracking-tight">Rp0</p>
+            </div>
+          </div>
 
-            <div class="bg-black/40 p-3 rounded-2xl border border-white/5 flex justify-between items-center">
-              <div>
-                <span class="text-[10px] text-slate-400 font-semibold uppercase block">DANA (Yudi Ariyanto)</span>
-                <span class="font-mono font-bold text-white text-sm">085727222789</span>
-              </div>
-              <button onclick="navigator.clipboard.writeText('085727222789'); showToast('Disalin', 'Nomor DANA disalin!', 'success');" class="bg-violet-600 hover:bg-violet-500 text-white text-[10px] font-bold px-3 py-1.5 rounded-xl transition">Salin</button>
+          <div class="bg-white/5 backdrop-blur-md p-3.5 rounded-3xl border border-white/5 mb-3 flex justify-between items-center relative z-10">
+            <div>
+              <span class="text-[10px] text-violet-300 block font-semibold uppercase">Tarikan Hari Ini</span>
+              <p id="dashTodayTrips" class="text-base font-black text-white tracking-tight">0 Trip (0 KM)</p>
             </div>
+            <div class="w-10 h-10 rounded-2xl bg-violet-500/20 text-violet-400 flex items-center justify-center text-base font-bold shadow-inner">
+              <i class="fa-solid fa-motorcycle"></i>
+            </div>
+          </div>
+
+          <div class="bg-gradient-to-r from-emerald-600/20 to-teal-600/20 backdrop-blur-md p-4 rounded-3xl border border-emerald-500/30 relative z-10">
+            <div class="flex justify-between items-center mb-1">
+              <span class="text-[11px] text-emerald-300 font-semibold uppercase">Laba Bersih Riil Driver</span>
+              <button onclick="openExpenseModal()" class="text-[10px] bg-emerald-500 text-slate-950 font-bold px-2.5 py-1 rounded-xl shadow hover:bg-emerald-400 transition"><i class="fa-solid fa-plus mr-1"></i> Catat Biaya</button>
+            </div>
+            <p id="dashNetProfit" class="text-3xl font-black text-emerald-400 tracking-tight">Rp0</p>
           </div>
         </div>
 
-        <div class="space-y-2 pt-2">
-          <button onclick="goToOrderWithDeposit()" class="w-full bg-gradient-to-r from-violet-600 to-pink-600 hover:opacity-95 text-white font-bold py-3 rounded-2xl text-xs transition shadow-lg shadow-violet-500/30">
-            <i class="fa-solid fa-paper-plane mr-1"></i> Buat Pesanan Pakai Deposit Sekarang
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 6: PENGATURAN (Driver & Profil) -->
-    <section id="tab-pengaturan" class="tab-content hidden space-y-4">
-      <div class="bg-slate-900/80 backdrop-blur-xl p-5 rounded-[2.5rem] shadow-xl border border-white/10 space-y-4">
-        <h2 class="font-bold text-white text-base flex items-center space-x-2.5">
-          <div class="w-8 h-8 rounded-2xl bg-violet-500/20 text-violet-400 flex items-center justify-center text-sm">
-            <i class="fa-solid fa-gear"></i>
-          </div>
-          <span>Pengaturan Driver & Profil</span>
-        </h2>
-
-        <!-- KELOLA SALDO DEPOSIT PELANGGAN (UNTUK DRIVER) -->
-        <div class="bg-gradient-to-r from-emerald-600/20 to-teal-600/20 p-4 rounded-3xl border border-emerald-500/40 space-y-3">
+        <!-- Kelola Saldo Deposit Pelanggan (Oleh Driver) -->
+        <div class="bg-slate-900/80 backdrop-blur-xl p-5 rounded-[2.5rem] shadow-xl border border-white/10 space-y-3">
           <h3 class="font-bold text-emerald-300 text-xs uppercase tracking-wider flex items-center space-x-2">
             <i class="fa-solid fa-wallet"></i>
             <span>Kelola Saldo Deposit Pelanggan</span>
           </h3>
           <p class="text-[10px] text-slate-300 leading-relaxed">Masukkan nomor WhatsApp pelanggan yang sudah transfer untuk mengisi saldo deposit mereka secara otomatis:</p>
-          
           <div class="space-y-2.5">
             <div>
               <label class="block text-[10px] font-semibold text-slate-300 mb-1">No. WhatsApp Pelanggan</label>
@@ -575,6 +493,92 @@
             </button>
           </div>
         </div>
+      </div>
+
+      <!-- 2. DOMPET & SALDO DEPOSIT KHUSUS PELANGGAN -->
+      <div id="customerFinancialSection" class="space-y-4 hidden">
+        <div class="bg-gradient-to-br from-violet-950 via-slate-900 to-indigo-950 p-5 rounded-[2.5rem] shadow-xl border border-violet-500/30 space-y-4">
+          <div class="flex items-center space-x-3.5 border-b border-white/10 pb-4">
+            <div class="w-14 h-14 bg-gradient-to-tr from-violet-600 to-pink-600 text-white rounded-3xl flex items-center justify-center text-xl font-black shadow-lg shadow-violet-500/30">
+              <i class="fa-solid fa-wallet"></i>
+            </div>
+            <div>
+              <h2 class="font-bold text-white text-base">Dompet & Saldo Deposit Anda</h2>
+              <p class="text-xs text-violet-300">Cek sisa saldo & rekening transfer</p>
+            </div>
+          </div>
+
+          <!-- SISA SALDO LIVE CARD -->
+          <div class="bg-gradient-to-r from-violet-600/20 to-pink-600/20 p-4 rounded-3xl border border-violet-500/40 text-center space-y-1">
+            <span class="text-[10px] text-violet-300 font-bold uppercase tracking-widest block">Sisa Saldo Deposit Aktif</span>
+            <p id="customerWalletBalance" class="text-3xl font-black text-white tracking-tight">Rp0</p>
+            <span class="text-[10px] text-slate-400 block pt-1">Otomatis terpotong saat Anda memilih pembayaran Deposit</span>
+          </div>
+
+          <!-- REKAP KEUANGAN PELANGGAN -->
+          <div class="bg-white/5 p-4 rounded-3xl border border-white/5 space-y-2">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Rekap Pembayaran & Pengeluaran Anda</span>
+            <div class="grid grid-cols-3 gap-1.5 text-center">
+              <div class="bg-black/30 p-2 rounded-2xl border border-emerald-500/30">
+                <span class="text-[9px] text-emerald-300 block font-semibold">Tunai</span>
+                <span id="walletTunaiSpent" class="text-xs font-black text-emerald-400">Rp0</span>
+              </div>
+              <div class="bg-black/30 p-2 rounded-2xl border border-amber-500/30">
+                <span class="text-[9px] text-amber-300 block font-semibold">Tempo</span>
+                <span id="walletTempoSpent" class="text-xs font-black text-amber-400">Rp0</span>
+              </div>
+              <div class="bg-black/30 p-2 rounded-2xl border border-violet-500/30">
+                <span class="text-[9px] text-violet-300 block font-semibold">Deposit</span>
+                <span id="walletDepositSpent" class="text-xs font-black text-violet-400">Rp0</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white/5 p-4 rounded-3xl border border-white/5 space-y-3">
+            <h3 class="font-bold text-emerald-400 text-xs uppercase tracking-wider flex items-center space-x-2">
+              <i class="fa-solid fa-university"></i>
+              <span>Rekening & E-Wallet Resmi Transfer Deposit</span>
+            </h3>
+            <p class="text-xs text-slate-300 leading-relaxed">Silakan transfer deposit ke nomor berikut agar saldo Anda bertambah:</p>
+            
+            <div class="space-y-2">
+              <div class="bg-black/40 p-3 rounded-2xl border border-white/5 flex justify-between items-center">
+                <div>
+                  <span class="text-[10px] text-slate-400 font-semibold uppercase block">BCA (Yudi Ariyanto)</span>
+                  <span class="font-mono font-bold text-white text-sm">2465583655</span>
+                </div>
+                <button onclick="navigator.clipboard.writeText('2465583655'); showToast('Disalin', 'Nomor BCA disalin!', 'success');" class="bg-violet-600 hover:bg-violet-500 text-white text-[10px] font-bold px-3 py-1.5 rounded-xl transition">Salin</button>
+              </div>
+
+              <div class="bg-black/40 p-3 rounded-2xl border border-white/5 flex justify-between items-center">
+                <div>
+                  <span class="text-[10px] text-slate-400 font-semibold uppercase block">DANA (Yudi Ariyanto)</span>
+                  <span class="font-mono font-bold text-white text-sm">085727222789</span>
+                </div>
+                <button onclick="navigator.clipboard.writeText('085727222789'); showToast('Disalin', 'Nomor DANA disalin!', 'success');" class="bg-violet-600 hover:bg-violet-500 text-white text-[10px] font-bold px-3 py-1.5 rounded-xl transition">Salin</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-2 pt-2">
+            <button onclick="goToOrderWithDeposit()" class="w-full bg-gradient-to-r from-violet-600 to-pink-600 hover:opacity-95 text-white font-bold py-3 rounded-2xl text-xs transition shadow-lg shadow-violet-500/30">
+              <i class="fa-solid fa-paper-plane mr-1"></i> Buat Pesanan Pakai Deposit Sekarang
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- TAB 6: PENGATURAN (Driver & Profil) -->
+    <section id="tab-pengaturan" class="tab-content hidden space-y-4">
+      <div class="bg-slate-900/80 backdrop-blur-xl p-5 rounded-[2.5rem] shadow-xl border border-white/10 space-y-4">
+        <h2 class="font-bold text-white text-base flex items-center space-x-2.5">
+          <div class="w-8 h-8 rounded-2xl bg-violet-500/20 text-violet-400 flex items-center justify-center text-sm">
+            <i class="fa-solid fa-gear"></i>
+          </div>
+          <span>Pengaturan Driver & Profil</span>
+        </h2>
 
         <!-- FOTO AKUN / PROFIL DRIVER -->
         <div class="bg-white/5 p-4 rounded-3xl border border-white/5 text-center space-y-3">
@@ -632,7 +636,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-2 text-[10px] text-slate-500 font-medium tracking-wide">
-      v3.55 (Vertical Status & Clickable Details Edition) • Powered by Ari GPM
+      v3.57 (Separate Driver & Customer Wallet Edition) • Powered by Ari GPM
     </div>
 
   </main>
@@ -1204,6 +1208,9 @@
       const headerTitleEl = document.getElementById("headerTitle");
       const headerSubtitleEl = document.getElementById("headerSubtitle");
 
+      const driverFin = document.getElementById("driverFinancialSection");
+      const custFin = document.getElementById("customerFinancialSection");
+
       if (isCustomerMode) {
         headerEl.className = "bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 text-white shadow-lg sticky top-0 z-40 px-4 py-3.5 flex justify-between items-center backdrop-blur-md bg-opacity-95";
         headerTitleEl.innerText = "KURIR EXPRESS";
@@ -1214,6 +1221,9 @@
         document.getElementById("nav-dompet").style.display = "flex"; 
         document.getElementById("nav-akun").style.display = "flex";
         document.getElementById("nav-chat").style.display = "flex"; 
+
+        if (driverFin) driverFin.classList.add('hidden');
+        if (custFin) custFin.classList.remove('hidden');
 
         if (isRegistered) {
           document.getElementById("nav-pesanan").style.display = "flex";
@@ -1240,12 +1250,16 @@
         headerSubtitleEl.innerText = "Driver & Fleet Management Edition";
 
         document.getElementById("nav-akun").style.display = "none";
-        document.getElementById("nav-dompet").style.display = "none";
         document.getElementById("nav-chat").style.display = "none"; 
         document.getElementById("nav-dashboard").style.display = "flex";
         document.getElementById("nav-pengaturan").style.display = "flex";
+        document.getElementById("nav-dompet").style.display = "flex"; 
         document.getElementById("nav-pesanan").style.display = "flex";
         document.getElementById("nav-riwayat").style.display = "flex";
+
+        if (driverFin) driverFin.classList.remove('hidden');
+        if (custFin) custFin.classList.add('hidden');
+
         switchTab('dashboard'); 
       }
 
@@ -1261,6 +1275,12 @@
 
       loadDataInstant();
       renderSavedAddresses();
+
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'kurir_orders') {
+          loadDataInstant();
+        }
+      });
 
       if (autoOpenOrderId) {
         setTimeout(() => {
@@ -1488,6 +1508,8 @@
       localOrders.unshift(newOrder);
       localStorage.setItem("kurir_orders", JSON.stringify(localOrders));
 
+      loadDataInstant();
+
       if (isCustomerMode) {
         const driverWa = formatPhoneNumber(localStorage.getItem("driver_wa") || "6281234567890");
         const reportText = `*PESANAN BARU*\nID: ${orderId}\nKategori: ${newOrder["Kategori"]}\nPembayaran: ${newOrder["Metode Pembayaran"]}\nNama: ${newOrder["Nama Pelanggan"]}\nJemput: ${newOrder["Alamat Jemput"]}\nTujuan: ${newOrder["Alamat Tujuan"]}\nOngkos: ${formatRupiah(newOrder["Total Ongkos"])}`;
@@ -1495,7 +1517,6 @@
         document.getElementById("customerSuccessModal").classList.remove('hidden');
       } else {
         showToast("Sukses", "Pesanan tersimpan!", "success");
-        loadDataInstant();
         switchTab('riwayat');
       }
       calculatedData = null; isSaving = false;
@@ -1578,13 +1599,13 @@
       let totalExpense = expenses.reduce((sum, item) => sum + Number(item.amount || 0), 0);
       let netProfit = totalRevenue - totalExpense;
 
-      if (document.getElementById("dashGrossRevenue") && !isCustomerMode) {
-        document.getElementById("dashGrossRevenue").innerText = formatRupiah(totalRevenue);
-        document.getElementById("dashTunaiRevenue").innerText = formatRupiah(totalTunai);
-        document.getElementById("dashTempoRevenue").innerText = formatRupiah(totalTempo);
-        document.getElementById("dashDepositRevenue").innerText = formatRupiah(totalDeposit);
-        document.getElementById("dashTotalExpense").innerText = formatRupiah(totalExpense);
-        document.getElementById("dashNetProfit").innerText = formatRupiah(netProfit);
+      if (!isCustomerMode) {
+        if (document.getElementById("dashGrossRevenue")) document.getElementById("dashGrossRevenue").innerText = formatRupiah(totalRevenue);
+        if (document.getElementById("dashTunaiRevenue")) document.getElementById("dashTunaiRevenue").innerText = formatRupiah(totalTunai);
+        if (document.getElementById("dashTempoRevenue")) document.getElementById("dashTempoRevenue").innerText = formatRupiah(totalTempo);
+        if (document.getElementById("dashDepositRevenue")) document.getElementById("dashDepositRevenue").innerText = formatRupiah(totalDeposit);
+        if (document.getElementById("dashTotalExpense")) document.getElementById("dashTotalExpense").innerText = formatRupiah(totalExpense);
+        if (document.getElementById("dashNetProfit")) document.getElementById("dashNetProfit").innerText = formatRupiah(netProfit);
         if (document.getElementById("dashTodayTrips")) document.getElementById("dashTodayTrips").innerText = `${todayTrips} Trip (${todayKm.toFixed(1)} KM)`;
         if (document.getElementById("activeCount")) document.getElementById("activeCount").innerText = activeOrders.length;
         if (document.getElementById("batchCount")) document.getElementById("batchCount").innerText = activeOrders.length;
