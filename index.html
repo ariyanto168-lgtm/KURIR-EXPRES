@@ -301,7 +301,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-4 text-[11px] text-slate-400 font-medium tracking-wide">
-      v2.80 • Powered by Ari GPM
+      v2.81 • Powered by Ari GPM
     </div>
 
   </main>
@@ -326,7 +326,7 @@
   <div id="detailModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl space-y-0 relative">
       <div class="flex justify-between items-center border-b pb-3 mb-2 border-slate-100">
-        <h3 id="modalHeaderTitle" class="font-bold text-slate-800 text-base tracking-tight">Status & Alur Proses Pengiriman</h3>
+        <h3 id="modalHeaderTitle" class="font-bold text-slate-800 text-base tracking-tight">Status & Alur Pengiriman</h3>
         <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-xl leading-none transition-colors"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
@@ -361,7 +361,7 @@
       </div>
       <div id="customerShareBtnContainer"></div>
       <button onclick="location.reload()" class="w-full bg-slate-100 text-slate-700 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-200 transition">
-        Buat Pesanan Baru
+        Tutup
       </button>
     </div>
   </div>
@@ -430,6 +430,16 @@
       document.getElementById("customToastModal").classList.add('hidden');
     }
 
+    function copyToClipboard(text) {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+          showToast("Tersalin", "Link resi/order berhasil disalin!", "success");
+        }).catch(err => {
+          showToast("Gagal", "Gagal menyalin link.", "warning");
+        });
+      }
+    }
+
     function toggleActiveOrdersCard() {
       activeOrdersExpanded = !activeOrdersExpanded;
       const container = document.getElementById("activeOrdersListContainer");
@@ -465,7 +475,12 @@
           document.getElementById("noHp").value = customerPhone;
           document.getElementById("noHp").readOnly = true;
         }
-        switchTab('pesanan');
+        // PENYEMPURNAAN MODE CUSTOMER: Jika link mengandung ID Order, langsung buka tab Riwayat & Detail
+        if (autoOpenOrderId) {
+          switchTab('riwayat');
+        } else {
+          switchTab('pesanan');
+        }
       }
 
       const savedUrl = localStorage.getItem("gas_url") || GAS_WEB_APP_URL;
@@ -892,11 +907,9 @@
       currentTarif = localTarif ? Number(localTarif) : 4000;
       document.getElementById("settingsTarifLabel").innerText = formatRupiah(currentTarif) + " / KM";
 
-      if (localOrders.length === 0 && deletedIds.length === 0) {
-        localOrders = getDefaultDummyOrders();
-      }
-      
+      // HAPUS TEMPLATE SITI RAHMA. Jika kosong, biarkan kosong.
       ordersData = localOrders.filter(o => !deletedIds.includes(o["ID Pesanan"]));
+      
       checkUnsyncedData(ordersData.filter(o => o._synced === false));
       renderDashboardAndHistory();
       checkAutoOpenOrder();
@@ -1032,29 +1045,6 @@
       renderDashboardAndHistory();
     }
 
-    function getDefaultDummyOrders() {
-      const dummy = [
-        {
-          "ID Pesanan": "KURIR-20260927-1011",
-          "Timestamp": "2026-09-27 10:30:00",
-          "Tanggal": "27/09/2026 10:30",
-          "Nama Pelanggan": "Siti Rahma",
-          "Nomor HP": "081987654321",
-          "Alamat Jemput": "Jl. Melati No. 5",
-          "Alamat Tujuan": "Mall Grand Indonesia",
-          "Catatan": "Dokumen penting",
-          "Jarak KM": 6.5,
-          "Estimasi Menit": 20,
-          "Tarif per KM": 4000,
-          "Total Ongkos": 26000,
-          "Status": "Menunggu",
-          "_synced": true
-        }
-      ];
-      localStorage.setItem("kurir_orders", JSON.stringify(dummy));
-      return dummy;
-    }
-
     function renderDashboardAndHistory() {
       let displayOrders = ordersData;
 
@@ -1183,7 +1173,10 @@
       if (order) {
         showDetail(order);
       } else {
-        showToast("Peringatan", "Data pesanan tidak ditemukan.", "warning");
+        // Hanya beri peringatan jika bukan dari link langsung yang masih butuh sync
+        if (!autoOpenOrderId) {
+          showToast("Peringatan", "Data pesanan tidak ditemukan.", "warning");
+        }
       }
     }
 
@@ -1252,7 +1245,7 @@
       const mapTujuanUrl = `https://maps.google.com/?q=${encodeURIComponent(order["Alamat Tujuan"])}`;
 
       document.getElementById("modalMapNavContainer").innerHTML = `
-        <div class="grid grid-cols-2 gap-3 mt-4 mb-5">
+        <div class="grid grid-cols-2 gap-3 mt-4 mb-4">
           <a href="${mapJemputUrl}" target="_blank" class="bg-white border border-indigo-100 text-indigo-700 font-bold py-3 px-2 rounded-2xl text-[12px] flex items-center justify-center space-x-2 hover:bg-indigo-50 transition shadow-sm">
             <i class="fa-solid fa-map-pin text-indigo-500"></i>
             <span>Penjemputan</span>
@@ -1281,13 +1274,13 @@
           </button>`;
       }
 
+      const baseUrl = window.location.href.split('?')[0];
+      const rawPhone = (order["Nomor HP"] || "").replace(/\D/g, '');
+      const linkCustomerOrder = `${baseUrl}?mode=order&phone=${rawPhone}&order=${order["ID Pesanan"]}`;
+
       if (!isCustomerMode) {
         const customerWa = formatPhoneNumber(order['Nomor HP']);
         const shareText = generateWaText(order["ID Pesanan"], order["Nama Pelanggan"], order["Nomor HP"], order["Alamat Jemput"], order["Alamat Tujuan"], order["Jarak KM"], order["Total Ongkos"], order["Status"]);
-        
-        const baseUrl = window.location.href.split('?')[0];
-        const rawPhone = (order["Nomor HP"] || "").replace(/\D/g, '');
-        const linkCustomerOrder = `${baseUrl}?mode=order&phone=${rawPhone}`;
         
         const confirmWaText = `Halo *{nama}*, saya Driver Kurir Express. Saya ingin mengkonfirmasi pesanan penjemputan paket di *{jemput}*. Apakah titik lokasinya sudah sesuai?\n\n🔗 *Link Khusus Pesan Kurir Untuk Anda:*\n{linkOrder}`
           .replace(/{nama}/g, order["Nama Pelanggan"])
@@ -1297,7 +1290,18 @@
         const waButtonLabel = currentStatus === "Selesai" ? "Kirim Resi Selesai (WA)" : `Kirim Status (${currentStatus}) WA`;
 
         shareContainer.innerHTML = `
-          <div class="flex items-center justify-center space-x-2 mb-4">
+          <!-- KOLOM LINK KHUSUS CUSTOMER (UNTUK DRIVER) -->
+          <div class="mb-4">
+            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5"><i class="fa-solid fa-link"></i> Link Resi & Lacak Pesanan</label>
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-1.5 pl-3 flex items-center justify-between">
+                <input type="text" readonly value="${linkCustomerOrder}" class="bg-transparent text-[11px] text-slate-500 w-full outline-none font-mono" id="copyLinkInput">
+                <button onclick="copyToClipboard('${linkCustomerOrder}')" class="text-indigo-600 bg-indigo-100 hover:bg-indigo-200 px-3 py-2 rounded-lg text-[10px] font-bold transition ml-2 whitespace-nowrap shadow-sm">
+                    <i class="fa-regular fa-copy"></i> Salin
+                </button>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-center space-x-2 mb-4 border-t border-slate-100 pt-4">
             <i class="fa-solid fa-circle-check ${statusIconColor} text-[18px]"></i>
             <span class="${statusColor} font-bold text-[15px]">Pesanan ${currentStatus}</span>
           </div>
@@ -1320,7 +1324,7 @@
         const confirmToDriverText = `Halo Driver, saya ingin mengkonfirmasi pesanan saya dengan ID: *{id}*.`.replace(/{id}/g, order["ID Pesanan"]);
         
         shareContainer.innerHTML = `
-          <div class="flex items-center justify-center space-x-2 mb-4">
+          <div class="flex items-center justify-center space-x-2 mb-4 pt-1">
             <i class="fa-solid fa-circle-check ${statusIconColor} text-[18px]"></i>
             <span class="${statusColor} font-bold text-[15px]">Pesanan ${currentStatus}</span>
           </div>
