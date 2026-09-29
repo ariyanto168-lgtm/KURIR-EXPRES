@@ -120,7 +120,7 @@
           </div>
           <div>
             <h4 class="font-bold text-xs">Broadcast Link Order Umum</h4>
-            <p class="text-[10px] text-emerald-100">URL bersih tanpa data & nomor terikat</p>
+            <p class="text-[10px] text-emerald-100">URL bersih khusus pendaftaran pelanggan baru</p>
           </div>
         </div>
         <button onclick="shareCleanBroadcastLink()" class="bg-white text-emerald-700 font-extrabold text-xs px-3.5 py-2.5 rounded-2xl shadow hover:bg-emerald-50 transition active:scale-95 shrink-0">
@@ -536,7 +536,7 @@
 
     <!-- Version Footer -->
     <div class="text-center py-2 text-[10px] text-slate-500 font-medium tracking-wide">
-      v3.46 (Clean Broadcast Order Link Edition) • Powered by Ari GPM
+      v3.48 (Broadcast Link Registration Reset Edition) • Powered by Ari GPM
     </div>
 
   </main>
@@ -566,22 +566,22 @@
   </div>
 
   <!-- INVOICE / E-RECEIPT MODAL -->
-  <div id="invoiceModal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-white/10 w-full max-w-sm rounded-[2.5rem] p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+  <div id="invoiceModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[70] hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-emerald-500/40 w-full max-w-sm rounded-[2.5rem] p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b pb-3 border-white/10">
-        <h3 class="font-bold text-white text-base">Nota Digital (Invoice)</h3>
+        <h3 class="font-bold text-white text-base flex items-center"><i class="fa-solid fa-receipt mr-2 text-emerald-400"></i> Nota Digital (Invoice)</h3>
         <button onclick="closeInvoiceModal()" class="text-slate-400 hover:text-white text-xl leading-none"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div id="invoiceContent" class="bg-white text-slate-900 p-5 rounded-3xl shadow-xl space-y-3 font-sans text-xs"></div>
       <div class="flex space-x-2">
-        <button onclick="window.print()" class="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:opacity-95 text-white font-bold py-3 rounded-2xl text-xs transition shadow-lg shadow-indigo-500/25">Cetak / Simpan Nota</button>
+        <button onclick="window.print()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:opacity-95 text-white font-bold py-3 rounded-2xl text-xs transition shadow-lg shadow-emerald-500/25"><i class="fa-solid fa-print mr-1"></i> Cetak / Simpan Nota</button>
         <button onclick="closeInvoiceModal()" class="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-3 rounded-2xl text-xs transition border border-white/10">Tutup</button>
       </div>
     </div>
   </div>
 
   <!-- CUSTOM TOAST MODAL -->
-  <div id="customToastModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <div id="customToastModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[80] hidden flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-white/10 w-full max-w-xs rounded-[2.5rem] p-6 shadow-2xl text-center space-y-4">
       <div id="toastIconContainer" class="w-14 h-14 rounded-3xl flex items-center justify-center mx-auto text-xl font-bold bg-indigo-500/20 text-indigo-400 shadow-inner">
         <i id="toastIcon" class="fa-solid fa-bell"></i>
@@ -791,11 +791,12 @@
       }
     }
 
-    // FUNGSI SHARE BROADCAST URL MURNI BERSIH TANPA PARAMETER
+    // FUNGSI SHARE BROADCAST URL DENGAN PARAMETER PEMBERSIH CACHE (broadcast=1)
     function shareCleanBroadcastLink() {
       const cleanUrl = window.location.href.split('?')[0];
+      const broadcastUrl = cleanUrl + "?broadcast=1";
       const driverName = localStorage.getItem("driver_name") || "Ari GPM";
-      const text = `Halo! Ingin kirim paket cepat & aman bersama *${driverName}*?\n\nSilakan buat pesanan melalui link portal kami di bawah ini:\n🔗 ${cleanUrl}\n\nTerima kasih!`;
+      const text = `Halo! Ingin kirim paket cepat & aman bersama *${driverName}*?\n\nSilakan buat pesanan melalui link portal kami di bawah ini:\n🔗 ${broadcastUrl}\n\nTerima kasih!`;
       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
     }
 
@@ -922,7 +923,7 @@
         <div class="space-y-1 py-1 text-slate-700">
           <div class="flex justify-between"><span class="font-semibold">ID Transaksi:</span> <span class="font-mono font-bold">${order["ID Pesanan"]}</span></div>
           <div class="flex justify-between"><span class="font-semibold">Tanggal:</span> <span>${order["Tanggal"] || order["Timestamp"]}</span></div>
-          <div class="flex justify-between"><span class="font-semibold">Pelanggan:</span> <span class="font-bold">${order["Nama Pelanggan"]} (CS: ${order["CS ID"] || order["Nomor HP"]})</span></div>
+          <div class="flex justify-between"><span class="font-semibold">Pelanggan:</span> <span class="font-bold">${order["Nama Pelanggan"]} (HP: ${order["Nomor HP"]})</span></div>
           <div class="flex justify-between"><span class="font-semibold">Kurir:</span> <span>${driverName} (${driverVehicle})</span></div>
         </div>
         <div class="border-t border-b border-slate-200 py-2 space-y-1 text-slate-700">
@@ -963,6 +964,12 @@
     window.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
       
+      // Jika mendeteksi parameter broadcast=1, hapus cache akun pelanggan sebelumnya agar bersih total untuk pelanggan baru
+      if (urlParams.has('broadcast')) {
+        localStorage.removeItem("kurir_customer_account");
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+
       const encodedData = urlParams.get('data');
       if (encodedData) {
         try {
@@ -981,7 +988,6 @@
       const roleParam = urlParams.get('role');
       const orderParam = urlParams.get('order');
 
-      // Cek apakah ini mode customer (pelanggan umum atau via link resi khusus)
       const savedCustAcc = JSON.parse(localStorage.getItem("kurir_customer_account") || "{}");
       const isRegistered = savedCustAcc.name && savedCustAcc.phone;
 
@@ -989,11 +995,9 @@
         isCustomerMode = false;
         customerPhone = "";
       } else if (orderParam || !isRegistered) {
-        // Jika membuka link resi khusus order ATAU belum pernah daftar sama sekali
         isCustomerMode = true;
         customerPhone = savedCustAcc.phone || "";
       } else {
-        // Jika dibuka dari link broadcast bersih murni dan sudah terdaftar
         isCustomerMode = true;
         customerPhone = savedCustAcc.phone || "";
       }
@@ -1389,7 +1393,7 @@
                   <div class="space-y-0.5 min-w-0 pr-2">
                     <div class="flex items-center space-x-2">
                       <span class="font-bold text-white text-xs truncate">${o["Nama Pelanggan"]}</span>
-                      <span class="text-[9px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-mono">CS: ${o["CS ID"] || 'Umum'}</span>
+                      <span class="text-[9px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-mono">HP: ${o["Nomor HP"]}</span>
                     </div>
                     <p class="text-[10px] text-slate-400 truncate">Jemput: ${o["Alamat Jemput"]}</p>
                   </div>
@@ -1448,7 +1452,7 @@
             <tr class="border-b border-white/5 hover:bg-white/5 cursor-pointer" onclick="showDetailById('${safeId}')">
               <td class="p-3 align-top">
                 <div class="font-bold text-white text-xs mb-1">${o["Nama Pelanggan"]}</div>
-                <div class="text-[9px] text-emerald-300 bg-emerald-500/10 px-1.5 py-0.5 rounded inline-block mb-1 font-mono">CS: ${o["CS ID"] || 'Umum'}</div>
+                <div class="text-[9px] text-emerald-300 bg-emerald-500/10 px-1.5 py-0.5 rounded inline-block mb-1 font-mono">HP: ${o["Nomor HP"]}</div>
                 <div class="text-[9px] text-slate-400 font-mono">${o["ID Pesanan"]}</div>
               </td>
               <td class="p-3 align-top space-y-1">
@@ -1541,7 +1545,7 @@
       content.innerHTML = `
         <div class="space-y-1.5 text-xs text-slate-300 border-t border-b border-white/10 py-2.5">
           <div class="flex justify-between"><span class="font-bold text-slate-400">ID Pesanan:</span> <span class="font-mono text-white">${order["ID Pesanan"]}</span></div>
-          <div class="flex justify-between"><span class="font-bold text-slate-400">CS Pengelola:</span> <span class="text-emerald-300 font-bold">${order["CS ID"] || 'Umum'}</span></div>
+          <div class="flex justify-between"><span class="font-bold text-slate-400">No. HP Pelanggan:</span> <span class="text-emerald-300 font-bold">${order["Nomor HP"]}</span></div>
           <div class="flex justify-between"><span class="font-bold text-slate-400">Tanggal:</span> <span class="text-white">${order["Tanggal"] || order["Timestamp"]}</span></div>
           <div class="flex justify-between"><span class="font-bold text-slate-400">Pelanggan:</span> <span class="text-white">${order["Nama Pelanggan"]}</span></div>
           <div class="flex justify-between"><span class="font-bold text-slate-400">Kategori:</span> <span class="text-emerald-300 font-bold">${order["Kategori"] || 'Paket Umum'}</span></div>
